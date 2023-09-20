@@ -6,3 +6,7 @@ function adminQuizCreate (authUserId, name, description) {
 function adminQuizRemove(authUserId, quizId) {
     return { }
 }
+
+function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+    return { }
+}
