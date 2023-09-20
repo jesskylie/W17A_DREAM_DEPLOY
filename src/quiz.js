@@ -18,15 +18,15 @@ function adminQuizNameUpdate (authUserId, quizId, name) {
     return {};
 }
 
-function adminQuizList (authUserId ) {
-    return 
-    { quizzes: [
+function adminQuizList (authUserId) {
+    return { 
+        quizzes: [
             {
                 quizId: 1,
                 name: 'My Quiz',
             }
         ] 
-    }
+    };
 }
 
 
