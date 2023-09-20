@@ -35,5 +35,10 @@ function adminQuizList (authUserId ) {
 
 function adminQuizRemove(authUserId, quizId) {
     return { };
+}
+
+function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+    return { };
 
 }
+
