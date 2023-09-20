@@ -26,7 +26,7 @@ function adminQuizList (authUserId ) {
                 name: 'My Quiz',
             }
         ] 
-    }
+    };
 }
 
 
