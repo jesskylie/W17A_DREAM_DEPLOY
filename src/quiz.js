@@ -19,19 +19,15 @@ function adminQuizNameUpdate (authUserId, quizId, name) {
 }
 
 function adminQuizList (authUserId ) {
+    return 
+    { quizzes: [
+        {
+            quizId: 1,
+            name: 'My Quiz',
+        }
+    ] 
+}
 
-    return {
-        quizzes: [
-            {
-              quizId: 1,
-              name: 'My Quiz',
-            }
-        ] 
-    }  
-}
-        ]
-    }
-}
 
 function adminQuizRemove(authUserId, quizId) {
     return { };
