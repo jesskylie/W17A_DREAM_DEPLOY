@@ -1,5 +1,3 @@
-function adminUserDetails (authUserId) {
-
 function adminQuizInfo(authUserId, quizId) {
     return {
         quizId: 1,
