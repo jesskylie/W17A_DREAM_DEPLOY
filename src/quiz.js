@@ -3,3 +3,7 @@ function adminQuizCreate (authUserId, name, description) {
         quizId: 2
     };
 }
+
+function adminQuizNameUpdate (authUserId, quizId, name) {
+    return {};
+}
