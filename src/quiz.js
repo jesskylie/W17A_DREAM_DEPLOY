@@ -15,6 +15,10 @@ function adminQuizCreate (authUserId, name, description) {
     };
 }
 
+function adminQuizNameUpdate (authUserId, quizId, name) {
+    return {};
+}
+
 function adminQuizRemove(authUserId, quizId) {
     return { };
 
