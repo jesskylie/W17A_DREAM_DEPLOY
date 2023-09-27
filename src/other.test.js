@@ -6,3 +6,4 @@ describe('testing clear', () => {
       expect(clear()).toStrictEqual({});
     });
 });
+
