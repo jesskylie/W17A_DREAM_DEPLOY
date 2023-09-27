@@ -7,12 +7,63 @@ import {
     adminQuizDescriptionUpdate,
   } from './quiz.js';
 
+import {
+    adminAuthRegister,
+    adminAuthLogin,
+    adminUserDetails,
+} from './auth.js';
+
 import { clear } from './other.js';
 
 beforeEach(() => {
     clear();
 });
 
+describe('Testing adminQuizInfo', () => {
+  test ('Valid input', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const QuizOne = adminQuizCreate(JackUser, 'Jack', 'this is my first quiz');
+    expect(adminQuizInfo(JackUser, QuizOne)).toStrictEqual({
+      quizId: QuizOne.quizId,
+      name: QuizOne.name,
+      timeCreated: QuizOne.timeCreated,
+      timeLastEdited: QuizOne.timeLastEdited,
+      description: QuizOne.description,
+    });
+    
+    const QuizTwo = adminQuizCreate(JackUser, 'Jack', 'this is my second quiz');
+    expect(adminQuizInfo(JackUser, QuizTwo)).toStrictEqual({
+      quizId: QuizTwo.quizId,
+      name: QuizTwo.name,
+      timeCreated: QuizTwo.timeCreated,
+      timeLastEdited: QuizTwo.timeLastEdited,
+      description: QuizTwo.description,
+    });
+  });
+  
+  test ('AuthUserId is not a valid user', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const QuizOne = adminQuizCreate(JackUser, 'Jack', 'different quiz');
+    expect (adminQuizInfo('', QuizOne)).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizInfo('Angel', QuizOne)).toStrictEqual( {error: expect.any(String)} );
+  });
+  
+  test ('Quiz ID does not refer to a valid quiz', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const QuizOne = adminQuizCreate(JackUser, 'Jack', 'different quiz');
+    expect (adminQuizInfo(JackUser, '')).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizInfo(JackUser, 'S')).toStrictEqual( {error: expect.any(String)} );
+  });
+  
+  test ('Quiz ID does not refer to a quiz that this user owns', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const JacksQuiz = adminQuizCreate(JackUser, 'Jack', 'Jacks quiz');
+    const TonyUser = adminAuthRegister('tony@hotmail.com', 'ab123456b', 'Tony', 'Stark');
+    const TonyQuiz = adminQuizCreate(TonyUser, 'Jack', 'Tonys quiz');
+    expect (adminQuizInfo(JackUser, TonyQuiz)).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizInfo(TonyUser, JacksQuiz)).toStrictEqual( {error: expect.any(String)} );
+  });
+});
 
 describe ('Testing adminQuizRemove', () => {
     test('Correct input', () => {
