@@ -55,7 +55,7 @@ describe('Testing adminQuizCreate', () => {
    
     test('Test Invalid Auth User ID', () => {
       const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-      const quizId = adminQuizCreate('111111', 'Saarthak', description);
+      const quizId = adminQuizCreate('-111111', 'Saarthak', description);
       expect(quizId).toStrictEqual({error: expect.any(String)});
       });
     
