@@ -9,7 +9,7 @@ let data = {
       password: "Password123456",
       numSuccessfulLogins: 2,
       numFailedPasswordsSinceLastLogin: 0,
-      quizid: [1],
+      quizId: [1],
     },
     {
       userId: 2,
@@ -19,7 +19,7 @@ let data = {
       password: "TestPass1234",
       numSuccessfulLogins: 1,
       numFailedPasswordsSinceLastLogin: 3,
-      quizid: [1, 2],
+      quizId: [1, 2],
     },
     {
       userId: 3,
@@ -29,12 +29,12 @@ let data = {
       password: "CheckNow1234",
       numSuccessfulLogins: 4,
       numFailedPasswordsSinceLastLogin: 2,
-      quizid: [],
+      quizId: [],
     },
   ],
   quizzes: [
     {
-      quizid: 1,
+      quizId: 1,
       name: 'quiz1',
       description: "A quiz about the extra curricular activities available at UNSW",
       timeCreated: 1655577887,
@@ -42,7 +42,7 @@ let data = {
       userId: [1, 2],
     },
     {
-      quizid: 2,
+      quizId: 2,
       name: 'quiz2',
       description: "A quiz about the food and drink options available at UNSW",
       timeCreated: 1655577887,
