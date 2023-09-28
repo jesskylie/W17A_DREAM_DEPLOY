@@ -22,8 +22,8 @@ beforeEach(() => {
 describe('Testing adminQuizInfo', () => {
   test ('Valid input', () => {
     const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const QuizOne = adminQuizCreate(JackUser, 'Jack', 'this is my first quiz');
-    expect(adminQuizInfo(JackUser, QuizOne)).toStrictEqual({
+    const QuizOne = adminQuizCreate(JackUser.authUserId, 'Jack', 'this is my first quiz');
+    expect(adminQuizInfo(JackUser.authUserId, QuizOne.quizId)).toStrictEqual({
       quizId: QuizOne.quizId,
       name: QuizOne.name,
       timeCreated: QuizOne.timeCreated,
@@ -31,8 +31,8 @@ describe('Testing adminQuizInfo', () => {
       description: QuizOne.description,
     });
     
-    const QuizTwo = adminQuizCreate(JackUser, 'Jack', 'this is my second quiz');
-    expect(adminQuizInfo(JackUser, QuizTwo)).toStrictEqual({
+    const QuizTwo = adminQuizCreate(JackUser.authUserId, 'Jack', 'this is my second quiz');
+    expect(adminQuizInfo(JackUser.authUserId, QuizTwo.quizId)).toStrictEqual({
       quizId: QuizTwo.quizId,
       name: QuizTwo.name,
       timeCreated: QuizTwo.timeCreated,
@@ -43,81 +43,81 @@ describe('Testing adminQuizInfo', () => {
   
   test ('AuthUserId is not a valid user', () => {
     const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const QuizOne = adminQuizCreate(JackUser, 'Jack', 'different quiz');
-    expect (adminQuizInfo('', QuizOne)).toStrictEqual( {error: expect.any(String)} );
-    expect (adminQuizInfo('Angel', QuizOne)).toStrictEqual( {error: expect.any(String)} );
+    const QuizOne = adminQuizCreate(JackUser.authUserId, 'Jack', 'different quiz');
+    expect (adminQuizInfo('', QuizOne.quizId)).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizInfo('Angel', QuizOne.quizId)).toStrictEqual( {error: expect.any(String)} );
   });
   
   test ('Quiz ID does not refer to a valid quiz', () => {
     const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const QuizOne = adminQuizCreate(JackUser, 'Jack', 'different quiz');
-    expect (adminQuizInfo(JackUser, '')).toStrictEqual( {error: expect.any(String)} );
-    expect (adminQuizInfo(JackUser, 'S')).toStrictEqual( {error: expect.any(String)} );
+    const QuizOne = adminQuizCreate(JackUser.quizId, 'Jack', 'different quiz');
+    expect (adminQuizInfo(JackUser.authUserId, '')).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizInfo(JackUser.authUserId, 'S')).toStrictEqual( {error: expect.any(String)} );
   });
   
   test ('Quiz ID does not refer to a quiz that this user owns', () => {
     const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const JacksQuiz = adminQuizCreate(JackUser, 'Jack', 'Jacks quiz');
+    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
     const TonyUser = adminAuthRegister('tony@hotmail.com', 'ab123456b', 'Tony', 'Stark');
-    const TonyQuiz = adminQuizCreate(TonyUser, 'Jack', 'Tonys quiz');
-    expect (adminQuizInfo(JackUser, TonyQuiz)).toStrictEqual( {error: expect.any(String)} );
-    expect (adminQuizInfo(TonyUser, JacksQuiz)).toStrictEqual( {error: expect.any(String)} );
+    const TonyQuiz = adminQuizCreate(TonyUser.quizId, 'Jack', 'Tony quiz');
+    expect (adminQuizInfo(JackUser.authUserId, TonyQuiz.quizId)).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizInfo(TonyUser.authUserId, JacksQuiz.quizId)).toStrictEqual( {error: expect.any(String)} );
   });
 });
 
 describe('Testing adminQuizCreate', () => {
     test('Test Valid Auth User ID', () => {
-      const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-      const quizId = adminQuizCreate(authUserId, 'Saarthak', description);
+      const NewUser = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
+      const quizId = adminQuizCreate(NewUser.authUserId, 'Saarthak', 'description');
       expect(quizId).toStrictEqual({quizId: expect.any(Number)});
     });
    
     test('Test Invalid Auth User ID', () => {
       const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-      const quizId = adminQuizCreate('-111111', 'Saarthak', description);
+      const quizId = adminQuizCreate('-111111', 'Saarthak', 'description');
       expect(quizId).toStrictEqual({error: expect.any(String)});
       });
     
     test('Test Valid Name', () => {
-      const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-      const quizId = adminQuizCreate(authUserId, 'Saarthak', description);
+      const NewUser = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
+      const quizId = adminQuizCreate(NewUser.authUserId, 'Saarthak', 'description');
         expect(quizId).toStrictEqual({quizId: expect.any(Number)});
       });
     
       test('Test Invalid Name', () => {
-        const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-        const quizId = adminQuizCreate(authUserId, '???!!!', description);
+        const NewUser = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
+        const quizId = adminQuizCreate(NewUser.authUserId, '???!!!', 'description');
         expect(quizId).toStrictEqual({error: expect.any(String)});
       });
 
       test('Test Invalid Samll Name Size', () => {
-        const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-        const quizId = adminQuizCreate(authUserId, 'ai', description);
+        const NewUser = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
+        const quizId = adminQuizCreate(NewUser.authUserId, 'ai', 'description');
         expect(quizId).toStrictEqual({error: expect.any(String)});
       });
       
       test('Test Invalid Large Name Size', () => {
-        const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-        const quizId = adminQuizCreate(authUserId, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', description);
+        const NewUser = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
+        const quizId = adminQuizCreate(NewUser.authUserId, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', description);
         expect(quizId).toStrictEqual({error: expect.any(String)});
       });
 
       test('Test Invalid Repeated Name', () => {
-        const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-        const quizId = adminQuizCreate(authUserId, 'Saarthak', description);
-        const quizId2 = adminQuizCreate(authUserId, 'Saarthak', description);
+        const NewUser = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
+        const quizId = adminQuizCreate(NewUser.authUserId, 'Saarthak', 'description');
+        const quizId2 = adminQuizCreate(NewUser.authUserId, 'Saarthak', 'description');
         expect(quizId2).toStrictEqual({error: expect.any(String)});
       });
     
       test('Test Valid Description', () => {
-        const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-        const quizId = adminQuizCreate(authUserId, 'Saarthak', '');
+        const NewUser = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
+        const quizId = adminQuizCreate(NewUser.authUserId, 'Saarthak', '');
         expect(quizId).toStrictEqual({quizId: expect.any(Number)});
       });
 
       test('Test Invalid Description', () => {
-        const authUserId = adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
-        const quizId = adminQuizCreate(authUserId, 'Saarthak', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        const NewUser= adminAuthRegister('email@gamil.com', 'password', 'Saarthak', 'Sinha');
+        const quizId = adminQuizCreate(NewUser.authUserId, 'Saarthak', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
         expect(quizId).toStrictEqual({error: expect.any(String)});
       });
 });
@@ -125,8 +125,8 @@ describe('Testing adminQuizCreate', () => {
 describe ('Testing adminQuizRemove', () => {
   test('Correct input', () => {
       const NewUser = adminAuthRegister('jess@hotmail.com', '123456ab', 'Jess', 'Tran');
-      const QuizId = adminQuizCreate(NewUser, 'Jess', 'description');
-      expect(adminQuizRemove(NewUser, QuizId)).toStrictEqual({});
+      const QuizId = adminQuizCreate(NewUser.authUserId, 'Jess', 'description');
+      expect(adminQuizRemove(NewUser.authUserId, QuizId.quizId)).toStrictEqual({});
   });
   
   test ('Empty input', () => {
@@ -135,34 +135,47 @@ describe ('Testing adminQuizRemove', () => {
   
   test ('Invalid AuthUserId', () => {
       const NewUser = adminAuthRegister('jess@hotmail.com', '123456ab', 'Jess', 'Tran');
-      const QuizId = adminQuizCreate(NewUser, 'Jess', 'description');
-      expect(adminQuizRemove('abc', QuizId)).toStrictEqual({ error: expect.any(String) });
+      const QuizId = adminQuizCreate(NewUser.authUserId, 'Jess', 'description');
+      expect(adminQuizRemove('abc', QuizId.quizId)).toStrictEqual({ error: expect.any(String) });
   });
   
   test ('Invalid QuizId', () => {
       const NewUser = adminAuthRegister('jess@hotmail.com', '123456ab', 'Jess', 'Tran');
-      const QuizId = adminQuizCreate(NewUser, 'Jess', 'description');
-      expect(adminQuizRemove(NewUser, 'abc')).toStrictEqual({ error: expect.any(String) });
+      const QuizId = adminQuizCreate(NewUser.authUserId, 'Jess', 'description');
+      expect(adminQuizRemove(NewUser.authUserId, 'abc')).toStrictEqual({ error: expect.any(String) });
   });
   
   test ('QuizId does not refer to a quiz that this user owns', () => {
       const JessUser = adminAuthRegister('jess@hotmail.com', '123456ab', 'Jess', 'Tran');
       const AdamUser = adminAuthRegister('adam@hotmail.com', 'ab123456', 'Adam', 'Lee');
-      const JessQuizId = adminQuizCreate(NewUser, 'Jess', 'description');
-      const AdamQuizId = adminQuizCreate(NewUser, 'Jess', 'description');
-      expect(adminQuizRemove(JessUser, AdamQuizId)).toStrictEqual({ error: expect.any(String) });
+      const JessQuizId = adminQuizCreate(JessUser.authUserId, 'Jess', 'description');
+      const AdamQuizId = adminQuizCreate(AdamUser.authUserId, 'Jess', 'description');
+      expect(adminQuizRemove(JessUser.authUserId, AdamQuizId.quizId)).toStrictEqual({ error: expect.any(String) });
   });    
 });
 
 describe('Testing adminQuizList', () => {
   test('Test Valid Auth User ID', () => {
-    const authUserId = adminAuthRegister('Belinda@gamil.com', 'password', 'Belinda', 'Wong');
-    const quizzes = adminQuizList(authUserId);
-    expect(quizzes).toStrictEqual({quizzes: expect.any(String)});
+    const NewUser = adminAuthRegister('Belinda@gamil.com', 'password', 'Belinda', 'Wong');
+    const Quiz1 = adminQuizCreate(NewUser.authUserId, 'Jess', 'description');
+    const Quiz2 = adminQuizCreate(NewUser.authUserId, 'Jess', 'description');
+    const quizzes = adminQuizList(NewUser.authUserId);
+    expect(quizzes).toStrictEqual({
+      quizzes: [
+        {
+          quizId: Quiz1.quizId,
+          name: Quiz1.name, 
+        },
+        {
+          quizId: Quiz2.quizId,
+          name: Quiz2.name, 
+        },
+      ]
+    });
   });
  
   test('Test Invalid Auth User ID', () => {
-    const quizzes = adminQuizCreate('-111111');
+    const quizzes = adminQuizList('-111111');
     expect(quizzes).toStrictEqual({error: expect.any(String)});
     });
 });
