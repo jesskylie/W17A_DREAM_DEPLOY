@@ -181,6 +181,13 @@ describe('Testing adminQuizList', () => {
 });
 
 describe('Testing AdminQuizNameUpdate', () => {
+
+  test('Admin quiz name updated successfully', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
+    expect (adminQuizNameUpdate(JackUser.authUserId, JackQuiz.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
+
+  });
   test ('AuthUserId is not a valid user', () => {
     const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
     const QuizOne = adminQuizCreate(JackUser.authUserId, 'Jack', 'different quiz');
