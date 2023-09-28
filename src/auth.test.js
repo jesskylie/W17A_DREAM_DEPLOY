@@ -33,7 +33,7 @@ beforeEach(() => {
 describe ('Testing adminAuthRegister', () => {
 
     test ('Valid: Admin registered' , () => {
-        expect(adminAuthRegister('any@gmail.com', '1234PassWord', 'gul','Jain').toStrictEqual({ authUserId: expect.any(Number)} ));
+        expect(adminAuthRegister('any@gmail.com', '1234PassWord', 'gul','Jain').adminUserId).toStrictEqual({ authUserId: expect.any(Number)});
     });
     test ('Invalid: NameFirst cannot contain numbers', () => {
         expect(adminAuthRegister('any@gmail.com', '1234Password', 'gul01', 'Surname')).toStrictEqual({error: expect.any(string)});        
