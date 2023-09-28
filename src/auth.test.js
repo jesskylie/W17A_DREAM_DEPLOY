@@ -1,3 +1,4 @@
+// This is a test message for pull everything in testMaster to local
 import {
     adminAuthRegister,
     adminAuthLogin,
