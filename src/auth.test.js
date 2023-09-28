@@ -1,4 +1,4 @@
-// This is a test message for pull everything in testMaster to local
+// This is a test message for pull everything in testMaster to local vscode
 import {
     adminAuthRegister,
     adminAuthLogin,
