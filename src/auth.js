@@ -100,8 +100,6 @@ export function adminAuthLogin(email, password) {
     }
   }
 
-  console.log("data ->", data);
-
   return {
     authUserId: authUserId,
   };
