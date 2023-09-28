@@ -10,3 +10,5 @@ export function clear() {
     
     return {};
 }
+
+export { clear }
