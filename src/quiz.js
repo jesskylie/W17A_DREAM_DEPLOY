@@ -1,4 +1,4 @@
-function adminQuizInfo(authUserId, quizId) {
+export function adminQuizInfo(authUserId, quizId) {
     return {
         quizId: 1,
         name: 'My Quiz',
@@ -8,17 +8,17 @@ function adminQuizInfo(authUserId, quizId) {
     };
 }
 
-function adminQuizCreate (authUserId, name, description) {
+export function adminQuizCreate (authUserId, name, description) {
     return {
         quizId: 2
     };
 }
 
-function adminQuizNameUpdate (authUserId, quizId, name) {
+export function adminQuizNameUpdate (authUserId, quizId, name) {
     return {};
 }
 
-function adminQuizList (authUserId) {
+export function adminQuizList (authUserId) {
     return { 
         quizzes: [
             {
@@ -30,11 +30,11 @@ function adminQuizList (authUserId) {
 }
 
 
-function adminQuizRemove(authUserId, quizId) {
+export function adminQuizRemove(authUserId, quizId) {
     return { };
 }
 
-function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
     return { };
 
 }
