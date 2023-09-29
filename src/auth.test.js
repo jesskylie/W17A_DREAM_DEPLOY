@@ -137,27 +137,80 @@ describe("Testing adminAuthRegister", () => {
 
 describe("Testing adminUserDetails", () => {
   test("Test Valid Auth User ID", () => {
-    const NewUser = adminAuthRegister(
-      "jess@hotmail.com",
-      "123456ab",
-      "Jess",
-      "Tran"
-    );
-    const user = adminUserDetails(NewUser.authUserId);
-    expect(user).toStrictEqual({
+    const NewUser = adminAuthRegister("jess@gmail.com", "1234PassWord", "Jess", "Tran");
+    const NewUser2 = adminAuthRegister("angel@gmail.com", "1234PassWord", "Angel", "Tran");
+    const result = {
       user: {
-        userId: NewUser.authUserId,
-        name: NewUser.name,
-        email: NewUser.email,
-        numSuccessfulLogins: NewUser.numSuccessfulLogins,
-        numFailedPasswordsSinceLastLogin:
-          NewUser.numFailedPasswordsSinceLastLogin,
+        userId: 0,
+        name: 'Jess Tran',
+        email: 'jess@gmail.com',
+        numSuccessfulLogins: 1,
+        numFailedPasswordsSinceLastLogin: 0,
       },
-    });
+    };
+    const result2 = {
+      user: {
+        userId: 1,
+        name: 'Angel Tran',
+        email: 'angel@gmail.com',
+        numSuccessfulLogins: 1,
+        numFailedPasswordsSinceLastLogin: 0,
+      },
+    };
+    expect(adminUserDetails(NewUser.authUserId)).toStrictEqual(result);
+    expect(adminUserDetails(NewUser2.authUserId)).toStrictEqual(result2);
   });
-
+  
+  test("Testing successful login attempt update", () => {
+    const NewUser = adminAuthRegister("jess@gmail.com", "1234PassWord", "Jess", "Tran");
+    adminAuthLogin("jess@gmail.com", "1234PassWord");
+    const result = {
+        user: {
+          userId: 0,
+          name: 'Jess Tran',
+          email: 'jess@gmail.com',
+          numSuccessfulLogins: 2,
+          numFailedPasswordsSinceLastLogin: 0,
+        },
+      };
+      expect(adminUserDetails(NewUser.authUserId)).toStrictEqual(result);
+  });
+    
+  test("Testing unsuccessful login attempt update", () => {
+    const NewUser = adminAuthRegister("jess@gmail.com", "1234PassWord", "Jess", "Tran");
+    adminAuthLogin("jess@gmail.com", " ");
+    const result = {
+      user: {
+        userId: 0,
+        name: 'Jess Tran',
+        email: 'jess@gmail.com',
+        numSuccessfulLogins: 1,
+        numFailedPasswordsSinceLastLogin: 1,
+      },
+    };
+    expect(adminUserDetails(NewUser.authUserId)).toStrictEqual(result);
+  });
+  
+  test("Testing unsuccessful login attempt update after logging in successfully", () => {
+    const NewUser = adminAuthRegister("jess@gmail.com", "1234PassWord", "Jess", "Tran");
+      adminAuthLogin("jess@gmail.com", " ");
+      adminAuthLogin("jess@gmail.com", "1234PassWord");
+      const result = {
+        user: {
+          userId: 0,
+          name: 'Jess Tran',
+          email: 'jess@gmail.com',
+          numSuccessfulLogins: 2,
+          numFailedPasswordsSinceLastLogin: 0,
+        },
+      };
+    expect(adminUserDetails(NewUser.authUserId)).toStrictEqual(result);
+  });
+  
   test("Test Invalid Auth User ID", () => {
     const user = adminUserDetails("-234");
     expect(user).toStrictEqual({ error: expect.any(String) });
   });
+  
 });
+
