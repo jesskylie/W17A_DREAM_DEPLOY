@@ -8,34 +8,46 @@ export function adminQuizInfo(authUserId, quizId) {
     };
 }
 
-export function adminQuizCreate (authUserId, name, description) {
+export { adminQuizInfo }
+
+function adminQuizCreate(authUserId, name, description) {
     return {
         quizId: 2
     };
 }
 
-export function adminQuizNameUpdate (authUserId, quizId, name) {
+export { adminQuizCreate }
+
+function adminQuizNameUpdate(authUserId, quizId, name) {
     return {};
 }
 
-export function adminQuizList (authUserId) {
-    return { 
+export { adminQuizNameUpdate }
+
+function adminQuizList(authUserId) {
+    return {
         quizzes: [
             {
                 quizId: 1,
                 name: 'My Quiz',
             }
-        ] 
+        ]
     };
 }
 
+export { adminQuizList }
 
-export function adminQuizRemove(authUserId, quizId) {
-    return { };
+
+function adminQuizRemove(authUserId, quizId) {
+    return {};
 }
 
-export function adminQuizDescriptionUpdate(authUserId, quizId, description) {
-    return { };
+export { adminQuizRemove }
+
+function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+    return {};
 
 }
+
+export { adminQuizDescriptionUpdate }
 
