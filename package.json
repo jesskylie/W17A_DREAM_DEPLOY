@@ -3,8 +3,9 @@
         "test": "jest --testMatch '**/?(*.)+(test).js'"
     },
     "dependencies": {
+        "install": "^0.13.0",
         "rewire": "^6.0.0",
-        "validator": "^13.7.0"
+        "validator": "^13.11.0"
     },
     "devDependencies": {
         "@babel/cli": "^7.22.5",
