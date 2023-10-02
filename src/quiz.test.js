@@ -246,7 +246,7 @@ describe("Testing adminQuizRemove", () => {
 
   test("Empty input", () => {
     expect(adminQuizRemove("", "")).toStrictEqual({
-      error: expect.any(String),
+      error: "AuthUserId and QuizId cannot be empty",
     });
   });
 
@@ -259,7 +259,7 @@ describe("Testing adminQuizRemove", () => {
     );
     const QuizId = adminQuizCreate(NewUser.authUserId, "Jess", "description");
     expect(adminQuizRemove("abc", QuizId.quizId)).toStrictEqual({
-      error: expect.any(String),
+      error: "AuthUserId is not a valid user",
     });
   });
 
@@ -272,7 +272,7 @@ describe("Testing adminQuizRemove", () => {
     );
     const QuizId = adminQuizCreate(NewUser.authUserId, "Jess", "description");
     expect(adminQuizRemove(NewUser.authUserId, "abc")).toStrictEqual({
-      error: expect.any(String),
+      error: "QuizId is not a valid user",
     });
   });
 
@@ -301,7 +301,7 @@ describe("Testing adminQuizRemove", () => {
     );
     expect(
       adminQuizRemove(JessUser.authUserId, AdamQuizId.quizId)
-    ).toStrictEqual({ error: expect.any(String) });
+    ).toStrictEqual({ error: "QuizId does not match authUserId" });
   });
 });
 
