@@ -1,66 +1,57 @@
 ```javascript
 let data = {
-    // TODO: insert your data structure that contains 
-    // users + quizzes here
   users: [
     {
-    uId: 1,
-    nameFirst: 'Saarthak',
-    nameLast: 'Sinha',
-    email: 'saarthak@gmail.com',
-    numSuccessfulLogin: 1,
-    numFailedPasswordsSinceLastLogin: 3,
+      authUserId: 1,
+      nameFirst: "Saarthak",
+      nameLast: "Sinha",
+      email: "saarthak@gmail.com",
+      password: "Password123456",
+      numSuccessfulLogins: 2,
+      numFailedPasswordsSinceLastLogin: 0,
+      quizId: [1],
     },
-
     {
-    uId: 2,
-    nameFirst: 'Jessica',
-    nameLast: 'Tran',
-    email: 'jessica@gmail.com',
-    numSuccessfulLogin: 2,
-    numFailedPasswordsSinceLastLogin: 1,
+      authUserId: 2,
+      nameFirst: "Belinda",
+      nameLast: "Wong",
+      email: "belinda@gmail.com",
+      password: "TestPass1234",
+      numSuccessfulLogins: 1,
+      numFailedPasswordsSinceLastLogin: 3,
+      quizId: [1, 2],
     },
-
     {
-    uId: 3,
-    nameFirst: 'Belinda',
-    nameLast: 'Wong',
-    email: 'belinda@gmail.com',
-    numSuccessfulLogin: 4,
-    numFailedPasswordsSinceLastLogin: 2,
+      authUserId: 3,
+      nameFirst: "Jessica",
+      nameLast: "Tran",
+      email: "jessica@gmail.com",
+      password: "CheckNow1234",
+      numSuccessfulLogins: 4,
+      numFailedPasswordsSinceLastLogin: 2,
+      quizId: [],
     },
-
-    {
-    uId: 4,
-    nameFirst: 'Gul',
-    nameLast: 'Jain',
-    email: 'gul@gmail.com',
-    numSuccessfulLogin: 3,
-    numFailedPasswordsSinceLastLogin: 4,
-    },
-
-  ]
-
+  ],
   quizzes: [
     {
-    quizId: 1
-    name: 'My Quiz'
-    timeCreated: 1655577887
-    timeLasted: 1884723824
-    description: 'This is my quiz',
+      quizId: 1,
+      name: "quiz1",
+      description:
+        "A quiz about the extra curricular activities available at UNSW",
+      timeCreated: 1655577887,
+      timeLastEdited: 1884723824,
+      userId: [1, 2],
     },
-
     {
-    quizId: 2
-    name: 'My Quiz 2'
-    timeCreated: 1655577987
-    timeLasted: 1884723424
-    description: 'This is my quiz 2',
+      quizId: 2,
+      name: "quiz2",
+      description: "A quiz about the food and drink options available at UNSW",
+      timeCreated: 1655577887,
+      timeLastEdited: 1884723824,
+      userId: [2],
     },
+  ],
+};
 
-  ]
-
-}
-```
 
 [Optional] short description: 
