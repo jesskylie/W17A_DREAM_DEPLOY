@@ -37,14 +37,6 @@ describe("Testing adminAuthLogin", () => {
   });
 });
 
-<<<<<<< HEAD
-    test ('Valid: Admin registered' , () => {
-        expect(adminAuthRegister('any@gmail.com', '1234PassWord', 'gul','Jain').adminUserId).toStrictEqual({ authUserId: expect.any(Number)});
-    });
-    test ('Invalid: NameFirst cannot contain numbers', () => {
-        expect(adminAuthRegister('any@gmail.com', '1234Password', 'gul01', 'Surname')).toStrictEqual({error: expect.any(string)});        
-    });
-=======
 describe("Testing adminAuthRegister", () => {
   test("Valid: Admin registered", () => {
     expect(
@@ -54,7 +46,6 @@ describe("Testing adminAuthRegister", () => {
       adminAuthRegister("jess@gmail.com", "1234PassWord", "Jess", "Tran")
     ).toStrictEqual({ authUserId: expect.any(Number) });
   });
->>>>>>> e728efa61b7989545830200fbd559473387801e3
 
   test("Invalid Email address", () => {
     expect(adminAuthRegister("", "1234PassWord", "gul", "Jain")).toStrictEqual({

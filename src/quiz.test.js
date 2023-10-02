@@ -341,7 +341,7 @@ describe('Testing AdminQuizNameUpdate', () => {
   test('Admin quiz name updated successfully', () => {
     const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
     const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
-    expect (adminQuizNameUpdate(JackUser.authUserId, JackQuiz.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
 
   });
   test ('AuthUserId is not a valid user', () => {
@@ -402,7 +402,7 @@ describe('Testing AdminQuizNameUpdate', () => {
     const TonyUser = adminAuthRegister('tony@hotmail.com', 'ab123456b', 'Tony', 'Stark');
     const TonyQuiz = adminQuizCreate(TonyUser.quizId, 'Jack', 'Tony quiz');
  
-    expect (adminQuizNameUpdate(JackUser.authUserId, JackQuiz.quizId, 'Tony')).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, 'Tony')).toStrictEqual( {error: expect.any(String)} );
   });
 });
 
