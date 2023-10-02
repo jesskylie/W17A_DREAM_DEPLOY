@@ -1,13 +1,32 @@
 import { getData, setData } from "./dataStore.js";
 
 function adminQuizInfo(authUserId, quizId) {
-  return {
-    quizId: 1,
-    name: "My Quiz",
-    timeCreated: 1683125870,
-    timeLastEdited: 1683125871,
-    description: "This is my quiz",
-  };
+  const data = getData();
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(data, authUserId, quizId);
+
+  if (authUserId === '' || quizId === '') {
+    return { error: "AuthUserId and QuizId cannot be empty"};
+  }
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
+  if (!isQuizIdValidTest) {
+    return { error: "QuizId is invalid" };
+  }
+  if (!isAuthUserIdMatchQuizIdTest) {
+    return { error: "QuizId does not match authUserId" };
+  }
+
+  let quizInfo = {};
+  for (const check of data.quizzes) {
+    if (check.quizId === quizId) {
+      quizInfo = check;
+    }
+  }
+
+  return quizInfo;
 }
 
 export { adminQuizInfo };
@@ -104,6 +123,39 @@ function adminQuizList(authUserId) {
 export { adminQuizList };
 
 function adminQuizRemove(authUserId, quizId) {
+  let data = getData();
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(data, authUserId, quizId);
+
+  if (authUserId === '' || quizId === '') {
+    return { error: "AuthUserId and QuizId cannot be empty"};
+  }
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
+  if (!isQuizIdValidTest) {
+    return { error: "QuizId is invalid" };
+  }
+  if (!isAuthUserIdMatchQuizIdTest) {
+    return { error: "QuizId does not match authUserId" };
+  }
+  
+  let newdata = data;
+  let userToUpdata = data.users.find(user => user.authUserId === authUserId);
+  data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== quizId);
+  if (userToUpdata) {
+    const indexToRemove = userToUpdata.quizId.indexOf(quizId);
+    if (indexToRemove !== -1) {
+      userToUpdata.quizId.splice(indexToRemove, 1);
+    }
+  }
+  for (const check of newdata.users) {
+    if (newdata.users.authUserId === authUserId) {
+      newdata.users[check] = userToUpdata;
+    }
+  }
+  setData(newdata);
   return {};
 }
 
@@ -234,4 +286,44 @@ function isQuizNameValid(data, name, userId) {
   }
 
   return { result: true };
+}
+
+function isQuizIdValid(data, quizId) {
+  
+  // 1. test for quizId is integer or less than 0
+  if (!Number.isInteger(quizId) || quizId < 0) {
+    return false;
+  }
+
+  // 2. test that quizId exists in dataStore
+  const quizzesArr = data.quizzes;
+  let userIdArr = [];
+  for (const arr of quizzesArr) {
+    if (arr.quizId === quizId) {
+      userIdArr.push(quizId);
+    }
+  }
+  if (userIdArr.length === 1) {
+    return true;
+  }
+  return false;
+
+}
+
+function isAuthUserIdMatchQuizId(data, authUserId, quizId) {
+const usersArr = data.users;
+let userQuizIdArr = [];
+for (const arr of usersArr) {
+  if (arr.authUserId === authUserId) {
+    for (const check of arr.quizId) {
+      if (check === quizId) {
+        userQuizIdArr.push(quizId);
+      }
+    }
+  }
+}
+if (userQuizIdArr.length === 1) {
+  return true;
+}
+return false;
 }
