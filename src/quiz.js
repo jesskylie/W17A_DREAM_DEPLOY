@@ -144,8 +144,12 @@ function isQuizIdValid(quizId) {
 
 function adminQuizList(authUserId) {
   return {
-    quizzes: {quizId: 1, 
-    name: 'My Quiz'}
+    quizzes: [
+      {
+        quizId: 1,
+        name: "My Quiz",
+      },
+    ],
   };
 }
 
