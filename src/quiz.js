@@ -269,16 +269,12 @@ function isQuizNameValid(data, name, userId) {
   const regexMain = /^[a-z\d\s]+$/gim;
   const regexAlpha = /[a-z]/gim;
   const regexNum = /[\d]/gim;
-  const regexAllSpaces = /^[\s]+$/gim;
 
   const regexMainTest = regexMain.test(name);
   const regexAlphaTest = regexAlpha.test(name);
   const regexNumTest = regexNum.test(name);
-  const regexAllSpacesTest = regexAllSpaces.test(name);
 
-  if (
-    !(regexMainTest && regexAlphaTest && regexNumTest && !regexAllSpacesTest)
-  ) {
+  if (!(regexMainTest && regexAlphaTest && regexNumTest)) {
     return {
       result: false,
       error:
