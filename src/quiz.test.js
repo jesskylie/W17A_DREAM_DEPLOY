@@ -30,10 +30,10 @@ describe("Testing adminQuizInfo", () => {
     );
     expect(adminQuizInfo(JackUser.authUserId, QuizOne.quizId)).toStrictEqual({
       quizId: QuizOne.quizId,
-      name: QuizOne.name,
+      name: "Jack",
       timeCreated: QuizOne.timeCreated,
       timeLastEdited: QuizOne.timeLastEdited,
-      description: QuizOne.description,
+      description: "this is my first quiz",
     });
 
     const QuizTwo = adminQuizCreate(
@@ -77,7 +77,7 @@ describe("Testing adminQuizInfo", () => {
       "Jack",
       "Harlow"
     );
-    const QuizOne = adminQuizCreate(JackUser.quizId, "Jack", "different quiz");
+    const QuizOne = adminQuizCreate(JackUser.authUserId, "Jack", "different quiz");
     expect(adminQuizInfo(JackUser.authUserId, "")).toStrictEqual({
       error: "AuthUserId and QuizId cannot be empty",
     });
@@ -93,14 +93,14 @@ describe("Testing adminQuizInfo", () => {
       "Jack",
       "Harlow"
     );
-    const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+    const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
     const TonyUser = adminAuthRegister(
       "tony@hotmail.com",
       "ab123456b",
       "Tony",
       "Stark"
     );
-    const TonyQuiz = adminQuizCreate(TonyUser.quizId, "Jack", "Tony quiz");
+    const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
     expect(adminQuizInfo(JackUser.authUserId, TonyQuiz.quizId)).toStrictEqual({
       error: "QuizId does not match authUserId",
     });
@@ -211,7 +211,7 @@ describe("Testing adminQuizCreate", () => {
       "Sinha"
     );
     const quizId = adminQuizCreate(NewUser.authUserId, "Saarthak", "");
-    expect(quizId).toStrictEqual({ error: expect.any(String) });
+    expect(quizId).toStrictEqual({ quizId: expect.any(Number) });
   });
 
   test("Test Invalid Description", () => {
@@ -313,18 +313,18 @@ describe("Testing adminQuizList", () => {
       "Belinda",
       "Wong"
     );
-    const Quiz1 = adminQuizCreate(NewUser.authUserId, "Jess", "description");
-    const Quiz2 = adminQuizCreate(NewUser.authUserId, "Jess", "description");
-    const quizzes = adminQuizList(NewUser.authUserId);
+    const Quiz1 = adminQuizCreate(NewUser, "Jess", "description");
+    const Quiz2 = adminQuizCreate(NewUser, "Jess", "description");
+    const quizzes = adminQuizList(NewUser);
     expect(quizzes).toStrictEqual({
       quizzes: [
         {
-          quizId: Quiz1.quizId,
-          name: Quiz1.name,
+          quizId: Quiz1,
+          name: "Jess",
         },
         {
-          quizId: Quiz2.quizId,
-          name: Quiz2.name,
+          quizId: Quiz2,
+          name: "Jess",
         },
       ],
     });
@@ -343,7 +343,7 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
       expect(
         adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, "Gul")
       ).toStrictEqual({ error: expect.any(String) });
@@ -376,7 +376,7 @@ describe("Testing adminQuizList", () => {
         "Harlow"
       );
       const QuizOne = adminQuizCreate(
-        JackUser.quizId,
+        JackUser.authUserId,
         "Jack",
         "different quiz"
       );
@@ -395,7 +395,7 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
 
       const TonyUser = adminAuthRegister(
         "tony@hotmail.com",
@@ -403,7 +403,7 @@ describe("Testing adminQuizList", () => {
         "Tony",
         "Stark"
       );
-      const TonyQuiz = adminQuizCreate(TonyUser.quizId, "Jack", "Tony quiz");
+      const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
 
       expect(
         adminQuizNameUpdate(JackUser.authUserId, TonyQuiz.quizId, "Gul")
@@ -420,7 +420,7 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
 
       expect(
         adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, "&%^#$%")
@@ -434,7 +434,7 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
 
       expect(
         adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, "gu")
@@ -448,7 +448,7 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
 
       expect(
         adminQuizNameUpdate(
@@ -466,7 +466,7 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
 
       const TonyUser = adminAuthRegister(
         "tony@hotmail.com",
@@ -474,7 +474,7 @@ describe("Testing adminQuizList", () => {
         "Tony",
         "Stark"
       );
-      const TonyQuiz = adminQuizCreate(TonyUser.quizId, "Jack", "Tony quiz");
+      const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
 
       expect(
         adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, "Tony")
