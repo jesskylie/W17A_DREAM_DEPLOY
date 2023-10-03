@@ -25,28 +25,28 @@ describe("Testing adminQuizInfo", () => {
     );
     const QuizOne = adminQuizCreate(
       JackUser.authUserId,
-      "Jack",
+      "Quiz One",
       "this is my first quiz"
     );
     expect(adminQuizInfo(JackUser.authUserId, QuizOne.quizId)).toStrictEqual({
       quizId: QuizOne.quizId,
-      name: "Jack",
-      timeCreated: QuizOne.timeCreated,
-      timeLastEdited: QuizOne.timeLastEdited,
+      name: "Quiz One",
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
       description: "this is my first quiz",
     });
 
     const QuizTwo = adminQuizCreate(
       JackUser.authUserId,
-      "Jack",
+      "Quiz Two",
       "this is my second quiz"
     );
     expect(adminQuizInfo(JackUser.authUserId, QuizTwo.quizId)).toStrictEqual({
       quizId: QuizTwo.quizId,
-      name: QuizTwo.name,
-      timeCreated: QuizTwo.timeCreated,
-      timeLastEdited: QuizTwo.timeLastEdited,
-      description: QuizTwo.description,
+      name: "Quiz Two",
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: "this is my second quiz",
     });
   });
 
