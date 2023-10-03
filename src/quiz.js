@@ -112,7 +112,7 @@ function adminQuizCreate(authUserId, name, description) {
 
 export { adminQuizCreate };
 
-function adminQuizNameUpdate (authUserId, quizId, name) {
+function adminQuizNameUpdate(authUserId, quizId, name) {
   let data = getData();
   // 1. check that authUserId is valid
   // if not, then return error
@@ -126,49 +126,36 @@ function adminQuizNameUpdate (authUserId, quizId, name) {
     return { error: isQuizNameValidTest.error };
   }
 
-  if (!isQuizIdValid(quizId)) {
-    return { error: "quizId does not refer to a valid quiz."};
+  if (!isQuizIdValid(data, quizId)) {
+    return { error: "quizId does not refer to a valid quiz." };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
-    return {error: "Quiz ID does not refer to a quiz that this user owns"};
+    return { error: "Quiz ID does not refer to a quiz that this user owns" };
   }
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
-        quiz.name === name;
+      quiz.name === name;
     }
   }
-    return {};
+  return {};
 }
-export { adminQuizNameUpdate};
-
+export { adminQuizNameUpdate };
 
 function doesQuizIdRefer(quizId, authUserId) {
-    let is_valid = False; 
-    const data = getData();
-    for (let quiz of data.quizzes) {
-        if (quiz.quizId === quizId) {
-            for (const userId of quiz.userId) {
-                if (userId === authUserId) {
-                    return true;
-                }
-            }
-        }
-    }
-    return False;
-}
-
-function isQuizIdValid(quizId) {
-  let is_valid = False; 
-  const data =  getData();
+  // let is_valid = False;
+  const data = getData();
   for (let quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
-        return true;  
+      for (const userId of quiz.userId) {
+        if (userId === authUserId) {
+          return true;
+        }
+      }
     }
   }
   return false;
 }
-
 
 function adminQuizList(authUserId) {
   return {
@@ -226,22 +213,20 @@ function adminQuizRemove(authUserId, quizId) {
 
 export { adminQuizRemove };
 
-
 function adminQuizDescriptionUpdate(authUserId, quizId, description) {
-
-  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   const data = getData();
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
   if (!isAuthUserIdValidTest) {
     return { error: "AuthUserId is not a valid user" };
   }
 
-  if (!isQuizIdValid(quizId)) {
-    return { error: "quizId does not refer to a valid quiz."};
+  if (!isQuizIdValid(data, quizId)) {
+    return { error: "quizId does not refer to a valid quiz." };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
-    return {error: "Quiz ID does not refer to a quiz that this user owns"};
+    return { error: "Quiz ID does not refer to a quiz that this user owns" };
   }
   if (description.length > 100) {
     return {
@@ -256,8 +241,7 @@ function adminQuizDescriptionUpdate(authUserId, quizId, description) {
     }
   }
 
-  return { };
-
+  return {};
 }
 
 export { adminQuizDescriptionUpdate };

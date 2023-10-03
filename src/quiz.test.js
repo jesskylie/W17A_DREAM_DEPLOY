@@ -333,82 +333,165 @@ describe("Testing adminQuizList", () => {
       const quizzes = adminQuizList("-111111");
       expect(quizzes).toStrictEqual({ error: expect.any(String) });
     });
-    
   });
 
-describe('Testing AdminQuizNameUpdate', () => {
+  describe("Testing AdminQuizNameUpdate", () => {
+    test("Admin quiz name updated successfully", () => {
+      const JackUser = adminAuthRegister(
+        "jack@hotmail.com",
+        "123456ab",
+        "Jack",
+        "Harlow"
+      );
+      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+      expect(
+        adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, "Gul")
+      ).toStrictEqual({ error: expect.any(String) });
+    });
+    test("AuthUserId is not a valid user", () => {
+      const JackUser = adminAuthRegister(
+        "jack@hotmail.com",
+        "123456ab",
+        "Jack",
+        "Harlow"
+      );
+      const QuizOne = adminQuizCreate(
+        JackUser.authUserId,
+        "Jack",
+        "different quiz"
+      );
+      expect(adminQuizNameUpdate("", QuizOne.quizId, "Gul")).toStrictEqual({
+        error: expect.any(String),
+      });
+      expect(adminQuizNameUpdate("Angel", QuizOne.quizId, "Gul")).toStrictEqual(
+        { error: expect.any(String) }
+      );
+    });
 
-  test('Admin quiz name updated successfully', () => {
-    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
-    expect (adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
+    test("Quiz ID does not refer to a valid quiz", () => {
+      const JackUser = adminAuthRegister(
+        "jack@hotmail.com",
+        "123456ab",
+        "Jack",
+        "Harlow"
+      );
+      const QuizOne = adminQuizCreate(
+        JackUser.quizId,
+        "Jack",
+        "different quiz"
+      );
+      expect(adminQuizNameUpdate(JackUser.authUserId, "", "Gul")).toStrictEqual(
+        { error: expect.any(String) }
+      );
+      expect(
+        adminQuizNameUpdate(JackUser.authUserId, "S", "Gul")
+      ).toStrictEqual({ error: expect.any(String) });
+    });
 
+    test("Quiz ID does not refer to a quiz that this user owns", () => {
+      const JackUser = adminAuthRegister(
+        "jack@hotmail.com",
+        "123456ab",
+        "Jack",
+        "Harlow"
+      );
+      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+
+      const TonyUser = adminAuthRegister(
+        "tony@hotmail.com",
+        "ab123456b",
+        "Tony",
+        "Stark"
+      );
+      const TonyQuiz = adminQuizCreate(TonyUser.quizId, "Jack", "Tony quiz");
+
+      expect(
+        adminQuizNameUpdate(JackUser.authUserId, TonyQuiz.quizId, "Gul")
+      ).toStrictEqual({ error: expect.any(String) });
+      expect(
+        adminQuizNameUpdate(TonyUser.authUserId, JacksQuiz.quizId, "Gul")
+      ).toStrictEqual({ error: expect.any(String) });
+    });
+
+    test("Test Invalid Name", () => {
+      const JackUser = adminAuthRegister(
+        "jack@hotmail.com",
+        "123456ab",
+        "Jack",
+        "Harlow"
+      );
+      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+
+      expect(
+        adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, "&%^#$%")
+      ).toStrictEqual({ error: expect.any(String) });
+    });
+
+    test("Test Invalid Samll Name Size", () => {
+      const JackUser = adminAuthRegister(
+        "jack@hotmail.com",
+        "123456ab",
+        "Jack",
+        "Harlow"
+      );
+      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+
+      expect(
+        adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, "gu")
+      ).toStrictEqual({ error: expect.any(String) });
+    });
+
+    test("Test Invalid Large Name Size", () => {
+      const JackUser = adminAuthRegister(
+        "jack@hotmail.com",
+        "123456ab",
+        "Jack",
+        "Harlow"
+      );
+      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+
+      expect(
+        adminQuizNameUpdate(
+          JackUser.adminUserId,
+          JacksQuiz.quizId,
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        )
+      ).toStrictEqual({ error: expect.any(String) });
+    });
+
+    test("Test Invalid Repeated Name", () => {
+      const JackUser = adminAuthRegister(
+        "jack@hotmail.com",
+        "123456ab",
+        "Jack",
+        "Harlow"
+      );
+      const JacksQuiz = adminQuizCreate(JackUser.quizId, "Jack", "Jacks quiz");
+
+      const TonyUser = adminAuthRegister(
+        "tony@hotmail.com",
+        "ab123456b",
+        "Tony",
+        "Stark"
+      );
+      const TonyQuiz = adminQuizCreate(TonyUser.quizId, "Jack", "Tony quiz");
+
+      expect(
+        adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, "Tony")
+      ).toStrictEqual({ error: expect.any(String) });
+    });
   });
-  test ('AuthUserId is not a valid user', () => {
-    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const QuizOne = adminQuizCreate(JackUser.authUserId, 'Jack', 'different quiz');
-    expect (adminQuizNameUpdate('', QuizOne.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
-    expect (adminQuizNameUpdate('Angel', QuizOne.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
-  });
-  
-  test ('Quiz ID does not refer to a valid quiz', () => {
-    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const QuizOne = adminQuizCreate(JackUser.quizId, 'Jack', 'different quiz');
-    expect (adminQuizNameUpdate(JackUser.authUserId, '', 'Gul')).toStrictEqual( {error: expect.any(String)} );
-    expect (adminQuizNameUpdate(JackUser.authUserId, 'S', 'Gul')).toStrictEqual( {error: expect.any(String)} );
-  });
-  
-  test ('Quiz ID does not refer to a quiz that this user owns', () => {
-
-    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
-
-    const TonyUser = adminAuthRegister('tony@hotmail.com', 'ab123456b', 'Tony', 'Stark');
-    const TonyQuiz = adminQuizCreate(TonyUser.quizId, 'Jack', 'Tony quiz');
- 
-    expect (adminQuizNameUpdate(JackUser.authUserId, TonyQuiz.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
-    expect (adminQuizNameUpdate(TonyUser.authUserId, JacksQuiz.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
-  });
-
-  test('Test Invalid Name', () => {
-
-    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
-
-    expect(adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, '&%^#$%')).toStrictEqual({error: expect.any(String)});
-  });
-
-  test('Test Invalid Samll Name Size', () => {
-
-    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
-
-    expect(adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, 'gu')).toStrictEqual({error: expect.any(String)});
-  });
-  
-  test('Test Invalid Large Name Size', () => {
-   
-    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
-
-    expect(adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toStrictEqual({error: expect.any(String)});;
-
-  });
-
-  test('Test Invalid Repeated Name', () => {
-    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
-
-    const TonyUser = adminAuthRegister('tony@hotmail.com', 'ab123456b', 'Tony', 'Stark');
-    const TonyQuiz = adminQuizCreate(TonyUser.quizId, 'Jack', 'Tony quiz');
- 
-    expect (adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, 'Tony')).toStrictEqual( {error: expect.any(String)} );
-  });
-});
-
 });
 
 describe("Testing adminQuizDescriptionUpdate", () => {
+  // CONSTANTS USED IN TEST SUITE - START
+  const EMAIL_1 = "jenny@hotmail.com";
+  const PASSWORD_1 = "password1234567";
+  const EMAIL_2 = "sandy@hotmail.com";
+  const PASSWORD_2 = "password123456789";
+
+  // CONSTANTS USED IN TEST SUITE - END
+
   test("AuthUserId is not a valid user", () => {
     const authUserId = -1;
     const quizId = 2;
@@ -419,71 +502,77 @@ describe("Testing adminQuizDescriptionUpdate", () => {
   });
 
   test("Quiz ID does not refer to a valid quiz", () => {
-    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
+    const userAdmin1 = adminAuthRegister(
+      EMAIL_1,
+      PASSWORD_1,
+      "Jenny",
+      "Anderson"
+    );
+
     const quizId = -1;
     const description = "A quiz relating to git commands";
-    expect(
-      adminQuizDescriptionUpdate(authUserId, quizId, description)
-    ).toStrictEqual({ error: expect.any(String) });
+    const adminQuizDescriptionUpdateTest = adminQuizDescriptionUpdate(
+      userAdmin1.authUserId,
+      quizId,
+      description
+    );
+
+    expect(adminQuizDescriptionUpdateTest).toStrictEqual({
+      error: expect.any(String),
+    });
   });
 
   test("Quiz ID does not refer to a quiz that this user owns", () => {
-    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
-    const quizId = -1;
+    const userAdmin1 = adminAuthRegister(
+      EMAIL_1,
+      PASSWORD_1,
+      "Jenny",
+      "Anderson"
+    );
+
+    const userAdmin2 = adminAuthRegister(
+      EMAIL_2,
+      PASSWORD_2,
+      "Sandy",
+      "Johnson"
+    );
+
+    const quizId2 = adminQuizCreate(
+      userAdmin2.authUserId,
+      "quiz2",
+      "A quiz about the UNSW CSE course COMP1511"
+    );
+
     const description = "A quiz relating to git commands";
-    expect(
-      adminQuizDescriptionUpdate(authUserId, quizId, description)
-    ).toStrictEqual({ error: expect.any(String) });
+
+    const adminQuizDescriptionUpdateTest = adminQuizDescriptionUpdate(
+      userAdmin1.authUserId,
+      quizId2.quizId,
+      description
+    );
+
+    expect(adminQuizDescriptionUpdateTest).toStrictEqual({
+      error: expect.any(String),
+    });
   });
 
   test("Description is more than 100 characters in length", () => {
-    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
-    const quizzes = adminQuizList(authUserId);
-    const quizId = quizzes[0].quizId;
+    const userAdmin1 = adminAuthRegister(
+      EMAIL_1,
+      PASSWORD_1,
+      "Jenny",
+      "Anderson"
+    );
+
     const description =
       "A quiz relating to git. When working in git, or other version control systems, the concept of /'saving/' is a more nuanced process than saving in a word processor or other traditional file editing applications. The traditional software expression of /'saving/' is synonymous with the git term /'committing/'. A commit is the git equivalent of a /'save/'. Traditional saving should be thought of as a file system operation that is used to overwrite an existing file or write a new file. Alternatively, git committing is an operation that acts upon a collection of files and directories. commands. This was taken from ";
-    expect(
-      adminQuizDescriptionUpdate(authUserId, quizId, description)
-    ).toStrictEqual({ error: expect.any(String) });
-  });
-});
 
-describe("Testing adminQuizDescriptionUpdate", () => {
-  test("AuthUserId is not a valid user", () => {
-    const authUserId = -1;
-    const quizId = 2;
-    const description = "A quiz relating to git commands";
-    expect(
-      adminQuizDescriptionUpdate(authUserId, quizId, description)
-    ).toStrictEqual({ error: expect.any(String) });
-  });
+    const adminQuizCreateTest = adminQuizCreate(
+      userAdmin1.authUserId,
+      "quiz1",
+      description
+    );
 
-  test("Quiz ID does not refer to a valid quiz", () => {
-    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
-    const quizId = -1;
-    const description = "A quiz relating to git commands";
-    expect(
-      adminQuizDescriptionUpdate(authUserId, quizId, description)
-    ).toStrictEqual({ error: expect.any(String) });
-  });
-
-  test("Quiz ID does not refer to a quiz that this user owns", () => {
-    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
-    const quizId = -1;
-    const description = "A quiz relating to git commands";
-    expect(
-      adminQuizDescriptionUpdate(authUserId, quizId, description)
-    ).toStrictEqual({ error: expect.any(String) });
-  });
-
-  test("Description is more than 100 characters in length", () => {
-    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
-    const quizzes = adminQuizList(authUserId);
-    const quizId = quizzes[0].quizId;
-    const description =
-      "A quiz relating to git. When working in git, or other version control systems, the concept of /'saving/' is a more nuanced process than saving in a word processor or other traditional file editing applications. The traditional software expression of /'saving/' is synonymous with the git term /'committing/'. A commit is the git equivalent of a /'save/'. Traditional saving should be thought of as a file system operation that is used to overwrite an existing file or write a new file. Alternatively, git committing is an operation that acts upon a collection of files and directories. commands. This was taken from ";
-    expect(
-      adminQuizDescriptionUpdate(authUserId, quizId, description)
-    ).toStrictEqual({ error: expect.any(String) });
+    expect(adminQuizCreateTest).toStrictEqual({ error: expect.any(String) });
   });
 });
