@@ -4,10 +4,14 @@ function adminQuizInfo(authUserId, quizId) {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
-  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(data, authUserId, quizId);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
+    data,
+    authUserId,
+    quizId
+  );
 
-  if (authUserId === '' || quizId === '') {
-    return { error: "AuthUserId and QuizId cannot be empty"};
+  if (authUserId === "" || quizId === "") {
+    return { error: "AuthUserId and QuizId cannot be empty" };
   }
   if (!isAuthUserIdValidTest) {
     return { error: "AuthUserId is not a valid user" };
@@ -94,6 +98,11 @@ function adminQuizCreate(authUserId, name, description) {
     userId: [authUserId],
   });
 
+  // Add quizId to quizId[] array in data.users
+  // Step 1. mutate relevant array of authUserId from data.users
+
+  pushNewQuizIdToUserArray(data, authUserId, newQuizId);
+
   setData(data);
 
   return {
@@ -126,10 +135,14 @@ function adminQuizRemove(authUserId, quizId) {
   let data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
-  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(data, authUserId, quizId);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
+    data,
+    authUserId,
+    quizId
+  );
 
-  if (authUserId === '' || quizId === '') {
-    return { error: "AuthUserId and QuizId cannot be empty"};
+  if (authUserId === "" || quizId === "") {
+    return { error: "AuthUserId and QuizId cannot be empty" };
   }
   if (!isAuthUserIdValidTest) {
     return { error: "AuthUserId is not a valid user" };
@@ -140,10 +153,10 @@ function adminQuizRemove(authUserId, quizId) {
   if (!isAuthUserIdMatchQuizIdTest) {
     return { error: "QuizId does not match authUserId" };
   }
-  
+
   let newdata = data;
-  let userToUpdata = data.users.find(user => user.authUserId === authUserId);
-  data.quizzes = data.quizzes.filter(quiz => quiz.quizId !== quizId);
+  let userToUpdata = data.users.find((user) => user.authUserId === authUserId);
+  data.quizzes = data.quizzes.filter((quiz) => quiz.quizId !== quizId);
   if (userToUpdata) {
     const indexToRemove = userToUpdata.quizId.indexOf(quizId);
     if (indexToRemove !== -1) {
@@ -237,14 +250,10 @@ function isQuizNameValid(data, name, userId) {
   // 1. test for not containing invalid characters
   // assistance taken from https://regex101.com/codegen?language=javascript
   const regexMain = /^[a-z\d\s]+$/gim;
-  const regexAlpha = /[a-z]/gim;
-  const regexNum = /[\d]/gim;
 
   const regexMainTest = regexMain.test(name);
-  const regexAlphaTest = regexAlpha.test(name);
-  const regexNumTest = regexNum.test(name);
 
-  if (!(regexMainTest && regexAlphaTest && regexNumTest)) {
+  if (!regexMainTest) {
     return {
       result: false,
       error:
@@ -288,8 +297,30 @@ function isQuizNameValid(data, name, userId) {
   return { result: true };
 }
 
+/**
+ * Function to mutate existing user array
+ * to add new quizId to quizId array of data.users
+ * Used in:
+ * adminQuizCreate()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} authUserId - the authUserId
+ * @param {number} quizId - the id of the new quiz created
+ * ...
+ *
+ * @returns {} - nil return; the existing array is mutated
+ */
+function pushNewQuizIdToUserArray(data, authUserId, quizId) {
+  const userArr = data.users;
+
+  for (const arr of userArr) {
+    if (arr.authUserId === authUserId) {
+      arr.quizId.push(quizId);
+    }
+  }
+}
+
 function isQuizIdValid(data, quizId) {
-  
   // 1. test for quizId is integer or less than 0
   if (!Number.isInteger(quizId) || quizId < 0) {
     return false;
@@ -306,24 +337,24 @@ function isQuizIdValid(data, quizId) {
   if (userIdArr.length === 1) {
     return true;
   }
-  return false;
 
+  return false;
 }
 
 function isAuthUserIdMatchQuizId(data, authUserId, quizId) {
-const usersArr = data.users;
-let userQuizIdArr = [];
-for (const arr of usersArr) {
-  if (arr.authUserId === authUserId) {
-    for (const check of arr.quizId) {
-      if (check === quizId) {
-        userQuizIdArr.push(quizId);
+  const usersArr = data.users;
+  let userQuizIdArr = [];
+  for (const arr of usersArr) {
+    if (arr.authUserId === authUserId) {
+      for (const check of arr.quizId) {
+        if (check === quizId) {
+          userQuizIdArr.push(quizId);
+        }
       }
     }
   }
-}
-if (userQuizIdArr.length === 1) {
-  return true;
-}
-return false;
+  if (userQuizIdArr.length === 1) {
+    return true;
+  }
+  return false;
 }
