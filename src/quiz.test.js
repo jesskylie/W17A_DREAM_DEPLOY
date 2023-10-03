@@ -328,12 +328,84 @@ describe("Testing adminQuizList", () => {
         },
       ],
     });
+
+    test("Test Invalid Auth User ID", () => {
+      const quizzes = adminQuizList("-111111");
+      expect(quizzes).toStrictEqual({ error: expect.any(String) });
+    });
+    
   });
 
-  test("Test Invalid Auth User ID", () => {
-    const quizzes = adminQuizList("-111111");
-    expect(quizzes).toStrictEqual({ error: expect.any(String) });
+describe('Testing AdminQuizNameUpdate', () => {
+
+  test('Admin quiz name updated successfully', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
+    expect (adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
+
   });
+  test ('AuthUserId is not a valid user', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const QuizOne = adminQuizCreate(JackUser.authUserId, 'Jack', 'different quiz');
+    expect (adminQuizNameUpdate('', QuizOne.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizNameUpdate('Angel', QuizOne.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
+  });
+  
+  test ('Quiz ID does not refer to a valid quiz', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const QuizOne = adminQuizCreate(JackUser.quizId, 'Jack', 'different quiz');
+    expect (adminQuizNameUpdate(JackUser.authUserId, '', 'Gul')).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizNameUpdate(JackUser.authUserId, 'S', 'Gul')).toStrictEqual( {error: expect.any(String)} );
+  });
+  
+  test ('Quiz ID does not refer to a quiz that this user owns', () => {
+
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
+
+    const TonyUser = adminAuthRegister('tony@hotmail.com', 'ab123456b', 'Tony', 'Stark');
+    const TonyQuiz = adminQuizCreate(TonyUser.quizId, 'Jack', 'Tony quiz');
+ 
+    expect (adminQuizNameUpdate(JackUser.authUserId, TonyQuiz.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
+    expect (adminQuizNameUpdate(TonyUser.authUserId, JacksQuiz.quizId, 'Gul')).toStrictEqual( {error: expect.any(String)} );
+  });
+
+  test('Test Invalid Name', () => {
+
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
+
+    expect(adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, '&%^#$%')).toStrictEqual({error: expect.any(String)});
+  });
+
+  test('Test Invalid Samll Name Size', () => {
+
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
+
+    expect(adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, 'gu')).toStrictEqual({error: expect.any(String)});
+  });
+  
+  test('Test Invalid Large Name Size', () => {
+   
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
+
+    expect(adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toStrictEqual({error: expect.any(String)});;
+
+  });
+
+  test('Test Invalid Repeated Name', () => {
+    const JackUser = adminAuthRegister('jack@hotmail.com', '123456ab', 'Jack', 'Harlow');
+    const JacksQuiz = adminQuizCreate(JackUser.quizId, 'Jack', 'Jacks quiz');
+
+    const TonyUser = adminAuthRegister('tony@hotmail.com', 'ab123456b', 'Tony', 'Stark');
+    const TonyQuiz = adminQuizCreate(TonyUser.quizId, 'Jack', 'Tony quiz');
+ 
+    expect (adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, 'Tony')).toStrictEqual( {error: expect.any(String)} );
+  });
+});
+
 });
 
 describe("Testing adminQuizDescriptionUpdate", () => {
