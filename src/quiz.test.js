@@ -309,21 +309,21 @@ describe("Testing adminQuizList", () => {
   test("Test Valid Auth User ID", () => {
     const NewUser = adminAuthRegister(
       "Belinda@gamil.com",
-      "password",
+      "password123",
       "Belinda",
       "Wong"
     );
-    const Quiz1 = adminQuizCreate(NewUser, "Jess", "description");
-    const Quiz2 = adminQuizCreate(NewUser, "Jess", "description");
-    const quizzes = adminQuizList(NewUser);
+    const Quiz1 = adminQuizCreate(NewUser.authUserId, "Jess", "description");
+    const Quiz2 = adminQuizCreate(NewUser.authUserId, "Jess", "description");
+    const quizzes = adminQuizList(NewUser.authUserId);
     expect(quizzes).toStrictEqual({
       quizzes: [
         {
-          quizId: Quiz1,
+          quizId: Quiz1.quizId,
           name: "Jess",
         },
         {
-          quizId: Quiz2,
+          quizId: Quiz2.quizId,
           name: "Jess",
         },
       ],
