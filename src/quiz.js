@@ -26,7 +26,13 @@ function adminQuizInfo(authUserId, quizId) {
   let quizInfo = {};
   for (const check of data.quizzes) {
     if (check.quizId === quizId) {
-      quizInfo = check;
+      quizInfo = {
+        quizId: check.quizId,
+        name: check.name,
+        timeCreated: check.timeCreated,
+        timeLastEdited: check.timeLastEdited,
+        description: check.description,
+      };
     }
   }
 
