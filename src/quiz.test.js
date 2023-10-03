@@ -63,10 +63,10 @@ describe("Testing adminQuizInfo", () => {
       "different quiz"
     );
     expect(adminQuizInfo("", QuizOne.quizId)).toStrictEqual({
-      error: expect.any(String),
+      error: "AuthUserId and QuizId cannot be empty",
     });
     expect(adminQuizInfo("Angel", QuizOne.quizId)).toStrictEqual({
-      error: expect.any(String),
+      error: "AuthUserId is not a valid user",
     });
   });
 
@@ -79,10 +79,10 @@ describe("Testing adminQuizInfo", () => {
     );
     const QuizOne = adminQuizCreate(JackUser.quizId, "Jack", "different quiz");
     expect(adminQuizInfo(JackUser.authUserId, "")).toStrictEqual({
-      error: expect.any(String),
+      error: "AuthUserId and QuizId cannot be empty",
     });
     expect(adminQuizInfo(JackUser.authUserId, "S")).toStrictEqual({
-      error: expect.any(String),
+      error: "QuizId is invalid",
     });
   });
 
@@ -102,10 +102,10 @@ describe("Testing adminQuizInfo", () => {
     );
     const TonyQuiz = adminQuizCreate(TonyUser.quizId, "Jack", "Tony quiz");
     expect(adminQuizInfo(JackUser.authUserId, TonyQuiz.quizId)).toStrictEqual({
-      error: expect.any(String),
+      error: "QuizId does not match authUserId",
     });
     expect(adminQuizInfo(TonyUser.authUserId, JacksQuiz.quizId)).toStrictEqual({
-      error: expect.any(String),
+      error: "QuizId does not match authUserId",
     });
   });
 });
@@ -246,7 +246,7 @@ describe("Testing adminQuizRemove", () => {
 
   test("Empty input", () => {
     expect(adminQuizRemove("", "")).toStrictEqual({
-      error: expect.any(String),
+      error: "AuthUserId and QuizId cannot be empty",
     });
   });
 
@@ -259,7 +259,7 @@ describe("Testing adminQuizRemove", () => {
     );
     const QuizId = adminQuizCreate(NewUser.authUserId, "Jess", "description");
     expect(adminQuizRemove("abc", QuizId.quizId)).toStrictEqual({
-      error: expect.any(String),
+      error: "AuthUserId is not a valid user",
     });
   });
 
@@ -272,7 +272,7 @@ describe("Testing adminQuizRemove", () => {
     );
     const QuizId = adminQuizCreate(NewUser.authUserId, "Jess", "description");
     expect(adminQuizRemove(NewUser.authUserId, "abc")).toStrictEqual({
-      error: expect.any(String),
+      error: "QuizId is invalid",
     });
   });
 
@@ -301,7 +301,7 @@ describe("Testing adminQuizRemove", () => {
     );
     expect(
       adminQuizRemove(JessUser.authUserId, AdamQuizId.quizId)
-    ).toStrictEqual({ error: expect.any(String) });
+    ).toStrictEqual({ error: "QuizId does not match authUserId" });
   });
 });
 
@@ -406,4 +406,84 @@ describe('Testing AdminQuizNameUpdate', () => {
   });
 });
 
+});
+
+describe("Testing adminQuizDescriptionUpdate", () => {
+  test("AuthUserId is not a valid user", () => {
+    const authUserId = -1;
+    const quizId = 2;
+    const description = "A quiz relating to git commands";
+    expect(
+      adminQuizDescriptionUpdate(authUserId, quizId, description)
+    ).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test("Quiz ID does not refer to a valid quiz", () => {
+    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
+    const quizId = -1;
+    const description = "A quiz relating to git commands";
+    expect(
+      adminQuizDescriptionUpdate(authUserId, quizId, description)
+    ).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test("Quiz ID does not refer to a quiz that this user owns", () => {
+    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
+    const quizId = -1;
+    const description = "A quiz relating to git commands";
+    expect(
+      adminQuizDescriptionUpdate(authUserId, quizId, description)
+    ).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test("Description is more than 100 characters in length", () => {
+    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
+    const quizzes = adminQuizList(authUserId);
+    const quizId = quizzes[0].quizId;
+    const description =
+      "A quiz relating to git. When working in git, or other version control systems, the concept of /'saving/' is a more nuanced process than saving in a word processor or other traditional file editing applications. The traditional software expression of /'saving/' is synonymous with the git term /'committing/'. A commit is the git equivalent of a /'save/'. Traditional saving should be thought of as a file system operation that is used to overwrite an existing file or write a new file. Alternatively, git committing is an operation that acts upon a collection of files and directories. commands. This was taken from ";
+    expect(
+      adminQuizDescriptionUpdate(authUserId, quizId, description)
+    ).toStrictEqual({ error: expect.any(String) });
+  });
+});
+
+describe("Testing adminQuizDescriptionUpdate", () => {
+  test("AuthUserId is not a valid user", () => {
+    const authUserId = -1;
+    const quizId = 2;
+    const description = "A quiz relating to git commands";
+    expect(
+      adminQuizDescriptionUpdate(authUserId, quizId, description)
+    ).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test("Quiz ID does not refer to a valid quiz", () => {
+    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
+    const quizId = -1;
+    const description = "A quiz relating to git commands";
+    expect(
+      adminQuizDescriptionUpdate(authUserId, quizId, description)
+    ).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test("Quiz ID does not refer to a quiz that this user owns", () => {
+    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
+    const quizId = -1;
+    const description = "A quiz relating to git commands";
+    expect(
+      adminQuizDescriptionUpdate(authUserId, quizId, description)
+    ).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test("Description is more than 100 characters in length", () => {
+    const authUserId = adminAuthLogin("paul@gmail.com", "Password1234567");
+    const quizzes = adminQuizList(authUserId);
+    const quizId = quizzes[0].quizId;
+    const description =
+      "A quiz relating to git. When working in git, or other version control systems, the concept of /'saving/' is a more nuanced process than saving in a word processor or other traditional file editing applications. The traditional software expression of /'saving/' is synonymous with the git term /'committing/'. A commit is the git equivalent of a /'save/'. Traditional saving should be thought of as a file system operation that is used to overwrite an existing file or write a new file. Alternatively, git committing is an operation that acts upon a collection of files and directories. commands. This was taken from ";
+    expect(
+      adminQuizDescriptionUpdate(authUserId, quizId, description)
+    ).toStrictEqual({ error: expect.any(String) });
+  });
 });
