@@ -158,14 +158,21 @@ function doesQuizIdRefer(quizId, authUserId) {
 }
 
 function adminQuizList(authUserId) {
-  return {
-    quizzes: [
-      {
-        quizId: 1,
-        name: "My Quiz",
-      },
-    ],
-  };
+  let data = getData();
+  let quizzesList = [];
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
+  for(const quiz of data.quizzes){
+    if (quiz.userId.includes(authUserId)){
+      quizzesList.push({
+        quizId: quiz.quizId,
+        name: quiz.name,
+      });
+    }
+  }
+  return {quizzes: quizzesList};
 }
 
 export { adminQuizList };
