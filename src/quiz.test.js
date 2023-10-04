@@ -308,10 +308,10 @@ describe("Testing adminQuizRemove", () => {
 
 describe("Testing adminQuizList", () => {
   test("Test Invalid Auth User ID", () => {
-      const quizzes = adminQuizList("-111111");
-      expect(quizzes).toStrictEqual({ error: expect.any(String) });
+    const quizzes = adminQuizList("-111111");
+    expect(quizzes).toStrictEqual({ error: expect.any(String) });
   });
-  
+
   test("Test Valid Auth User ID", () => {
     const NewUser = adminAuthRegister(
       "Belinda@gamil.com",
@@ -346,8 +346,8 @@ describe("Testing adminQuizList", () => {
       );
       const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
       expect(
-        adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, "Gul")
-      ).toStrictEqual({ error: expect.any(String) });
+        adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "Gul")
+      ).toStrictEqual({});
     });
     test("AuthUserId is not a valid user", () => {
       const JackUser = adminAuthRegister(
