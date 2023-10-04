@@ -585,7 +585,7 @@ it("quiz timeLastEdited is updated when description is updated", async () => {
 
   const timeLastEditedAtUpdate = quizInfoAtUpdate.timeLastEdited;
 
-  // Step 6. Run test
+  // Step 6. Run test for updated timeLastEdited
   // Due to the wait, the time the quiz was updated is
   // always expected to be greater than when the quiz was created
   // the .toBe() jest function was not used as it may not always
@@ -593,6 +593,14 @@ it("quiz timeLastEdited is updated when description is updated", async () => {
   // always be greater
 
   expect(timeLastEditedAtUpdate).toBeGreaterThan(timeLastEditedAtCreation);
+
+  // Step 7. Get updated quiz description
+
+  const quizDescriptionAtUpdate = quizInfoAtUpdate.description;
+
+  // Step 8. Check that quizDescription === newDescription
+
+  expect(quizDescriptionAtUpdate).toStrictEqual(newDescription);
 });
 
 describe("Testing adminQuizDescriptionUpdate", () => {
