@@ -456,7 +456,7 @@ describe("Testing adminQuizList", () => {
           JacksQuiz.quizId,
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         )
-      ).toStrictEqual({ error: expect.any(String)});
+      ).toStrictEqual({ error: expect.any(String) });
     });
 
     test("Test Invalid Repeated Name", () => {
@@ -475,7 +475,7 @@ describe("Testing adminQuizList", () => {
         "Stark"
       );
       const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
-        
+
       expect(
         adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "Jack")
       ).toStrictEqual({ error: expect.any(String) });
@@ -491,6 +491,35 @@ describe("Testing adminQuizDescriptionUpdate", () => {
   const PASSWORD_2 = "password123456789";
 
   // CONSTANTS USED IN TEST SUITE - END
+
+  test("quiz description is updated", () => {
+
+    const originalDescription = "A quiz about the UNSW CSE course COMP1511"
+    const newDescription = "A quiz about the UNSW CSE course COMP1531"
+
+    const userAdmin1 = adminAuthRegister(
+      EMAIL_1,
+      PASSWORD_1,
+      "Jenny",
+      "Anderson"
+    );
+
+    const originalQuiz = adminQuizCreate(
+      userAdmin1.authUserId,
+      "quiz2",
+      originalDescription
+    );
+
+    const sameQuizWithNewDescription = adminQuizDescriptionUpdate(
+      userAdmin1.authUserId,
+      originalQuiz.quizId,
+      newDescription
+    );
+
+    expect(
+      sameQuizWithNewDescription
+    ).toStrictEqual({});
+  });
 
   test("AuthUserId is not a valid user", () => {
     const authUserId = -1;

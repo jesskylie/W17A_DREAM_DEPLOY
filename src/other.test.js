@@ -3,7 +3,7 @@ import { adminAuthRegister } from './auth.js';
 import { adminQuizCreate } from './quiz.js';
 
 
-describe.only('testing clear()', () => {
+describe('testing clear()', () => {
 
   // CONSTANTS USED IN TEST SUITE - START
   const EMAIL_1 = "jenny@hotmail.com";
