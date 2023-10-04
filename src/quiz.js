@@ -1,5 +1,15 @@
 import { getData, setData } from "./dataStore.js";
 
+/**
+ * Printing out the the quiz information
+ *
+ * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{quizInfo}} - an array with all the quiz informations
+ */
 function adminQuizInfo(authUserId, quizId) {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -118,6 +128,17 @@ function adminQuizCreate(authUserId, name, description) {
 
 export { adminQuizCreate };
 
+/**
+ * Update the name of the relevant quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
+ * @param {number} name - the new name of the quiz - must valid 
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
 function adminQuizNameUpdate(authUserId, quizId, name) {
   let data = getData();
   // 1. check that authUserId is valid
@@ -163,6 +184,15 @@ function doesQuizIdRefer(quizId, authUserId) {
   return false;
 }
 
+/**
+ * Provide a list of all quizzes that are owned by the currently logged in user.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{quizzes: array}} - return all quizzes that contain the user's authUserId
+ */
 function adminQuizList(authUserId) {
   let data = getData();
   let quizzesList = [];
@@ -183,6 +213,16 @@ function adminQuizList(authUserId) {
 
 export { adminQuizList };
 
+/**
+ * Given a particular quiz, permanently remove the quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz want to be delete - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
 function adminQuizRemove(authUserId, quizId) {
   let data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -226,6 +266,17 @@ function adminQuizRemove(authUserId, quizId) {
 
 export { adminQuizRemove };
 
+/**
+ * Update the description of the relevant quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz want to change description - must exist / be valid / be unique
+ * @param {string} description - the new description of the quiz
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
 function adminQuizDescriptionUpdate(authUserId, quizId, description) {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -265,6 +316,8 @@ export { adminQuizDescriptionUpdate };
  * Function to test whether authUserId is valid
  * Used in:
  * adminQuizCreate()
+ * adminQuizInfo()
+ * adminQuizRemove()
  *
  * @param {object} data - the dataStore object
  * @param {number} authId - the id of the person creating the quiz
@@ -399,6 +452,18 @@ function pushNewQuizIdToUserArray(data, authUserId, quizId) {
   }
 }
 
+/**
+ * Function to test whether quizId is valid
+ * Used in:
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} quizId - the id of the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
 function isQuizIdValid(data, quizId) {
   // 1. test for quizId is integer or less than 0
   if (!Number.isInteger(quizId) || quizId < 0) {
@@ -420,6 +485,19 @@ function isQuizIdValid(data, quizId) {
   return false;
 }
 
+/**
+ * Function to test whether quiz contains user's authUserId
+ * Used in:
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} authId - the id of the person creating the quiz
+ * @param {number} quizId - the id of the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
 function isAuthUserIdMatchQuizId(data, authUserId, quizId) {
   const usersArr = data.users;
   let userQuizIdArr = [];
