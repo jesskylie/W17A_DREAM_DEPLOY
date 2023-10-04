@@ -149,7 +149,7 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: "quizId does not refer to a valid quiz." };
+    return { error: "QuizId does not refer to a valid quiz." };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
@@ -164,6 +164,7 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
       quiz.name === name;
+      quiz.timeLastEdited++;
     }
   }
   return {};

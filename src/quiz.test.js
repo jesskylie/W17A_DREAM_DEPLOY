@@ -161,7 +161,7 @@ describe("Testing adminQuizCreate", () => {
   test("Test Invalid Samll Name Size", () => {
     const NewUser = adminAuthRegister(
       "email@gamil.com",
-      "password",
+      "password1234",
       "Saarthak",
       "Sinha"
     );
@@ -187,7 +187,7 @@ describe("Testing adminQuizCreate", () => {
   test("Test Invalid Repeated Name", () => {
     const NewUser = adminAuthRegister(
       "email@gamil.com",
-      "password",
+      "password1234",
       "Saarthak",
       "Sinha"
     );
@@ -422,9 +422,8 @@ describe("Testing adminQuizList", () => {
         "Harlow"
       );
       const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
-
       expect(
-        adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, "&%^#$%")
+        adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "&%^#$%")
       ).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -438,7 +437,7 @@ describe("Testing adminQuizList", () => {
       const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
 
       expect(
-        adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, "gu")
+        adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "gu")
       ).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -453,11 +452,11 @@ describe("Testing adminQuizList", () => {
 
       expect(
         adminQuizNameUpdate(
-          JackUser.adminUserId,
+          JackUser.authUserId,
           JacksQuiz.quizId,
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         )
-      ).toStrictEqual({ error: expect.any(String) });
+      ).toStrictEqual({ error: expect.any(String)});
     });
 
     test("Test Invalid Repeated Name", () => {
@@ -476,9 +475,9 @@ describe("Testing adminQuizList", () => {
         "Stark"
       );
       const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
-
+        
       expect(
-        adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, "Tony")
+        adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "Jack")
       ).toStrictEqual({ error: expect.any(String) });
     });
   });
