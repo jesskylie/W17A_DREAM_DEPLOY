@@ -1,580 +1,517 @@
-import {
-  adminQuizList,
-  adminQuizCreate,
-  adminQuizRemove,
-  adminQuizInfo,
-  adminQuizNameUpdate,
-  adminQuizDescriptionUpdate,
-} from "./quiz.js";
+import { getData, setData } from "./dataStore.js";
 
-import { adminAuthRegister, adminAuthLogin, adminUserDetails } from "./auth.js";
+/**
+ * Printing out the the quiz information
+ *
+ * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{quizInfo}} - an array with all the quiz informations
+ */
+function adminQuizInfo(authUserId, quizId) {
+  const data = getData();
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
+    data,
+    authUserId,
+    quizId
+  );
 
-import { clear } from "./other.js";
+  if (authUserId === "" || quizId === "") {
+    return { error: "AuthUserId and QuizId cannot be empty" };
+  }
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
+  if (!isQuizIdValidTest) {
+    return { error: "QuizId is invalid" };
+  }
+  if (!isAuthUserIdMatchQuizIdTest) {
+    return { error: "QuizId does not match authUserId" };
+  }
 
-beforeEach(() => {
-  clear();
-});
+  let quizInfo = {};
+  for (const check of data.quizzes) {
+    if (check.quizId === quizId) {
+      quizInfo = {
+        quizId: check.quizId,
+        name: check.name,
+        timeCreated: check.timeCreated,
+        timeLastEdited: check.timeLastEdited,
+        description: check.description,
+      };
+    }
+  }
 
-describe("Testing adminQuizInfo", () => {
-  test("Valid input", () => {
-    const JackUser = adminAuthRegister(
-      "jack@hotmail.com",
-      "123456ab",
-      "Jack",
-      "Harlow"
-    );
-    const QuizOne = adminQuizCreate(
-      JackUser.authUserId,
-      "Quiz One",
-      "this is my first quiz"
-    );
-    expect(adminQuizInfo(JackUser.authUserId, QuizOne.quizId)).toStrictEqual({
-      quizId: QuizOne.quizId,
-      name: "Quiz One",
-      timeCreated: expect.any(Number),
-      timeLastEdited: expect.any(Number),
-      description: "this is my first quiz",
-    });
+  return quizInfo;
+}
 
+export { adminQuizInfo };
 
-    const QuizTwo = adminQuizCreate(
-      JackUser.authUserId,
-      "Quiz Two",
-      "this is my second quiz"
-    );
-    expect(adminQuizInfo(JackUser.authUserId, QuizTwo.quizId)).toStrictEqual({
-      quizId: QuizTwo.quizId,
-      name: "Quiz Two",
-      timeCreated: expect.any(Number),
-      timeLastEdited: expect.any(Number),
-      description: "this is my second quiz",
-    });
+/**
+ * Creates a new quiz for the logged in user, returning an object containing
+ * a unique quizId
+ *
+ * @param {number} authUserId - the id of the person creating the quiz - must exist / be valid / be unique
+ * @param {string} name - name of the quiz being created
+ * @param {string} description - description of the quiz being created
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{quizId: number}} - an object with the key quizId and the value the, unique, quizId
+ */
+
+function adminQuizCreate(authUserId, name, description) {
+  let data = getData();
+  // 1. check that authUserId is valid
+  // if not, then return error
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
+
+  // 2. check that quiz name is valid
+  // if not, then return error
+  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
+
+  if (!isQuizNameValidTest.result) {
+    return { error: isQuizNameValidTest.error };
+  }
+
+  // 3. check that description is not more than 100 characters in length
+  // if not, then return error
+  if (description.length > 100) {
+    return {
+      error:
+        "Description is more than 100 characters in length (note: empty strings are OK)",
+    };
+  }
+
+  // determine new quizId
+  // Inspiration taken from adminAuthRegister() in auth.js
+  const length = data.quizzes.length;
+  let newQuizId;
+  if (length === 0) {
+    newQuizId = 0;
+  } else {
+    newQuizId = data.quizzes[length - 1].quizId + 1;
+  }
+
+  // Inspiration taken from
+  // https://stackoverflow.com/questions/3830244/how-to-get-the-current-date-or-and-time-in-seconds
+  const timeStamp = Math.floor(Date.now() / 1000);
+
+  data.quizzes.push({
+    quizId: newQuizId,
+    name,
+    description,
+    timeCreated: timeStamp,
+    timeLastEdited: timeStamp,
+    userId: [authUserId],
   });
 
-  test("AuthUserId is not a valid user", () => {
-    const JackUser = adminAuthRegister(
-      "jack@hotmail.com",
-      "123456ab",
-      "Jack",
-      "Harlow"
-    );
-    const QuizOne = adminQuizCreate(
-      JackUser.authUserId,
-      "Jack",
-      "different quiz"
-    );
-    expect(adminQuizInfo("", QuizOne.quizId)).toStrictEqual({
-      error: "AuthUserId and QuizId cannot be empty",
-    });
-    expect(adminQuizInfo("Angel", QuizOne.quizId)).toStrictEqual({
-      error: "AuthUserId is not a valid user",
-    });
-  });
+  // Add quizId to quizId[] array in data.users
+  // Step 1. mutate relevant array of authUserId from data.users
 
-  test("Quiz ID does not refer to a valid quiz", () => {
-    const JackUser = adminAuthRegister(
-      "jack@hotmail.com",
-      "123456ab",
-      "Jack",
-      "Harlow"
-    );
-    const QuizOne = adminQuizCreate(JackUser.authUserId, "Jack", "different quiz");
-    expect(adminQuizInfo(JackUser.authUserId, "")).toStrictEqual({
-      error: "AuthUserId and QuizId cannot be empty",
-    });
-    expect(adminQuizInfo(JackUser.authUserId, "S")).toStrictEqual({
-      error: "QuizId is invalid",
-    });
-  });
+  pushNewQuizIdToUserArray(data, authUserId, newQuizId);
 
-  test("Quiz ID does not refer to a quiz that this user owns", () => {
-    const JackUser = adminAuthRegister(
-      "jack@hotmail.com",
-      "123456ab",
-      "Jack",
-      "Harlow"
-    );
-    const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
-    const TonyUser = adminAuthRegister(
-      "tony@hotmail.com",
-      "ab123456b",
-      "Tony",
-      "Stark"
-    );
-    const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
-    expect(adminQuizInfo(JackUser.authUserId, TonyQuiz.quizId)).toStrictEqual({
-      error: "QuizId does not match authUserId",
-    });
-    expect(adminQuizInfo(TonyUser.authUserId, JacksQuiz.quizId)).toStrictEqual({
-      error: "QuizId does not match authUserId",
-    });
-  });
-});
+  setData(data);
 
-describe("Testing adminQuizCreate", () => {
-  test("Test Valid Auth User ID", () => {
-    const NewUser = adminAuthRegister(
-      "email@gamil.com",
-      "password1234",
-      "Saarthak",
-      "Sinha"
-    );
-    const quizId = adminQuizCreate(
-      NewUser.authUserId,
-      "quiz123",
-      "description"
-    );
-    expect(quizId).toStrictEqual({ quizId: expect.any(Number) });
-  });
+  return {
+    quizId: newQuizId,
+  };
+}
 
-  test("Test Invalid Auth User ID", () => {
-    const quizId = adminQuizCreate("-111111", "Saarthak", "description");
-    expect(quizId).toStrictEqual({ error: expect.any(String) });
-  });
+export { adminQuizCreate };
 
-  test("Test Valid Name", () => {
-    const NewUser = adminAuthRegister(
-      "email@gamil.com",
-      "password1234",
-      "Saarthak",
-      "Sinha"
-    );
-    const quizId = adminQuizCreate(
-      NewUser.authUserId,
-      "quiz123",
-      "description"
-    );
-    expect(quizId).toStrictEqual({ quizId: expect.any(Number) });
-  });
+/**
+ * Update the name of the relevant quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
+ * @param {number} name - the new name of the quiz - must valid 
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
+function adminQuizNameUpdate(authUserId, quizId, name) {
+  let data = getData();
+  // 1. check that authUserId is valid
+  // if not, then return error
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
 
-  test("Test Invalid Name", () => {
-    const NewUser = adminAuthRegister(
-      "email@gamil.com",
-      "password1234",
-      "Saarthak",
-      "Sinha"
-    );
-    const quizId = adminQuizCreate(NewUser.authUserId, "???!!!", "description");
-    expect(quizId).toStrictEqual({ error: expect.any(String) });
-  });
+  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
+  if (!isQuizNameValidTest.result) {
+    return { error: isQuizNameValidTest.error };
+  }
 
-  test("Test Invalid Samll Name Size", () => {
-    const NewUser = adminAuthRegister(
-      "email@gamil.com",
-      "password",
-      "Saarthak",
-      "Sinha"
-    );
-    const quizId = adminQuizCreate(NewUser.authUserId, "ai", "description");
-    expect(quizId).toStrictEqual({ error: expect.any(String) });
-  });
+  if (!isQuizIdValid(data, quizId)) {
+    return { error: "quizId does not refer to a valid quiz." };
+  }
 
-  test("Test Invalid Large Name Size", () => {
-    const NewUser = adminAuthRegister(
-      "email@gamil.com",
-      "password1234",
-      "Saarthak",
-      "Sinha"
-    );
-    const quizId = adminQuizCreate(
-      NewUser.authUserId,
-      "very long quiz name 123 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "description"
-    );
-    expect(quizId).toStrictEqual({ error: expect.any(String) });
-  });
+  if (!doesQuizIdRefer(quizId, authUserId)) {
+    return { error: "Quiz ID does not refer to a quiz that this user owns" };
+  }
+  for (const quiz of data.quizzes) {
+    if (quiz.quizId === quizId) {
+      quiz.name === name;
+    }
+  }
+  return {};
+}
+export { adminQuizNameUpdate };
 
-  test("Test Invalid Repeated Name", () => {
-    const NewUser = adminAuthRegister(
-      "email@gamil.com",
-      "password",
-      "Saarthak",
-      "Sinha"
-    );
-    const quizId = adminQuizCreate(
-      NewUser.authUserId,
-      "Saarthak",
-      "description"
-    );
-    const quizId2 = adminQuizCreate(
-      NewUser.authUserId,
-      "Saarthak",
-      "description"
-    );
-    expect(quizId2).toStrictEqual({ error: expect.any(String) });
-  });
+function doesQuizIdRefer(quizId, authUserId) {
+  // let is_valid = False;
+  const data = getData();
+  for (let quiz of data.quizzes) {
+    if (quiz.quizId === quizId) {
+      for (const userId of quiz.userId) {
+        if (userId === authUserId) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
 
-  test("Test Valid Description", () => {
-    const NewUser = adminAuthRegister(
-      "email@gamil.com",
-      "password1234",
-      "Saarthak",
-      "Sinha"
-    );
-    const quizId = adminQuizCreate(NewUser.authUserId, "Saarthak", "");
-    expect(quizId).toStrictEqual({ quizId: expect.any(Number) });
-  });
-
-  test("Test Invalid Description", () => {
-    const NewUser = adminAuthRegister(
-      "email@gamil.com",
-      "password1234",
-      "Saarthak",
-      "Sinha"
-    );
-    const quizId = adminQuizCreate(
-      NewUser.authUserId,
-      "quiz123",
-      "Very long description aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    );
-    expect(quizId).toStrictEqual({ error: expect.any(String) });
-  });
-});
-
-describe("Testing adminQuizRemove", () => {
-  test("Correct input", () => {
-    const NewUser = adminAuthRegister(
-      "jess@hotmail.com",
-      "123456ab",
-      "Jess",
-      "Tran"
-    );
-    const QuizId = adminQuizCreate(NewUser.authUserId, "Jess", "description");
-    expect(adminQuizRemove(NewUser.authUserId, QuizId.quizId)).toStrictEqual(
-      {}
-    );
-  });
-
-  test("Empty input", () => {
-    expect(adminQuizRemove("", "")).toStrictEqual({
-      error: "AuthUserId and QuizId cannot be empty",
-    });
-  });
-
-  test("Invalid AuthUserId", () => {
-    const NewUser = adminAuthRegister(
-      "jess@hotmail.com",
-      "123456ab",
-      "Jess",
-      "Tran"
-    );
-    const QuizId = adminQuizCreate(NewUser.authUserId, "Jess", "description");
-    expect(adminQuizRemove("abc", QuizId.quizId)).toStrictEqual({
-      error: "AuthUserId is not a valid user",
-    });
-  });
-
-  test("Invalid QuizId", () => {
-    const NewUser = adminAuthRegister(
-      "jess@hotmail.com",
-      "123456ab",
-      "Jess",
-      "Tran"
-    );
-    const QuizId = adminQuizCreate(NewUser.authUserId, "Jess", "description");
-    expect(adminQuizRemove(NewUser.authUserId, "abc")).toStrictEqual({
-      error: "QuizId is invalid",
-    });
-  });
-
-  test("QuizId does not refer to a quiz that this user owns", () => {
-    const JessUser = adminAuthRegister(
-      "jess@hotmail.com",
-      "123456ab",
-      "Jess",
-      "Tran"
-    );
-    const AdamUser = adminAuthRegister(
-      "adam@hotmail.com",
-      "ab123456",
-      "Adam",
-      "Lee"
-    );
-    const JessQuizId = adminQuizCreate(
-      JessUser.authUserId,
-      "Jess",
-      "description"
-    );
-    const AdamQuizId = adminQuizCreate(
-      AdamUser.authUserId,
-      "Jess",
-      "description"
-    );
-    expect(
-      adminQuizRemove(JessUser.authUserId, AdamQuizId.quizId)
-    ).toStrictEqual({ error: "QuizId does not match authUserId" });
-  });
-});
-
-describe("Testing adminQuizList", () => {
-  test("Test Invalid Auth User ID", () => {
-      const quizzes = adminQuizList("-111111");
-      expect(quizzes).toStrictEqual({ error: expect.any(String) });
-  });
-  
-  test("Test Valid Auth User ID", () => {
-    const NewUser = adminAuthRegister(
-      "Belinda@gamil.com",
-      "1234hello",
-      "Belinda",
-      "Wong"
-    );
-    const Quiz1 = adminQuizCreate(NewUser.authUserId, "Quiz One", "description");
-    const Quiz2 = adminQuizCreate(NewUser.authUserId, "Quiz Two", "description");
-    const quizzes = adminQuizList(NewUser.authUserId);
-    expect(quizzes).toStrictEqual({
-      quizzes: [
-        {
-          quizId: Quiz1.quizId,
-          name: "Quiz One",
-        },
-        {
-          quizId: Quiz2.quizId,
-          name: "Quiz Two",
-        },
-      ],
-    });
-  });
-
-  describe("Testing AdminQuizNameUpdate", () => {
-    test("Admin quiz name updated successfully", () => {
-      const JackUser = adminAuthRegister(
-        "jack@hotmail.com",
-        "123456ab",
-        "Jack",
-        "Harlow"
-      );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
-      expect(
-        adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, "Gul")
-      ).toStrictEqual({ error: expect.any(String) });
-    });
-    test("AuthUserId is not a valid user", () => {
-      const JackUser = adminAuthRegister(
-        "jack@hotmail.com",
-        "123456ab",
-        "Jack",
-        "Harlow"
-      );
-      const QuizOne = adminQuizCreate(
-        JackUser.authUserId,
-        "Jack",
-        "different quiz"
-      );
-      expect(adminQuizNameUpdate("", QuizOne.quizId, "Gul")).toStrictEqual({
-        error: expect.any(String),
+/**
+ * Provide a list of all quizzes that are owned by the currently logged in user.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{quizzes: array}} - return all quizzes that contain the user's authUserId
+ */
+function adminQuizList(authUserId) {
+  let data = getData();
+  let quizzesList = [];
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
+  for(const quiz of data.quizzes){
+    if (quiz.userId.includes(authUserId)){
+      quizzesList.push({
+        quizId: quiz.quizId,
+        name: quiz.name,
       });
-      expect(adminQuizNameUpdate("Angel", QuizOne.quizId, "Gul")).toStrictEqual(
-        { error: expect.any(String) }
-      );
-    });
+    }
+  }
+  return {quizzes: quizzesList};
+}
 
-    test("Quiz ID does not refer to a valid quiz", () => {
-      const JackUser = adminAuthRegister(
-        "jack@hotmail.com",
-        "123456ab",
-        "Jack",
-        "Harlow"
-      );
-      const QuizOne = adminQuizCreate(
-        JackUser.authUserId,
-        "Jack",
-        "different quiz"
-      );
-      expect(adminQuizNameUpdate(JackUser.authUserId, "", "Gul")).toStrictEqual(
-        { error: expect.any(String) }
-      );
-      expect(
-        adminQuizNameUpdate(JackUser.authUserId, "S", "Gul")
-      ).toStrictEqual({ error: expect.any(String) });
-    });
+export { adminQuizList };
 
-    test("Quiz ID does not refer to a quiz that this user owns", () => {
-      const JackUser = adminAuthRegister(
-        "jack@hotmail.com",
-        "123456ab",
-        "Jack",
-        "Harlow"
-      );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+/**
+ * Given a particular quiz, permanently remove the quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz want to be delete - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
+function adminQuizRemove(authUserId, quizId) {
+  let data = getData();
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
+    data,
+    authUserId,
+    quizId
+  );
 
-      const TonyUser = adminAuthRegister(
-        "tony@hotmail.com",
-        "ab123456b",
-        "Tony",
-        "Stark"
-      );
-      const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
+  if (authUserId === "" || quizId === "") {
+    return { error: "AuthUserId and QuizId cannot be empty" };
+  }
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
+  if (!isQuizIdValidTest) {
+    return { error: "QuizId is invalid" };
+  }
+  if (!isAuthUserIdMatchQuizIdTest) {
+    return { error: "QuizId does not match authUserId" };
+  }
 
-      expect(
-        adminQuizNameUpdate(JackUser.authUserId, TonyQuiz.quizId, "Gul")
-      ).toStrictEqual({ error: expect.any(String) });
-      expect(
-        adminQuizNameUpdate(TonyUser.authUserId, JacksQuiz.quizId, "Gul")
-      ).toStrictEqual({ error: expect.any(String) });
-    });
+  let newdata = data;
+  let userToUpdata = data.users.find((user) => user.authUserId === authUserId);
+  data.quizzes = data.quizzes.filter((quiz) => quiz.quizId !== quizId);
+  if (userToUpdata) {
+    const indexToRemove = userToUpdata.quizId.indexOf(quizId);
+    if (indexToRemove !== -1) {
+      userToUpdata.quizId.splice(indexToRemove, 1);
+    }
+  }
+  for (const check of newdata.users) {
+    if (newdata.users.authUserId === authUserId) {
+      newdata.users[check] = userToUpdata;
+    }
+  }
+  setData(newdata);
+  return {};
+}
 
-    test("Test Invalid Name", () => {
-      const JackUser = adminAuthRegister(
-        "jack@hotmail.com",
-        "123456ab",
-        "Jack",
-        "Harlow"
-      );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+export { adminQuizRemove };
 
-      expect(
-        adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, "&%^#$%")
-      ).toStrictEqual({ error: expect.any(String) });
-    });
+/**
+ * Update the description of the relevant quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz want to change description - must exist / be valid / be unique
+ * @param {string} description - the new description of the quiz
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
+function adminQuizDescriptionUpdate(authUserId, quizId, description) {
+  const data = getData();
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
-    test("Test Invalid Samll Name Size", () => {
-      const JackUser = adminAuthRegister(
-        "jack@hotmail.com",
-        "123456ab",
-        "Jack",
-        "Harlow"
-      );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+  if (!isAuthUserIdValidTest) {
+    return { error: "AuthUserId is not a valid user" };
+  }
 
-      expect(
-        adminQuizNameUpdate(JackUser.adminUserId, JacksQuiz.quizId, "gu")
-      ).toStrictEqual({ error: expect.any(String) });
-    });
+  if (!isQuizIdValid(data, quizId)) {
+    return { error: "quizId does not refer to a valid quiz." };
+  }
 
-    test("Test Invalid Large Name Size", () => {
-      const JackUser = adminAuthRegister(
-        "jack@hotmail.com",
-        "123456ab",
-        "Jack",
-        "Harlow"
-      );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+  if (!doesQuizIdRefer(quizId, authUserId)) {
+    return { error: "Quiz ID does not refer to a quiz that this user owns" };
+  }
+  if (description.length > 100) {
+    return {
+      error:
+        "Description is more than 100 characters in length (note: empty strings are OK)",
+    };
+  }
 
-      expect(
-        adminQuizNameUpdate(
-          JackUser.adminUserId,
-          JacksQuiz.quizId,
-          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        )
-      ).toStrictEqual({ error: expect.any(String) });
-    });
+  for (const quiz of data.quizzes) {
+    if (quiz.quizId === quizId) {
+      quiz.description === description;
+    }
+  }
 
-    test("Test Invalid Repeated Name", () => {
-      const JackUser = adminAuthRegister(
-        "jack@hotmail.com",
-        "123456ab",
-        "Jack",
-        "Harlow"
-      );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+  return {};
+}
 
-      const TonyUser = adminAuthRegister(
-        "tony@hotmail.com",
-        "ab123456b",
-        "Tony",
-        "Stark"
-      );
-      const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
+export { adminQuizDescriptionUpdate };
 
-      expect(
-        adminQuizNameUpdate(JackUser.authUserId, JackUser.quizId, "Tony")
-      ).toStrictEqual({ error: expect.any(String) });
-    });
-  });
-});
+// HELPER FUNCTIONS - START ------------------------------------------------------------------------
 
-describe("Testing adminQuizDescriptionUpdate", () => {
-  // CONSTANTS USED IN TEST SUITE - START
-  const EMAIL_1 = "jenny@hotmail.com";
-  const PASSWORD_1 = "password1234567";
-  const EMAIL_2 = "sandy@hotmail.com";
-  const PASSWORD_2 = "password123456789";
+/**
+ * Function to test whether authUserId is valid
+ * Used in:
+ * adminQuizCreate()
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} authId - the id of the person creating the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
+function isAuthUserIdValid(data, authId) {
+  // 1. test for authId is integer or less than 0
+  if (!Number.isInteger(authId) || authId < 0) {
+    return false;
+  }
 
-  // CONSTANTS USED IN TEST SUITE - END
+  // 2. test that authId exists in dataStore
+  // if the authId is found while iterating
+  // over the array, the authId is pushed
+  // to userIdArr[]
+  // If at the end of the iteration, the
+  // length of userIdArr[] is exactly 1
+  // then: the authId exists and only
+  // one copy of authId exists and the boolean
+  // true is returned
+  // If userIdArr[].length is not exactly 1
+  // then either it does not exist, or more than
+  // one copy exists, and the boolean false is returned
 
-  test("AuthUserId is not a valid user", () => {
-    const authUserId = -1;
-    const quizId = 2;
-    const description = "A quiz relating to git commands";
-    expect(
-      adminQuizDescriptionUpdate(authUserId, quizId, description)
-    ).toStrictEqual({ error: expect.any(String) });
-  });
+  const usersArr = data.users;
+  let userIdArr = [];
 
-  test("Quiz ID does not refer to a valid quiz", () => {
-    const userAdmin1 = adminAuthRegister(
-      EMAIL_1,
-      PASSWORD_1,
-      "Jenny",
-      "Anderson"
-    );
+  for (const arr of usersArr) {
+    if (arr.authUserId === authId) {
+      userIdArr.push(authId);
+    }
+  }
 
-    const quizId = -1;
-    const description = "A quiz relating to git commands";
-    const adminQuizDescriptionUpdateTest = adminQuizDescriptionUpdate(
-      userAdmin1.authUserId,
-      quizId,
-      description
-    );
+  // not testing for type equality here
+  // as during testing userIdArr.length does not return true
+  // for type number
+  if (userIdArr.length == 1) {
+    return true;
+  }
 
-    expect(adminQuizDescriptionUpdateTest).toStrictEqual({
-      error: expect.any(String),
-    });
-  });
+  return false;
+}
 
-  test("Quiz ID does not refer to a quiz that this user owns", () => {
-    const userAdmin1 = adminAuthRegister(
-      EMAIL_1,
-      PASSWORD_1,
-      "Jenny",
-      "Anderson"
-    );
+/**
+ * Function to test whether quiz name is valid
+ * quiz name is invalid if:
+ * - contains invalid characters. Valid characters are alphanumeric and spaces
+ * - either less than 3 characters long or more than 30 characters long
+ * - already used by the current logged in user for another quiz
+ * Used in:
+ * adminQuizCreate()
+ *
+ * @param {object} data - the dataStore object
+ * @param {string} name - the name of the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
+function isQuizNameValid(data, name, userId) {
+  // 1. test for not containing invalid characters
+  // assistance taken from https://regex101.com/codegen?language=javascript
+  const regexMain = /^[a-z\d\s]+$/gim;
 
-    const userAdmin2 = adminAuthRegister(
-      EMAIL_2,
-      PASSWORD_2,
-      "Sandy",
-      "Johnson"
-    );
+  const regexMainTest = regexMain.test(name);
 
-    const quizId2 = adminQuizCreate(
-      userAdmin2.authUserId,
-      "quiz2",
-      "A quiz about the UNSW CSE course COMP1511"
-    );
+  if (!regexMainTest) {
+    return {
+      result: false,
+      error:
+        "Name contains invalid characters. Valid characters are alphanumeric and spaces",
+    };
+  }
 
-    const description = "A quiz relating to git commands";
+  // 2. test for name either less than 3 characters or
+  // more than 30 characters long
 
-    const adminQuizDescriptionUpdateTest = adminQuizDescriptionUpdate(
-      userAdmin1.authUserId,
-      quizId2.quizId,
-      description
-    );
+  if (name.length < 3 || name.length > 30) {
+    return {
+      result: false,
+      error:
+        "Name is either less than 3 characters long or more than 30 characters long",
+    };
+  }
 
-    expect(adminQuizDescriptionUpdateTest).toStrictEqual({
-      error: expect.any(String),
-    });
-  });
+  // 3. test for name already being used by the current logged
+  // in user for another quiz
+  // Logic:
+  // a. iterate through quizzes array and look at userId array
+  // b. if the authId appears there, then look at the quiz name
+  // c. if the quiz name matches the name of the quiz
+  // wanting to be created, then return error, else return ok
 
-  test("Description is more than 100 characters in length", () => {
-    const userAdmin1 = adminAuthRegister(
-      EMAIL_1,
-      PASSWORD_1,
-      "Jenny",
-      "Anderson"
-    );
+  const quizzesArr = data.quizzes;
 
-    const description =
-      "A quiz relating to git. When working in git, or other version control systems, the concept of /'saving/' is a more nuanced process than saving in a word processor or other traditional file editing applications. The traditional software expression of /'saving/' is synonymous with the git term /'committing/'. A commit is the git equivalent of a /'save/'. Traditional saving should be thought of as a file system operation that is used to overwrite an existing file or write a new file. Alternatively, git committing is an operation that acts upon a collection of files and directories. commands. This was taken from ";
+  for (const arr of quizzesArr) {
+    if (arr.userId.includes(userId)) {
+      if (arr.name === name) {
+        return {
+          result: false,
+          error:
+            "Name is already used by the current logged in user for another quiz",
+        };
+      }
+    }
+  }
 
-    const adminQuizCreateTest = adminQuizCreate(
-      userAdmin1.authUserId,
-      "quiz1",
-      description
-    );
+  return { result: true };
+}
 
-    expect(adminQuizCreateTest).toStrictEqual({ error: expect.any(String) });
-  });
-});
+/**
+ * Function to mutate existing user array
+ * to add new quizId to quizId array of data.users
+ * Used in:
+ * adminQuizCreate()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} authUserId - the authUserId
+ * @param {number} quizId - the id of the new quiz created
+ * ...
+ *
+ * @returns {} - nil return; the existing array is mutated
+ */
+function pushNewQuizIdToUserArray(data, authUserId, quizId) {
+  const userArr = data.users;
 
+  for (const arr of userArr) {
+    if (arr.authUserId === authUserId) {
+      arr.quizId.push(quizId);
+    }
+  }
+}
+
+/**
+ * Function to test whether quizId is valid
+ * Used in:
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} quizId - the id of the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
+function isQuizIdValid(data, quizId) {
+  // 1. test for quizId is integer or less than 0
+  if (!Number.isInteger(quizId) || quizId < 0) {
+    return false;
+  }
+
+  // 2. test that quizId exists in dataStore
+  const quizzesArr = data.quizzes;
+  let userIdArr = [];
+  for (const arr of quizzesArr) {
+    if (arr.quizId === quizId) {
+      userIdArr.push(quizId);
+    }
+  }
+  if (userIdArr.length === 1) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Function to test whether quiz contains user's authUserId
+ * Used in:
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} authId - the id of the person creating the quiz
+ * @param {number} quizId - the id of the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
+function isAuthUserIdMatchQuizId(data, authUserId, quizId) {
+  const usersArr = data.users;
+  let userQuizIdArr = [];
+  for (const arr of usersArr) {
+    if (arr.authUserId === authUserId) {
+      for (const check of arr.quizId) {
+        if (check === quizId) {
+          userQuizIdArr.push(quizId);
+        }
+      }
+    }
+  }
+  if (userQuizIdArr.length === 1) {
+    return true;
+  }
+  return false;
+}
