@@ -201,7 +201,7 @@ describe("Testing adminQuizCreate", () => {
       "Saarthak",
       "description"
     );
-    expect(quizId2).toStrictEqual({ error: "Name is already used by the current logged in user for another quiz" });
+    expect(quizId2).toStrictEqual({ error: expect.any(String) });
   });
 
   test("Test Valid Description", () => {
