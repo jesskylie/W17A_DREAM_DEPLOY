@@ -148,11 +148,6 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
     return { error: "AuthUserId is not a valid user" };
   }
 
-  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
-  if (!isQuizNameValidTest.result) {
-    return { error: isQuizNameValidTest.error };
-  }
-
   if (!isQuizIdValid(data, quizId)) {
     return { error: "quizId does not refer to a valid quiz." };
   }
@@ -160,6 +155,12 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
   if (!doesQuizIdRefer(quizId, authUserId)) {
     return { error: "Quiz ID does not refer to a quiz that this user owns" };
   }
+
+  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
+  if (!isQuizNameValidTest.result) {
+    return { error: isQuizNameValidTest.error };
+  }
+
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
       quiz.name === name;
