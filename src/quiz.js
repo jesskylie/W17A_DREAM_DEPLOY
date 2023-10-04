@@ -437,3 +437,4 @@ function isAuthUserIdMatchQuizId(data, authUserId, quizId) {
   }
   return false;
 }
+
