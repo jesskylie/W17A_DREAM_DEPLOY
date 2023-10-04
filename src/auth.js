@@ -62,7 +62,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
   }
 
   if (!isValidPassword(password)) {
-    return { error: "Password length is less than 8 characters" };
+    return { error: "Invalid password" };
   }
 
   const length = data.users.length;
