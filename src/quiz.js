@@ -210,7 +210,6 @@ function adminQuizList(authUserId) {
     }
   }
   return {quizzes: quizzesList};
-  console.log(quizzesList);
 }
 
 export { adminQuizList };
