@@ -202,15 +202,15 @@ function adminQuizList(authUserId) {
   if (!isAuthUserIdValidTest) {
     return { error: "AuthUserId is not a valid user" };
   }
-  for(const quiz of data.quizzes){
-    if (quiz.userId.includes(authUserId)){
+  for (const quiz of data.quizzes) {
+    if (quiz.userId.includes(authUserId)) {
       quizzesList.push({
         quizId: quiz.quizId,
         name: quiz.name,
       });
     }
   }
-  return {quizzes: quizzesList};
+  return { quizzes: quizzesList };
 }
 
 export { adminQuizList };
@@ -301,9 +301,12 @@ function adminQuizDescriptionUpdate(authUserId, quizId, description) {
     };
   }
 
+  const timeStamp = Math.floor((Date.now() / 1000) + 100);
+
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
-      quiz.description === description;
+      quiz.description = description;
+      quiz.timeLastEdited = timeStamp
     }
   }
 
