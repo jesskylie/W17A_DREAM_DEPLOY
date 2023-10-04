@@ -531,7 +531,7 @@ describe("Testing adminQuizList", () => {
 });
 
 // Inspiration for structure of pausing within Jest test taken from
-// inspiration from https://stackoverflow.com/questions/46077176/jest-settimeout-not-pausing-test
+// https://stackoverflow.com/questions/46077176/jest-settimeout-not-pausing-test
 it("quiz timeLastEdited is updated when description is updated", async () => {
   // CONSTANTS USED IN TEST SUITE - START
   const EMAIL_1 = "jenny@hotmail.com";
