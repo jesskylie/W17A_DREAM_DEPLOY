@@ -133,7 +133,7 @@ export { adminQuizCreate };
  *
  * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
  * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
- * @param {number} name - the new name of the quiz - must valid 
+ * @param {number} name - the new name of the quiz - must valid
  * ...
  *
  * @returns {{error: string}} - an error object if an error occurs
@@ -301,12 +301,12 @@ function adminQuizDescriptionUpdate(authUserId, quizId, description) {
     };
   }
 
-  const timeStamp = Math.floor((Date.now() / 1000) + 100);
+  const timeStamp = Math.floor(Date.now() / 1000);
 
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
       quiz.description = description;
-      quiz.timeLastEdited = timeStamp
+      quiz.timeLastEdited = timeStamp;
     }
   }
 

@@ -36,7 +36,6 @@ describe("Testing adminQuizInfo", () => {
       description: "this is my first quiz",
     });
 
-
     const QuizTwo = adminQuizCreate(
       JackUser.authUserId,
       "Quiz Two",
@@ -78,7 +77,11 @@ describe("Testing adminQuizInfo", () => {
       "Jack",
       "Harlow"
     );
-    const QuizOne = adminQuizCreate(JackUser.authUserId, "Jack", "different quiz");
+    const QuizOne = adminQuizCreate(
+      JackUser.authUserId,
+      "Jack",
+      "different quiz"
+    );
     expect(adminQuizInfo(JackUser.authUserId, "")).toStrictEqual({
       error: expect.any(String),
     });
@@ -94,7 +97,11 @@ describe("Testing adminQuizInfo", () => {
       "Jack",
       "Harlow"
     );
-    const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+    const JacksQuiz = adminQuizCreate(
+      JackUser.authUserId,
+      "Jack",
+      "Jacks quiz"
+    );
     const TonyUser = adminAuthRegister(
       "tony@hotmail.com",
       "ab123456b",
@@ -319,8 +326,16 @@ describe("Testing adminQuizList", () => {
       "Belinda",
       "Wong"
     );
-    const Quiz1 = adminQuizCreate(NewUser.authUserId, "Quiz One", "description");
-    const Quiz2 = adminQuizCreate(NewUser.authUserId, "Quiz Two", "description");
+    const Quiz1 = adminQuizCreate(
+      NewUser.authUserId,
+      "Quiz One",
+      "description"
+    );
+    const Quiz2 = adminQuizCreate(
+      NewUser.authUserId,
+      "Quiz Two",
+      "description"
+    );
     const quizzes = adminQuizList(NewUser.authUserId);
     expect(quizzes).toStrictEqual({
       quizzes: [
@@ -344,7 +359,11 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(
+        JackUser.authUserId,
+        "Jack",
+        "Jacks quiz"
+      );
       expect(
         adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "Gul")
       ).toStrictEqual({});
@@ -396,7 +415,11 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(
+        JackUser.authUserId,
+        "Jack",
+        "Jacks quiz"
+      );
 
       const TonyUser = adminAuthRegister(
         "tony@hotmail.com",
@@ -404,7 +427,11 @@ describe("Testing adminQuizList", () => {
         "Tony",
         "Stark"
       );
-      const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
+      const TonyQuiz = adminQuizCreate(
+        TonyUser.authUserId,
+        "Jack",
+        "Tony quiz"
+      );
 
       expect(
         adminQuizNameUpdate(JackUser.authUserId, TonyQuiz.quizId, "Gul")
@@ -421,7 +448,11 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(
+        JackUser.authUserId,
+        "Jack",
+        "Jacks quiz"
+      );
       expect(
         adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "&%^#$%")
       ).toStrictEqual({ error: expect.any(String) });
@@ -434,7 +465,11 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(
+        JackUser.authUserId,
+        "Jack",
+        "Jacks quiz"
+      );
 
       expect(
         adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "gu")
@@ -448,7 +483,11 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(
+        JackUser.authUserId,
+        "Jack",
+        "Jacks quiz"
+      );
 
       expect(
         adminQuizNameUpdate(
@@ -466,7 +505,11 @@ describe("Testing adminQuizList", () => {
         "Jack",
         "Harlow"
       );
-      const JacksQuiz = adminQuizCreate(JackUser.authUserId, "Jack", "Jacks quiz");
+      const JacksQuiz = adminQuizCreate(
+        JackUser.authUserId,
+        "Jack",
+        "Jacks quiz"
+      );
 
       const TonyUser = adminAuthRegister(
         "tony@hotmail.com",
@@ -474,13 +517,92 @@ describe("Testing adminQuizList", () => {
         "Tony",
         "Stark"
       );
-      const TonyQuiz = adminQuizCreate(TonyUser.authUserId, "Jack", "Tony quiz");
+      const TonyQuiz = adminQuizCreate(
+        TonyUser.authUserId,
+        "Jack",
+        "Tony quiz"
+      );
 
       expect(
         adminQuizNameUpdate(JackUser.authUserId, JacksQuiz.quizId, "Jack")
       ).toStrictEqual({ error: expect.any(String) });
     });
   });
+});
+
+// Inspiration for structure of pausing within Jest test taken from
+// https://stackoverflow.com/questions/46077176/jest-settimeout-not-pausing-test
+it("quiz timeLastEdited is updated when description is updated", async () => {
+  // CONSTANTS USED IN TEST SUITE - START
+  const EMAIL_1 = "jenny@hotmail.com";
+  const PASSWORD_1 = "password1234567";
+
+  const originalDescription = "A quiz about the UNSW CSE course COMP1511";
+  const newDescription = "A quiz about the UNSW CSE course COMP1531";
+
+  const WAIT_TIME = 2000;
+
+  // CONSTANTS USED IN TEST SUITE - END
+
+  // Step 1. Create user and then original quiz
+  const userAdmin1 = adminAuthRegister(
+    EMAIL_1,
+    PASSWORD_1,
+    "Jenny",
+    "Anderson"
+  );
+
+  const originalQuiz = adminQuizCreate(
+    userAdmin1.authUserId,
+    "quiz2",
+    originalDescription
+  );
+
+  // Step 2. Get timeLastEdited from quiz
+
+  const quizInfoAtCreation = adminQuizInfo(
+    userAdmin1.authUserId,
+    originalQuiz.quizId
+  );
+
+  const timeLastEditedAtCreation = quizInfoAtCreation.timeLastEdited;
+
+  // Step 3. Wait 2 seconds
+  await new Promise((res) => setTimeout(res, WAIT_TIME));
+
+  // Step 4. Update description of quiz
+
+  const sameQuizWithNewDescription = adminQuizDescriptionUpdate(
+    userAdmin1.authUserId,
+    originalQuiz.quizId,
+    newDescription
+  );
+
+  // Step 5. Get timeLastEdited from updated quiz
+
+  const quizInfoAtUpdate = adminQuizInfo(
+    userAdmin1.authUserId,
+    originalQuiz.quizId
+  );
+
+  const timeLastEditedAtUpdate = quizInfoAtUpdate.timeLastEdited;
+
+  // Step 6. Run test for updated timeLastEdited
+  // Due to the wait, the time the quiz was updated is
+  // always expected to be greater than when the quiz was created
+  // the .toBe() jest function was not used as it may not always
+  // be exactly the WAIT_TIME in difference, but it will
+  // always be greater
+
+  expect(timeLastEditedAtUpdate).toBeGreaterThan(timeLastEditedAtCreation);
+
+  // Step 7. Get updated quiz description
+
+  const quizDescriptionAtUpdate = quizInfoAtUpdate.description;
+
+  // Step 8. Check that quizDescription === newDescription
+
+  expect(quizDescriptionAtUpdate).toStrictEqual(newDescription);
 });
 
 describe("Testing adminQuizDescriptionUpdate", () => {
@@ -493,9 +615,8 @@ describe("Testing adminQuizDescriptionUpdate", () => {
   // CONSTANTS USED IN TEST SUITE - END
 
   test("quiz description is updated", () => {
-
-    const originalDescription = "A quiz about the UNSW CSE course COMP1511"
-    const newDescription = "A quiz about the UNSW CSE course COMP1531"
+    const originalDescription = "A quiz about the UNSW CSE course COMP1511";
+    const newDescription = "A quiz about the UNSW CSE course COMP1531";
 
     const userAdmin1 = adminAuthRegister(
       EMAIL_1,
@@ -516,9 +637,7 @@ describe("Testing adminQuizDescriptionUpdate", () => {
       newDescription
     );
 
-    expect(
-      sameQuizWithNewDescription
-    ).toStrictEqual({});
+    expect(sameQuizWithNewDescription).toStrictEqual({});
   });
 
   test("AuthUserId is not a valid user", () => {
