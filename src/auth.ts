@@ -15,9 +15,9 @@ interface ErrorObject {
   error: string;
 }
 
-interface User {
+interface UserInfo {
   user: {
-    userId: number;
+    authUserId: number;
     name: string;
     email: string;
     numSuccessfulLogins: number;
@@ -48,13 +48,13 @@ interface UserData {
  *            numFailedPasswordsSinceLastLogin: number}}} - user details
  * @returns {{error: string}} - on error
  */
-export function adminUserDetails(authUserId: number): User | ErrorObject {
+export function adminUserDetails(authUserId: number): UserInfo | ErrorObject {
   const data = getData();
   for (const user of data.users) {
     if (user.authUserId === authUserId) {
       return {
         user: {
-          userId: user.authUserId,
+          authUserId: user.authUserId,
           name: user.nameFirst + ' ' + user.nameLast,
           email: user.email,
           numSuccessfulLogins: user.numSuccessfulLogins,
@@ -107,17 +107,9 @@ export function adminAuthRegister(
   if (!isValidPassword(password)) {
     return { error: 'Invalid password' };
   }
-
-  const length = data.users.length;
-  // authUserId will be index from 0,1,2,3....
-  if (length === 0) {
-    data.users.authUserId = 0;
-  } else {
-    data.users.authUserId = data.users[length - 1].authUserId + 1;
-  }
-
-  data.users.push({
-    authUserId: data.users.authUserId,
+  
+  const newUser: UserData = {
+    authUserId: data.users.length,
     nameFirst: nameFirst,
     nameLast: nameLast,
     email: email,
@@ -125,12 +117,15 @@ export function adminAuthRegister(
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
     quizId: [],
-  });
+  };
+  
+  // console.log(newUser);
+  data.users.push(newUser);
 
   setData(data);
 
   return {
-    authUserId: data.users.authUserId,
+    authUserId: newUser.authUserId,
   };
 }
 
