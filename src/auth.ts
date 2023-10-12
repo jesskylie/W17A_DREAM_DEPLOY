@@ -1,7 +1,11 @@
 import { getData, setData } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
 
-// TypeScript interfacts - START
+const MAX_NAME_LENGTH = 20;
+const MIN_NAME_LENGTH = 2;
+const MIN_PASSWORD_LENGTH = 8;
+
+// TypeScript interfaces - START
 
 interface AuthUserId {
   authUserId: number;
@@ -11,19 +15,40 @@ interface ErrorObject {
   error: string;
 }
 
-// TypeScript interfacts - END
+interface User {
+  user: {
+    userId: number;
+    name: string;
+    email: string;
+    numSuccessfulLogins: number;
+    numFailedPasswordsSinceLastLogin: number;
+  }
+}
+
+interface UserData {
+  authUserId: number;
+  nameFirst: string;
+  nameLast: string;
+  email: string;
+  password: string;
+  numSuccessfulLogins: number;
+  numFailedPasswordsSinceLastLogin: number;
+  quizId: number[];
+}
+
+// TypeScript interfaces - END
 
 /**
  * Returns details about the user, given their authUserId
  * Successful login starts at 1 at user registration
  * Number of failed logins is reset every time they have a successful login
  *
- * @param {number} email - user's email
+ * @param {number} authUserId - users authUserId
  * @returns {{user: {userId: number, name: string, email: string, numSuccessfulLogins: number
  *            numFailedPasswordsSinceLastLogin: number}}} - user details
  * @returns {{error: string}} - on error
  */
-export function adminUserDetails(authUserId) {
+export function adminUserDetails(authUserId: number): User | ErrorObject {
   const data = getData();
   for (const user of data.users) {
     if (user.authUserId === authUserId) {
@@ -54,10 +79,15 @@ export function adminUserDetails(authUserId) {
  * @returns {{authUserId: number}} - unique identifier for a user
  * @returns {{error: string}} - on error
  */
-export function adminAuthRegister(email, password, nameFirst, nameLast) {
+export function adminAuthRegister(
+  email: string, 
+  password: string, 
+  nameFirst: string, 
+  nameLast: string 
+): ErrorObject | AuthUserId {
   const data = getData();
-
-  // email address is already in use
+  
+  //email address is already in use
   if (data.users.length >= 1) {
     for (const pass of data.users) {
       if (pass.email === email) {
@@ -176,13 +206,13 @@ export function adminAuthLogin(
  * checks that a name is between 2-20 characters and only contains characters
  * code taken from https://bobbyhadz.com/blog/javascript-check-if-string-contains-only-letters-and-numbers
  * @param {string} name - user's name
- * @returns {bool} true - returns true if name fits criteria
- * @returns {bool} false - returns false if name does not fit criteria
+ * @returns {boolean} true - returns true if name fits criteria
+ * @returns {boolean} false - returns false if name does not fit criteria
  */
-function isValidName(name) {
+function isValidName(name: string): boolean {
   // must only include chars, spaces and hyphens
   const correctName = /^[a-zA-Z\s\-']+$/;
-  if (name.length >= 2 && name.length <= 20) {
+  if (name.length >= MIN_NAME_LENGTH && name.length <= MAX_NAME_LENGTH) {
     return correctName.test(name);
   } else {
     return false;
@@ -193,13 +223,13 @@ function isValidName(name) {
  * checks that password is at least 8 characters & contains at least 1 number and 1 letter
  * code taken from https://stackoverflow.com/questions/7075254/how-to-validate-a-string-which-contains-at-least-one-letter-and-one-digit-in-jav
  * @param {string} password - user's password
- * @returns {bool} true - returns true if name fits criteria
- * @returns {bool} false - returns false if name does not fit criteria
+ * @returns {boolean} true - returns true if name fits criteria
+ * @returns {boolean} false - returns false if name does not fit criteria
  */
-function isValidPassword(password) {
+function isValidPassword(password: string): boolean {
   // must include at least 1 number and 1 letter
   const correctPassword = /^(?=.*[0-9])(?=.*[a-zA-Z])/;
-  if (password.length >= 8) {
+  if (password.length >= MIN_PASSWORD_LENGTH) {
     return correctPassword.test(password);
   } else {
     return false;
