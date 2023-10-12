@@ -1,4 +1,4 @@
-import { getData, setData } from "./dataStore.js";
+import { getData, setData } from './dataStore';
 
 /**
  * Printing out the the quiz information
@@ -20,17 +20,17 @@ function adminQuizInfo(authUserId, quizId) {
     quizId
   );
 
-  if (authUserId === "" || quizId === "") {
-    return { error: "AuthUserId and QuizId cannot be empty" };
+  if (authUserId === '' || quizId === '') {
+    return { error: 'AuthUserId and QuizId cannot be empty' };
   }
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
   if (!isQuizIdValidTest) {
-    return { error: "QuizId is invalid" };
+    return { error: 'QuizId is invalid' };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: "QuizId does not match authUserId" };
+    return { error: 'QuizId does not match authUserId' };
   }
 
   let quizInfo = {};
@@ -71,7 +71,7 @@ function adminQuizCreate(authUserId, name, description) {
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
 
   // 2. check that quiz name is valid
@@ -87,7 +87,7 @@ function adminQuizCreate(authUserId, name, description) {
   if (description.length > 100) {
     return {
       error:
-        "Description is more than 100 characters in length (note: empty strings are OK)",
+        'Description is more than 100 characters in length (note: empty strings are OK)',
     };
   }
 
@@ -145,15 +145,15 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
   // if not, then return error
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: "QuizId does not refer to a valid quiz." };
+    return { error: 'QuizId does not refer to a valid quiz.' };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
-    return { error: "Quiz ID does not refer to a quiz that this user owns" };
+    return { error: 'Quiz ID does not refer to a quiz that this user owns' };
   }
 
   const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
@@ -200,7 +200,7 @@ function adminQuizList(authUserId) {
   let quizzesList = [];
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
   for (const quiz of data.quizzes) {
     if (quiz.userId.includes(authUserId)) {
@@ -235,17 +235,17 @@ function adminQuizRemove(authUserId, quizId) {
     quizId
   );
 
-  if (authUserId === "" || quizId === "") {
-    return { error: "AuthUserId and QuizId cannot be empty" };
+  if (authUserId === '' || quizId === '') {
+    return { error: 'AuthUserId and QuizId cannot be empty' };
   }
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
   if (!isQuizIdValidTest) {
-    return { error: "QuizId is invalid" };
+    return { error: 'QuizId is invalid' };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: "QuizId does not match authUserId" };
+    return { error: 'QuizId does not match authUserId' };
   }
 
   let newdata = data;
@@ -284,20 +284,20 @@ function adminQuizDescriptionUpdate(authUserId, quizId, description) {
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: "quizId does not refer to a valid quiz." };
+    return { error: 'quizId does not refer to a valid quiz.' };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
-    return { error: "Quiz ID does not refer to a quiz that this user owns" };
+    return { error: 'Quiz ID does not refer to a quiz that this user owns' };
   }
   if (description.length > 100) {
     return {
       error:
-        "Description is more than 100 characters in length (note: empty strings are OK)",
+        'Description is more than 100 characters in length (note: empty strings are OK)',
     };
   }
 
@@ -394,7 +394,7 @@ function isQuizNameValid(data, name, userId) {
     return {
       result: false,
       error:
-        "Name contains invalid characters. Valid characters are alphanumeric and spaces",
+        'Name contains invalid characters. Valid characters are alphanumeric and spaces',
     };
   }
 
@@ -405,7 +405,7 @@ function isQuizNameValid(data, name, userId) {
     return {
       result: false,
       error:
-        "Name is either less than 3 characters long or more than 30 characters long",
+        'Name is either less than 3 characters long or more than 30 characters long',
     };
   }
 
@@ -425,7 +425,7 @@ function isQuizNameValid(data, name, userId) {
         return {
           result: false,
           error:
-            "Name is already used by the current logged in user for another quiz",
+            'Name is already used by the current logged in user for another quiz',
         };
       }
     }
