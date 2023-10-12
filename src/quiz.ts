@@ -92,12 +92,17 @@ export { adminQuizInfo };
  * @returns {{quizId: number}} - an object with the key quizId and the value the, unique, quizId
  */
 
+<<<<<<< HEAD
+function adminQuizCreate(authUserId, name, description) {
+  const data = getData();
+=======
 function adminQuizCreate(
   authUserId: number,
   name: string,
   description: string
 ): QuizId | ErrorObject {
   let data = getData();
+>>>>>>> 157c18d4654f431f6cd413c8f928f0199255c164
   // 1. check that authUserId is valid
   // if not, then return error
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -172,7 +177,7 @@ export { adminQuizCreate };
  * @returns {} - return nothing
  */
 function adminQuizNameUpdate(authUserId, quizId, name) {
-  let data = getData();
+  const data = getData();
   // 1. check that authUserId is valid
   // if not, then return error
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -206,7 +211,7 @@ export { adminQuizNameUpdate };
 function doesQuizIdRefer(quizId, authUserId) {
   // let is_valid = False;
   const data = getData();
-  for (let quiz of data.quizzes) {
+  for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
       for (const userId of quiz.userId) {
         if (userId === authUserId) {
@@ -228,8 +233,8 @@ function doesQuizIdRefer(quizId, authUserId) {
  * @returns {{quizzes: array}} - return all quizzes that contain the user's authUserId
  */
 function adminQuizList(authUserId) {
-  let data = getData();
-  let quizzesList = [];
+  const data = getData();
+  const quizzesList = [];
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   if (!isAuthUserIdValidTest) {
     return { error: 'AuthUserId is not a valid user' };
@@ -245,6 +250,13 @@ function adminQuizList(authUserId) {
   return { quizzes: quizzesList };
 }
 
+const NewUser = adminAuthRegister(
+  'Belinda@gamil.com',
+  'password1234',
+  'Belinda',
+  'Wong'
+);
+
 export { adminQuizList };
 
 /**
@@ -258,7 +270,7 @@ export { adminQuizList };
  * @returns {} - return nothing
  */
 function adminQuizRemove(authUserId, quizId) {
-  let data = getData();
+  const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
   const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
@@ -280,8 +292,8 @@ function adminQuizRemove(authUserId, quizId) {
     return { error: 'QuizId does not match authUserId' };
   }
 
-  let newdata = data;
-  let userToUpdata = data.users.find((user) => user.authUserId === authUserId);
+  const newdata = data;
+  const userToUpdata = data.users.find((user) => user.authUserId === authUserId);
   data.quizzes = data.quizzes.filter((quiz) => quiz.quizId !== quizId);
   if (userToUpdata) {
     const indexToRemove = userToUpdata.quizId.indexOf(quizId);
@@ -382,7 +394,7 @@ function isAuthUserIdValid(data: DataStore, authId: number): boolean {
   // one copy exists, and the boolean false is returned
 
   const usersArr = data.users;
-  let userIdArr = [];
+  const userIdArr = [];
 
   for (const arr of usersArr) {
     if (arr.authUserId === authId) {
@@ -513,7 +525,7 @@ function isQuizIdValid(data, quizId) {
 
   // 2. test that quizId exists in dataStore
   const quizzesArr = data.quizzes;
-  let userIdArr = [];
+  const userIdArr = [];
   for (const arr of quizzesArr) {
     if (arr.quizId === quizId) {
       userIdArr.push(quizId);
@@ -541,7 +553,7 @@ function isQuizIdValid(data, quizId) {
  */
 function isAuthUserIdMatchQuizId(data, authUserId, quizId) {
   const usersArr = data.users;
-  let userQuizIdArr = [];
+  const userQuizIdArr = [];
   for (const arr of usersArr) {
     if (arr.authUserId === authUserId) {
       for (const check of arr.quizId) {
