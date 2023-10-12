@@ -1,5 +1,32 @@
-import { getData, setData } from './dataStore';
-import { adminAuthRegister } from './auth';
+import { getData, setData, DataStore } from './dataStore';
+
+// TypeScript interfacts - START
+
+interface QuizId {
+  quizId: number;
+}
+
+interface ErrorObject {
+  error: string;
+}
+
+interface IsQuizNameValidReturnObject {
+  result: boolean;
+  error: string;
+}
+
+// TypeScript interfacts - END
+
+// CONSTANTS - START
+
+const CONVERT_MSECS_TO_SECS = 1000;
+
+// used in adminQuizCreate
+const MAX_DESCRIPTION_LENGTH = 100;
+const MIN_NAME_LENGTH = 3;
+const MAX_NAME_LENGTH = 30;
+
+// CONSTANTS - END
 
 /**
  * Printing out the the quiz information
@@ -65,8 +92,17 @@ export { adminQuizInfo };
  * @returns {{quizId: number}} - an object with the key quizId and the value the, unique, quizId
  */
 
+<<<<<<< HEAD
 function adminQuizCreate(authUserId, name, description) {
   const data = getData();
+=======
+function adminQuizCreate(
+  authUserId: number,
+  name: string,
+  description: string
+): QuizId | ErrorObject {
+  let data = getData();
+>>>>>>> 157c18d4654f431f6cd413c8f928f0199255c164
   // 1. check that authUserId is valid
   // if not, then return error
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -85,7 +121,7 @@ function adminQuizCreate(authUserId, name, description) {
 
   // 3. check that description is not more than 100 characters in length
   // if not, then return error
-  if (description.length > 100) {
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
     return {
       error:
         'Description is more than 100 characters in length (note: empty strings are OK)',
@@ -104,7 +140,7 @@ function adminQuizCreate(authUserId, name, description) {
 
   // Inspiration taken from
   // https://stackoverflow.com/questions/3830244/how-to-get-the-current-date-or-and-time-in-seconds
-  const timeStamp = Math.floor(Date.now() / 1000);
+  const timeStamp = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
 
   data.quizzes.push({
     quizId: newQuizId,
@@ -302,14 +338,14 @@ function adminQuizDescriptionUpdate(authUserId, quizId, description) {
   if (!doesQuizIdRefer(quizId, authUserId)) {
     return { error: 'Quiz ID does not refer to a quiz that this user owns' };
   }
-  if (description.length > 100) {
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
     return {
       error:
         'Description is more than 100 characters in length (note: empty strings are OK)',
     };
   }
 
-  const timeStamp = Math.floor(Date.now() / 1000);
+  const timeStamp = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
 
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
@@ -338,7 +374,7 @@ export { adminQuizDescriptionUpdate };
  *
  * @returns {boolean} - true if authId is valid / false if authId is not valid
  */
-function isAuthUserIdValid(data, authId) {
+function isAuthUserIdValid(data: DataStore, authId: number): boolean {
   // 1. test for authId is integer or less than 0
   if (!Number.isInteger(authId) || authId < 0) {
     return false;
@@ -391,7 +427,11 @@ function isAuthUserIdValid(data, authId) {
  *
  * @returns {boolean} - true if authId is valid / false if authId is not valid
  */
-function isQuizNameValid(data, name, userId) {
+function isQuizNameValid(
+  data: DataStore,
+  name: string,
+  userId: number
+): IsQuizNameValidReturnObject {
   // 1. test for not containing invalid characters
   // assistance taken from https://regex101.com/codegen?language=javascript
   const regexMain = /^[a-z\d\s]+$/gim;
@@ -409,7 +449,7 @@ function isQuizNameValid(data, name, userId) {
   // 2. test for name either less than 3 characters or
   // more than 30 characters long
 
-  if (name.length < 3 || name.length > 30) {
+  if (name.length < MIN_NAME_LENGTH || name.length > MAX_NAME_LENGTH) {
     return {
       result: false,
       error:
