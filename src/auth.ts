@@ -12,8 +12,8 @@ import isEmail from 'validator/lib/isEmail.js';
  * @returns {{error: string}} - on error
  */
 export function adminUserDetails(authUserId) {
-  let data = getData();
-  for (let user of data.users) {
+  const data = getData();
+  for (const user of data.users) {
     if (user.authUserId === authUserId) {
       return {
         user: {
@@ -43,11 +43,11 @@ export function adminUserDetails(authUserId) {
  * @returns {{error: string}} - on error
  */
 export function adminAuthRegister(email, password, nameFirst, nameLast) {
-  let data = getData();
+  const data = getData();
 
-  //email address is already in use
+  // email address is already in use
   if (data.users.length >= 1) {
-    for (let pass of data.users) {
+    for (const pass of data.users) {
       if (pass.email === email) {
         return { error: 'Email is already in use' };
       }
@@ -67,7 +67,7 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
   }
 
   const length = data.users.length;
-  //authUserId will be index from 0,1,2,3....
+  // authUserId will be index from 0,1,2,3....
   if (length === 0) {
     data.users.authUserId = 0;
   } else {
@@ -104,11 +104,11 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
  */
 export function adminAuthLogin(email, password) {
   // implemented by Paul 29Sep23
-  let data = getData();
+  const data = getData();
 
   // test for email exists
   let emailExistsBool = false;
-  for (let arr of data.users) {
+  for (const arr of data.users) {
     if (arr.email === email) {
       emailExistsBool = true;
     }
@@ -120,15 +120,15 @@ export function adminAuthLogin(email, password) {
 
   // test for correct password
   let passwordIsCorrectBool = false;
-  for (let arr of data.users) {
+  for (const arr of data.users) {
     if (arr.password === password) {
       passwordIsCorrectBool = true;
     }
   }
 
-  //increments failed login attempts
+  // increments failed login attempts
   if (!passwordIsCorrectBool) {
-    for (let arr of data.users) {
+    for (const arr of data.users) {
       if (arr.email === email && arr.password !== password) {
         arr.numFailedPasswordsSinceLastLogin++;
         return { error: 'Password is not correct for the given email' };
@@ -138,9 +138,9 @@ export function adminAuthLogin(email, password) {
 
   // return authUserId of logged in user
   // as email exists && password matches
-  //increments successful login, numFailed login resets to 0
+  // increments successful login, numFailed login resets to 0
   let authUserId;
-  for (let arr of data.users) {
+  for (const arr of data.users) {
     if (arr.email === email && arr.password === password) {
       authUserId = arr.authUserId;
       arr.numSuccessfulLogins++;
@@ -165,7 +165,7 @@ export function adminAuthLogin(email, password) {
  * @returns {bool} false - returns false if name does not fit criteria
  */
 function isValidName(name) {
-  //must only include chars, spaces and hyphens
+  // must only include chars, spaces and hyphens
   const correctName = /^[a-zA-Z\s\-']+$/;
   if (name.length >= 2 && name.length <= 20) {
     return correctName.test(name);
@@ -182,7 +182,7 @@ function isValidName(name) {
  * @returns {bool} false - returns false if name does not fit criteria
  */
 function isValidPassword(password) {
-  //must include at least 1 number and 1 letter
+  // must include at least 1 number and 1 letter
   const correctPassword = /^(?=.*[0-9])(?=.*[a-zA-Z])/;
   if (password.length >= 8) {
     return correctPassword.test(password);
