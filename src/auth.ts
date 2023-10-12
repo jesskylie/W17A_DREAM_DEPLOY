@@ -1,6 +1,18 @@
 import { getData, setData } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
 
+// TypeScript interfacts - START
+
+interface AuthUserId {
+  authUserId: number;
+}
+
+interface ErrorObject {
+  error: string;
+}
+
+// TypeScript interfacts - END
+
 /**
  * Returns details about the user, given their authUserId
  * Successful login starts at 1 at user registration
@@ -102,7 +114,10 @@ export function adminAuthRegister(email, password, nameFirst, nameLast) {
  * @returns {{authUserId: number}} - unique identifier for a user
  * @returns {{error: string}} - on error
  */
-export function adminAuthLogin(email, password) {
+export function adminAuthLogin(
+  email: string,
+  password: string
+): AuthUserId | ErrorObject {
   // implemented by Paul 29Sep23
   let data = getData();
 
