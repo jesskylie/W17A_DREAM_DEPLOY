@@ -1,4 +1,5 @@
 import { getData, setData } from "./dataStore.js";
+import { adminAuthRegister, adminAuthLogin, adminUserDetails } from "./auth.js";
 
 function adminQuizInfo(authUserId, quizId) {
   const data = getData();
@@ -180,6 +181,16 @@ function adminQuizList(authUserId) {
   }
   return {quizzes: quizzesList};
 }
+
+const NewUser = adminAuthRegister(
+  "Belinda@gamil.com",
+  "password1234",
+  "Belinda",
+  "Wong"
+);
+
+
+
 
 export { adminQuizList };
 

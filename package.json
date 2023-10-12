@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "test": "jest --testMatch '**/?(*.)+(test).js'"
+        "test": "jest"
     },
     "dependencies": {
         "install": "^0.13.0",
