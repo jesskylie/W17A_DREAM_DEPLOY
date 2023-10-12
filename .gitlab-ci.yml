@@ -4,6 +4,7 @@ stages:
   - checks
 
 before_script:
+  - echo 'Installing dependencies'
   - npm install
 
 tests:
@@ -12,6 +13,8 @@ tests:
     - master
     - merge_requests
   script:
+    - echo 'Running tests'
+
     - SERVER_LOG=$(mktemp)
     - npm run start >& $SERVER_LOG &
     - timeout 10s grep -q "⚡️ Server started on port" <(tail -f $SERVER_LOG) || exit 1
@@ -19,3 +22,13 @@ tests:
     - kill -SIGINT %1
     - sleep 2
     - cat $SERVER_LOG
+    - npm run test
+
+linting:
+  stage: checks
+  script:
+    - echo "Running linters"
+    - npm run lint
+  only:
+    - master
+    - merge_requests
