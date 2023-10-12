@@ -1,6 +1,15 @@
-import { getData, setData } from "./dataStore.js";
-import { adminAuthRegister, adminAuthLogin, adminUserDetails } from "./auth.js";
+import { getData, setData } from './dataStore';
 
+/**
+ * Printing out the the quiz information
+ *
+ * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{quizInfo}} - an array with all the quiz informations
+ */
 function adminQuizInfo(authUserId, quizId) {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -11,17 +20,17 @@ function adminQuizInfo(authUserId, quizId) {
     quizId
   );
 
-  if (authUserId === "" || quizId === "") {
-    return { error: "AuthUserId and QuizId cannot be empty" };
+  if (authUserId === '' || quizId === '') {
+    return { error: 'AuthUserId and QuizId cannot be empty' };
   }
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
   if (!isQuizIdValidTest) {
-    return { error: "QuizId is invalid" };
+    return { error: 'QuizId is invalid' };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: "QuizId does not match authUserId" };
+    return { error: 'QuizId does not match authUserId' };
   }
 
   let quizInfo = {};
@@ -62,7 +71,7 @@ function adminQuizCreate(authUserId, name, description) {
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
 
   // 2. check that quiz name is valid
@@ -78,7 +87,7 @@ function adminQuizCreate(authUserId, name, description) {
   if (description.length > 100) {
     return {
       error:
-        "Description is more than 100 characters in length (note: empty strings are OK)",
+        'Description is more than 100 characters in length (note: empty strings are OK)',
     };
   }
 
@@ -119,13 +128,32 @@ function adminQuizCreate(authUserId, name, description) {
 
 export { adminQuizCreate };
 
+/**
+ * Update the name of the relevant quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
+ * @param {number} name - the new name of the quiz - must valid
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
 function adminQuizNameUpdate(authUserId, quizId, name) {
   let data = getData();
   // 1. check that authUserId is valid
   // if not, then return error
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
+  }
+
+  if (!isQuizIdValid(data, quizId)) {
+    return { error: 'QuizId does not refer to a valid quiz.' };
+  }
+
+  if (!doesQuizIdRefer(quizId, authUserId)) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns' };
   }
 
   const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
@@ -133,16 +161,10 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
     return { error: isQuizNameValidTest.error };
   }
 
-  if (!isQuizIdValid(data, quizId)) {
-    return { error: "quizId does not refer to a valid quiz." };
-  }
-
-  if (!doesQuizIdRefer(quizId, authUserId)) {
-    return { error: "Quiz ID does not refer to a quiz that this user owns" };
-  }
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
       quiz.name === name;
+      quiz.timeLastEdited++;
     }
   }
   return {};
@@ -164,22 +186,31 @@ function doesQuizIdRefer(quizId, authUserId) {
   return false;
 }
 
+/**
+ * Provide a list of all quizzes that are owned by the currently logged in user.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{quizzes: array}} - return all quizzes that contain the user's authUserId
+ */
 function adminQuizList(authUserId) {
   let data = getData();
   let quizzesList = [];
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
-  for(const quiz of data.quizzes){
-    if (quiz.userId.includes(authUserId)){
+  for (const quiz of data.quizzes) {
+    if (quiz.userId.includes(authUserId)) {
       quizzesList.push({
         quizId: quiz.quizId,
         name: quiz.name,
       });
     }
   }
-  return {quizzes: quizzesList};
+  return { quizzes: quizzesList };
 }
 
 const NewUser = adminAuthRegister(
@@ -194,6 +225,16 @@ const NewUser = adminAuthRegister(
 
 export { adminQuizList };
 
+/**
+ * Given a particular quiz, permanently remove the quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz want to be delete - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
 function adminQuizRemove(authUserId, quizId) {
   let data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -204,17 +245,17 @@ function adminQuizRemove(authUserId, quizId) {
     quizId
   );
 
-  if (authUserId === "" || quizId === "") {
-    return { error: "AuthUserId and QuizId cannot be empty" };
+  if (authUserId === '' || quizId === '') {
+    return { error: 'AuthUserId and QuizId cannot be empty' };
   }
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
   if (!isQuizIdValidTest) {
-    return { error: "QuizId is invalid" };
+    return { error: 'QuizId is invalid' };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: "QuizId does not match authUserId" };
+    return { error: 'QuizId does not match authUserId' };
   }
 
   let newdata = data;
@@ -237,31 +278,45 @@ function adminQuizRemove(authUserId, quizId) {
 
 export { adminQuizRemove };
 
+/**
+ * Update the description of the relevant quiz.
+ *
+ * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz want to change description - must exist / be valid / be unique
+ * @param {string} description - the new description of the quiz
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
 function adminQuizDescriptionUpdate(authUserId, quizId, description) {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
   if (!isAuthUserIdValidTest) {
-    return { error: "AuthUserId is not a valid user" };
+    return { error: 'AuthUserId is not a valid user' };
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: "quizId does not refer to a valid quiz." };
+    return { error: 'quizId does not refer to a valid quiz.' };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
-    return { error: "Quiz ID does not refer to a quiz that this user owns" };
+    return { error: 'Quiz ID does not refer to a quiz that this user owns' };
   }
   if (description.length > 100) {
     return {
       error:
-        "Description is more than 100 characters in length (note: empty strings are OK)",
+        'Description is more than 100 characters in length (note: empty strings are OK)',
     };
   }
 
+  const timeStamp = Math.floor(Date.now() / 1000);
+
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
-      quiz.description === description;
+      quiz.description = description;
+      quiz.timeLastEdited = timeStamp;
     }
   }
 
@@ -276,6 +331,8 @@ export { adminQuizDescriptionUpdate };
  * Function to test whether authUserId is valid
  * Used in:
  * adminQuizCreate()
+ * adminQuizInfo()
+ * adminQuizRemove()
  *
  * @param {object} data - the dataStore object
  * @param {number} authId - the id of the person creating the quiz
@@ -347,7 +404,7 @@ function isQuizNameValid(data, name, userId) {
     return {
       result: false,
       error:
-        "Name contains invalid characters. Valid characters are alphanumeric and spaces",
+        'Name contains invalid characters. Valid characters are alphanumeric and spaces',
     };
   }
 
@@ -358,7 +415,7 @@ function isQuizNameValid(data, name, userId) {
     return {
       result: false,
       error:
-        "Name is either less than 3 characters long or more than 30 characters long",
+        'Name is either less than 3 characters long or more than 30 characters long',
     };
   }
 
@@ -378,7 +435,7 @@ function isQuizNameValid(data, name, userId) {
         return {
           result: false,
           error:
-            "Name is already used by the current logged in user for another quiz",
+            'Name is already used by the current logged in user for another quiz',
         };
       }
     }
@@ -410,6 +467,18 @@ function pushNewQuizIdToUserArray(data, authUserId, quizId) {
   }
 }
 
+/**
+ * Function to test whether quizId is valid
+ * Used in:
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} quizId - the id of the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
 function isQuizIdValid(data, quizId) {
   // 1. test for quizId is integer or less than 0
   if (!Number.isInteger(quizId) || quizId < 0) {
@@ -431,6 +500,19 @@ function isQuizIdValid(data, quizId) {
   return false;
 }
 
+/**
+ * Function to test whether quiz contains user's authUserId
+ * Used in:
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} authId - the id of the person creating the quiz
+ * @param {number} quizId - the id of the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
 function isAuthUserIdMatchQuizId(data, authUserId, quizId) {
   const usersArr = data.users;
   let userQuizIdArr = [];
