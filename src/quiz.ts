@@ -15,6 +15,14 @@ interface IsQuizNameValidReturnObject {
   error: string;
 }
 
+interface QuizInfo {
+  quizId: number;
+  name: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  description: string;
+}
+
 // TypeScript interfacts - END
 
 // CONSTANTS - START
@@ -38,7 +46,7 @@ const MAX_NAME_LENGTH = 30;
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {{quizInfo}} - an array with all the quiz informations
  */
-function adminQuizInfo(authUserId, quizId) {
+function adminQuizInfo(authUserId: number, quizId: number): QuizInfo | ErrorObject  {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -48,7 +56,7 @@ function adminQuizInfo(authUserId, quizId) {
     quizId
   );
 
-  if (authUserId === '' || quizId === '') {
+  if (!authUserId || !quizId) {
     return { error: 'AuthUserId and QuizId cannot be empty' };
   }
   if (!isAuthUserIdValidTest) {
@@ -61,10 +69,10 @@ function adminQuizInfo(authUserId, quizId) {
     return { error: 'QuizId does not match authUserId' };
   }
 
-  let quizInfo = {};
+  // let quizInfo = {};
   for (const check of data.quizzes) {
     if (check.quizId === quizId) {
-      quizInfo = {
+      return {
         quizId: check.quizId,
         name: check.name,
         timeCreated: check.timeCreated,
@@ -74,7 +82,7 @@ function adminQuizInfo(authUserId, quizId) {
     }
   }
 
-  return quizInfo;
+  // return quizInfo;
 }
 
 export { adminQuizInfo };
@@ -92,17 +100,12 @@ export { adminQuizInfo };
  * @returns {{quizId: number}} - an object with the key quizId and the value the, unique, quizId
  */
 
-<<<<<<< HEAD
-function adminQuizCreate(authUserId, name, description) {
-  const data = getData();
-=======
 function adminQuizCreate(
   authUserId: number,
   name: string,
   description: string
 ): QuizId | ErrorObject {
   let data = getData();
->>>>>>> 157c18d4654f431f6cd413c8f928f0199255c164
   // 1. check that authUserId is valid
   // if not, then return error
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -269,7 +272,7 @@ export { adminQuizList };
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {} - return nothing
  */
-function adminQuizRemove(authUserId, quizId) {
+function adminQuizRemove(authUserId: number, quizId: number): Record<string, never> | ErrorObject {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -279,7 +282,7 @@ function adminQuizRemove(authUserId, quizId) {
     quizId
   );
 
-  if (authUserId === '' || quizId === '') {
+  if (!authUserId || !quizId) {
     return { error: 'AuthUserId and QuizId cannot be empty' };
   }
   if (!isAuthUserIdValidTest) {
@@ -301,9 +304,9 @@ function adminQuizRemove(authUserId, quizId) {
       userToUpdata.quizId.splice(indexToRemove, 1);
     }
   }
-  for (const check of newdata.users) {
-    if (newdata.users.authUserId === authUserId) {
-      newdata.users[check] = userToUpdata;
+  for (let check of newdata.users) {
+    if (check.authUserId === authUserId) {
+      check = userToUpdata;
     }
   }
   setData(newdata);
@@ -517,7 +520,7 @@ function pushNewQuizIdToUserArray(data, authUserId, quizId) {
  *
  * @returns {boolean} - true if authId is valid / false if authId is not valid
  */
-function isQuizIdValid(data, quizId) {
+function isQuizIdValid(data: DataStore, quizId: number): boolean {
   // 1. test for quizId is integer or less than 0
   if (!Number.isInteger(quizId) || quizId < 0) {
     return false;
@@ -551,7 +554,10 @@ function isQuizIdValid(data, quizId) {
  *
  * @returns {boolean} - true if authId is valid / false if authId is not valid
  */
-function isAuthUserIdMatchQuizId(data, authUserId, quizId) {
+function isAuthUserIdMatchQuizId(
+  data: DataStore, 
+  authUserId: number, 
+  quizId: number): boolean {
   const usersArr = data.users;
   const userQuizIdArr = [];
   for (const arr of usersArr) {
