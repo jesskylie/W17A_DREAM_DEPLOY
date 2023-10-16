@@ -2,6 +2,13 @@
 import request from 'sync-request-curl';
 import config from './config.json';
 
+import {
+  RESPONSE_OK_200,
+  RESPONSE_ERROR_400,
+  RESPONSE_ERROR_401,
+  RESPONSE_ERROR_403,
+} from './lib/constants';
+
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
 import { requestadminAuthRegister, requestadminAuthLogin } from './auth_2.test';
 import { Quizzes, Users } from './dataStore';
@@ -51,9 +58,6 @@ interface RequestAdminQuizRemoveReturn {
 
 // constants used throughout file - START
 
-const OK = 200;
-const INPUT_ERROR_400 = 400;
-const INPUT_ERROR_401 = 401;
 const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;
@@ -81,7 +85,7 @@ describe('HTTP tests using Jest', () => {
       timeout: 100,
     });
     const bodyObj = JSON.parse(res.body as string);
-    expect(res.statusCode).toBe(OK);
+    expect(res.statusCode).toBe(RESPONSE_OK_200);
     expect(bodyObj.value).toEqual('Hello');
   });
   test('Test invalid echo', () => {
@@ -92,7 +96,7 @@ describe('HTTP tests using Jest', () => {
       timeout: 100,
     });
     const bodyObj = JSON.parse(res.body as string);
-    expect(res.statusCode).toBe(INPUT_ERROR);
+    expect(res.statusCode).toBe(RESPONSE_ERROR_400);
     expect(bodyObj.error).toStrictEqual(expect.any(String));
   });
 });
@@ -169,7 +173,7 @@ describe('adminQuizInfo testing', () => {
       JackUser.bodyString.authUserId,
       QuizOne.bodyString.quizId
     );
-    expect(quiz1Info.statusCode).toBe(200);
+    expect(quiz1Info.statusCode).toBe(RESPONSE_OK_200);
     expect(quiz1Info.bodyString).toStrictEqual({
       quizId: QuizOne.bodyString.quizId,
       name: 'Quiz One',
@@ -187,7 +191,7 @@ describe('adminQuizInfo testing', () => {
       JackUser.bodyString.authUserId,
       QuizTwo.bodyString.quizId
     );
-    expect(quiz2Info.statusCode).toBe(200);
+    expect(quiz2Info.statusCode).toBe(RESPONSE_OK_200);
     expect(quiz2Info.bodyString).toStrictEqual({
       quizId: QuizTwo.bodyString.quizId,
       name: 'Quiz Two',
@@ -202,7 +206,7 @@ describe('adminQuizInfo testing', () => {
       JackUser.bodyString.authUserId,
       ''
     );
-    expect(emptyQuizId.statusCode).toBe(400);
+    expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_400);
     expect(emptyQuizId.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -210,7 +214,7 @@ describe('adminQuizInfo testing', () => {
       JackUser.bodyString.authUserId,
       'S'
     );
-    expect(invalidQuizId.statusCode).toBe(400);
+    expect(invalidQuizId.statusCode).toBe(RESPONSE_ERROR_400);
     expect(invalidQuizId.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -233,7 +237,7 @@ describe('adminQuizInfo testing', () => {
       TonyQuiz.bodyString.quizId
     );
     // not very sure it is refer to 403 or 400 error cuz in swagger it mentions in both
-    expect(quizIdNotReferToUser1.statusCode).toBe(403);
+    expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -241,7 +245,7 @@ describe('adminQuizInfo testing', () => {
       TonyUser.bodyString.authUserId,
       QuizOne.bodyString.quizId
     );
-    expect(quizIdNotReferToUser2.statusCode).toBe(403);
+    expect(quizIdNotReferToUser2.statusCode).toBe(RESPONSE_ERROR_403);
     expect(quizIdNotReferToUser2.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -265,14 +269,14 @@ describe('Testing adminQuizRemove', () => {
       NewUser.bodyString.authUserId,
       QuizId.bodyString.quizId
     );
-    expect(removeQuiz.statusCode).toBe(200);
+    expect(removeQuiz.statusCode).toBe(RESPONSE_OK_200);
     expect(removeQuiz.bodyString).toStrictEqual({});
     const checkQuizIsRemove = requestadminQuizCreate(
       NewUser.bodyString.authUserId,
       'Jess',
       'description'
     );
-    expect(checkQuizIsRemove.statusCode).toBe(200);
+    expect(checkQuizIsRemove.statusCode).toBe(RESPONSE_OK_200);
     expect(checkQuizIsRemove.bodyString).toStrictEqual({
       quizId: expect.any(Number),
     });
@@ -280,7 +284,7 @@ describe('Testing adminQuizRemove', () => {
 
   test('Empty input', () => {
     const emptyQuizId = requestadminQuizRemove('', '');
-    expect(emptyQuizId.statusCode).toBe(400);
+    expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_400);
     expect(emptyQuizId.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -302,7 +306,7 @@ describe('Testing adminQuizRemove', () => {
       NewUser.bodyString.authUserId,
       'abc'
     );
-    expect(invalidQuizId.statusCode).toBe(400);
+    expect(invalidQuizId.statusCode).toBe(RESPONSE_ERROR_400);
     expect(invalidQuizId.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -335,7 +339,7 @@ describe('Testing adminQuizRemove', () => {
       JessUser.bodyString.authUserId,
       AdamQuizId.bodyString.quizId
     );
-    expect(quizIdNotReferToUser.statusCode).toBe(403);
+    expect(quizIdNotReferToUser.statusCode).toBe(RESPONSE_ERROR_403);
     expect(quizIdNotReferToUser.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -395,7 +399,7 @@ describe('test /v1/admin/quiz -> EXPECT SUCCESS', () => {
   });
   test('Test successfully creating a quiz return status code 200', () => {
     expect(requestQuizCreateStatusCode(token, name, description)).toStrictEqual(
-      OK
+      RESPONSE_OK_200
     );
   });
 });
@@ -414,7 +418,7 @@ describe('test /v1/admin/quiz : Name contains invalid characters -> EXPECT ERROR
   test('Name contains invalid characters. Valid characters are alphanumeric and spaces -> EXPECT STATUS CODE 400', () => {
     expect(
       requestQuizCreateStatusCode(token_1, INVALID_NAME, description_1)
-    ).toStrictEqual(INPUT_ERROR_400);
+    ).toStrictEqual(RESPONSE_ERROR_400);
   });
 });
 
@@ -438,7 +442,7 @@ describe('test /v1/admin/quiz : Name not correct length -> EXPECT ERROR 400', ()
   test('Name too short -> EXPECT ERROR -> EXPECT STATUS CODE 400', () => {
     expect(
       requestQuizCreateStatusCode(token, INVALID_NAME_TOO_SHORT, description)
-    ).toStrictEqual(INPUT_ERROR_400);
+    ).toStrictEqual(RESPONSE_ERROR_400);
   });
 
   test('Name too long -> EXPECT ERROR', () => {
@@ -451,7 +455,7 @@ describe('test /v1/admin/quiz : Name not correct length -> EXPECT ERROR 400', ()
   test('Name too long -> EXPECT ERROR -> EXPECT STATUS CODE 400', () => {
     expect(
       requestQuizCreateStatusCode(token, INVALID_NAME_TOO_LONG, description)
-    ).toStrictEqual(INPUT_ERROR_400);
+    ).toStrictEqual(RESPONSE_ERROR_400);
   });
 
   test('Name is already used by the current logged in user for another quiz -> EXPECT ERROR', () => {
@@ -462,7 +466,7 @@ describe('test /v1/admin/quiz : Name not correct length -> EXPECT ERROR 400', ()
   test('Name is already used by the current logged in user for another quiz -> EXPECT ERROR -> EXPECT STATUS CODE 400', () => {
     expect(
       requestQuizCreateStatusCode(token, VALID_NAME, description)
-    ).toStrictEqual(INPUT_ERROR_400);
+    ).toStrictEqual(RESPONSE_ERROR_400);
   });
 
   test('Description is more than 100 characters in length -> EXPECT ERROR', () => {
@@ -475,7 +479,7 @@ describe('test /v1/admin/quiz : Name not correct length -> EXPECT ERROR 400', ()
   test('Description is more than 100 characters in length -> EXPECT ERROR -> EXPECT STATUS CODE 400', () => {
     expect(
       requestQuizCreateStatusCode(token, VALID_NAME, INVALID_DESCRIPTION)
-    ).toStrictEqual(INPUT_ERROR_400);
+    ).toStrictEqual(RESPONSE_ERROR_400);
   });
 });
 
@@ -492,7 +496,7 @@ describe('test /v1/admin/quiz : Token is empty or invalid -> EXPECT ERROR 401', 
   test('Token is empty or invalid -> EXPECT ERROR -> EXPECT STATUS CODE 401', () => {
     expect(
       requestQuizCreateStatusCode(token, VALID_NAME, description)
-    ).toStrictEqual(INPUT_ERROR_401);
+    ).toStrictEqual(RESPONSE_ERROR_401);
   });
 });
 

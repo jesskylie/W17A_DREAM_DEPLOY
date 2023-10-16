@@ -2,10 +2,15 @@
 import request from 'sync-request-curl';
 import config from './config.json';
 
+import {
+  RESPONSE_OK_200,
+  RESPONSE_ERROR_400,
+  RESPONSE_ERROR_401,
+  RESPONSE_ERROR_403,
+} from './lib/constants';
+
 // constants used throughout file - START
 
-const OK = 200;
-const INPUT_ERROR = 400;
 const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;
@@ -37,7 +42,7 @@ describe('HTTP tests using Jest', () => {
       timeout: 100,
     });
     const bodyObj = JSON.parse(res.body as string);
-    expect(res.statusCode).toBe(OK);
+    expect(res.statusCode).toBe(RESPONSE_OK_200);
     expect(bodyObj.value).toEqual('Hello');
   });
   test('Test invalid echo', () => {
@@ -48,7 +53,7 @@ describe('HTTP tests using Jest', () => {
       timeout: 100,
     });
     const bodyObj = JSON.parse(res.body as string);
-    expect(res.statusCode).toBe(INPUT_ERROR);
+    expect(res.statusCode).toBe(RESPONSE_ERROR_400);
     expect(bodyObj.error).toStrictEqual(expect.any(String));
   });
 });
@@ -93,7 +98,7 @@ describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
     const responsePOST = request('POST', SERVER_URL + 'v1/admin/auth/login', {
       json: { email, password },
     });
-    expect(responsePOST.statusCode).toStrictEqual(OK);
+    expect(responsePOST.statusCode).toStrictEqual(RESPONSE_OK_200);
   });
 });
 
@@ -110,7 +115,7 @@ describe('test /v1/admin/auth/login -> EXPECT ERROR', () => {
     const responsePOST = request('POST', SERVER_URL + 'v1/admin/auth/login', {
       json: { email, password },
     });
-    expect(responsePOST.statusCode).toStrictEqual(INPUT_ERROR);
+    expect(responsePOST.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
 
   // Password is not correct for the given email
@@ -125,7 +130,7 @@ describe('test /v1/admin/auth/login -> EXPECT ERROR', () => {
     const responsePOST = request('POST', SERVER_URL + 'v1/admin/auth/login', {
       json: { email_2, password_2 },
     });
-    expect(responsePOST.statusCode).toStrictEqual(INPUT_ERROR);
+    expect(responsePOST.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
 });
 
