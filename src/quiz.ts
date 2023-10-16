@@ -92,17 +92,12 @@ export { adminQuizInfo };
  * @returns {{quizId: number}} - an object with the key quizId and the value the, unique, quizId
  */
 
-<<<<<<< HEAD
-function adminQuizCreate(authUserId, name, description) {
-  const data = getData();
-=======
 function adminQuizCreate(
   authUserId: number,
   name: string,
   description: string
 ): QuizId | ErrorObject {
   let data = getData();
->>>>>>> 157c18d4654f431f6cd413c8f928f0199255c164
   // 1. check that authUserId is valid
   // if not, then return error
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
