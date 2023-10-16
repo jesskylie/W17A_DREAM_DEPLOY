@@ -18,7 +18,7 @@ import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './lib/constants';
+} from './library/constants';
 
 // Set up web app
 const app = express();

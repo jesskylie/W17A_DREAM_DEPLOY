@@ -7,7 +7,7 @@ import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './lib/constants';
+} from './library/constants';
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
 import { requestadminAuthRegister, requestadminAuthLogin } from './auth_2.test';

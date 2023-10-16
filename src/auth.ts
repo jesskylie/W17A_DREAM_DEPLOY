@@ -6,7 +6,7 @@ import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './lib/constants';
+} from './library/constants';
 
 const MAX_NAME_LENGTH = 20;
 const MIN_NAME_LENGTH = 2;

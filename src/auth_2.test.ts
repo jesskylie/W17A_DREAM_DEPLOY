@@ -7,7 +7,7 @@ import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './lib/constants';
+} from './library/constants';
 
 // constants used throughout file - START
 
