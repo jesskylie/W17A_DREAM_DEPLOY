@@ -24,8 +24,7 @@ interface getDataReturnObject {
  *
  * @returns {{nothing: array}} - an empty object
  */
-export const saveData = (dataStore: DataStore) => {
-  console.log('saveData executed');
+export const saveDataInFile = (dataStore: DataStore): Record<string, never> => {
   fs.writeFileSync(DATASTORE_FILENAME, JSON.stringify(dataStore));
 
   return {};
@@ -48,11 +47,10 @@ export const saveData = (dataStore: DataStore) => {
  *     if the file does not exist: an empty object
  * }
  */
-export const getData = (): getDataReturnObject => {
+export const getDataFromFile = (): getDataReturnObject => {
   // inspiration for checking if file exists taken from
   // https://byby.dev/node-check-if-file-exists
   if (fs.existsSync(DATASTORE_FILENAME)) {
-    console.log('File exists');
     const jsonString = fs.readFileSync(DATASTORE_FILENAME);
     const data: DataStore = JSON.parse(String(jsonString));
 
