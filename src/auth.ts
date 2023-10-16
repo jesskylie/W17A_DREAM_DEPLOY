@@ -134,10 +134,6 @@ export function adminAuthRegister(
   return { token: newUser.token };
 }
 
-const result = adminAuthRegister("jess@hotmail.com", "2378fdsfsd", "jess", "tran");
-console.log(result);
-
-
 /**
  * Returns a users authUserId, given a registered user's email and password
  * Returns an error if email is invalid/is already in use, name/password does not satisfy criteria
