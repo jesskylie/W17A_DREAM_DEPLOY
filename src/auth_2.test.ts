@@ -26,9 +26,9 @@ interface ErrorObject {
 // interfaces used throughout file - END
 
 // Functions to execute before each test is run - START
-beforeEach(() => {
-  request('DELETE', SERVER_URL + '/clear', { json: {} });
-});
+// beforeEach(() => {
+//   request('DELETE', SERVER_URL + '/clear', { json: {} });
+// });
 
 // Functions to execute before each test is run - END
 
@@ -61,7 +61,7 @@ describe('HTTP tests using Jest', () => {
 function requestAdminRegister(email: string, password: string, nameFirst: string, nameLast: string) {
   const res = request(
     'POST', 
-    url + ':' + port + '/v1/admin/auth/register',
+    SERVER_URL + '/v1/admin/auth/register',
     {
       json: {
         email: email,
@@ -74,27 +74,69 @@ function requestAdminRegister(email: string, password: string, nameFirst: string
   return JSON.parse(res.body.toString());
 }
 
-describe ('Testing POST /v1/admin/auth/register', () => {
+describe ('Testing POST /v1/admin/auth/register - SUCCESS', () => {
   test('Test successful adminAuthRegister', () => {
-    const result = {
-      token: expect.any(Number)
-    };
-    expect(requestAdminRegister('abc@hotmail.com', 'abcde42342', 'Arnold', 'Big')).toStrictEqual(result);
+    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    expect(response).toStrictEqual({ token: expect.any(Number) });
+    expect(response.statusCode).toStrictEqual(RESPONSE_OK_200);
+  });
+});
+
+describe ('Testing POST /v1/admin/auth/register - UNSUCCESSFUL', () => {
+  test('Email does not satisfy validator.isEmail', () => {
+    const response = requestAdminRegister('invalid-email', 'adheh38753', 'Pea', 'Nut');
+    expect(response).toStrictEqual( {error: expect.any(String)} );
+    expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
   
-  test('Test unsuccessful adminAuthRegister', () => {
-    expect(requestAdminRegister('', 'abcde42342', 'Arnold', 'Big')).toStrictEqual({ error: expect.any(String) });
-    expect(requestAdminRegister('abc@hotmail.com', '', 'Arnold', 'Big')).toStrictEqual({ error: expect.any(String) });
-    expect(requestAdminRegister('', 'abcde42342', '', 'Big')).toStrictEqual({ error: expect.any(String) });
-    expect(requestAdminRegister('abc@hotmail.com', 'abcde42342', 'Arnold', '')).toStrictEqual({ error: expect.any(String) });
-    expect(requestAdminRegister('abc@hotmail.com', 'abcd', 'Arnold', 'Lee')).toStrictEqual({ error: expect.any(String) });
+  test('Email is already in use by another user', () => {
+    requestAdminRegister('jess@hotmail.com', '123456abce', 'Pea', 'Nut');
+    const response = requestAdminRegister('jess@hotmail.com', '123456abce', 'Jess', 'Tee');
+    expect(response).toStrictEqual( {error: expect.any(String)} );
+    expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+  });
+  
+  test('Name contains invalid characters', () => {
+    const invalidFirstName = requestAdminRegister('harry@hotmail.com', '123456abce', 'har%%$@#%', 'Tee');
+    const invalidLastName = requestAdminRegister('harry@hotmail.com', '123456abce', 'harry', 'Tee#$%*%');
+    expect(invalidFirstName).toStrictEqual( {error: expect.any(String)} );
+    expect(invalidLastName).toStrictEqual( {error: expect.any(String)} );
+    expect(invalidFirstName.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+    expect(invalidLastName.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+  });
+  
+  test('Name is not between 2 to 20 characters', () => {
+    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'A', 'Pie');
+    const responseTwo = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Amy', 'P');
+    expect(response).toStrictEqual( {error: expect.any(String)} );
+    expect(responseTwo).toStrictEqual( {error: expect.any(String)} );
+    expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+    expect(responseTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+  });
+  
+  test('Password is less than 8 characters', () => {
+    const response= requestAdminRegister('harry@hotmail.com', '12345', 'harry', 'Tee');
+    expect(response).toStrictEqual( {error: expect.any(String)} );
+    expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+  });
+  
+  test('Password is less than 8 characters', () => {
+    const response= requestAdminRegister('harry@hotmail.com', '12345', 'harry', 'Tee');
+    expect(response).toStrictEqual( {error: expect.any(String)} );
+    expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+  });
+  
+  test('Password does not contain at least 1 number and 1 letter', () => {
+    const response= requestAdminRegister('harry@hotmail.com', '12345689', 'harry', 'Tee');
+    expect(response).toStrictEqual( {error: expect.any(String)} );
+    expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
 });
 
 function requestUserDetails(token: number) {
   const res = request(
-    'POST', 
-    url + ':' + port + `/v1/admin/user/details?token=${token}`,
+    'GET', 
+    SERVER_URL + '/v1/admin/user/details',
     {
       qs: {
         token: token,
@@ -103,6 +145,29 @@ function requestUserDetails(token: number) {
   );
   return JSON.parse(res.body.toString());
 }
+
+describe ('Testing GET /v1/admin/user/details - SUCCESS', () => {
+  test('Test successful adminUserDetails', () => {
+    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const userDetails = requestUserDetails(response.token);
+    expect(userDetails).toStrictEqual({ 
+      user: {
+        authUserId: response.authUserId,
+        name: 'Ann Pie',
+        email: 'abc@hotmail.com',
+        numSuccessfulLogins: expect.any(Number),
+        numFailedPasswordsSinceLastLogin: expect.any(Number),
+      }, 
+    });
+    expect(userDetails.statusCode).toStrictEqual(RESPONSE_OK_200);
+  });
+  
+  test('Testing unsuccessful adminUserDetails', () => {
+    const response = requestUserDetails(-1);
+    expect(response).toStrictEqual({error: expect.any(String)});
+    expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_401);
+  });
+});
 
 
 // Test suite for /v1/admin/auth/login route adminAuthLogin() - START
