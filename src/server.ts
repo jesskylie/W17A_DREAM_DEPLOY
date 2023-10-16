@@ -70,7 +70,7 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const result = adminUserDetails(parseInt(req.query.token as string));
   if ('error' in result) {
-    return res.status(400).json(result);
+    return res.status(401).json(result);
    }
    res.json(result);
 });
