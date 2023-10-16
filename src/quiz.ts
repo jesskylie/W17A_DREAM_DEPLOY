@@ -1,5 +1,12 @@
 import { getData, setData, DataStore } from './dataStore';
 
+import {
+  RESPONSE_OK_200,
+  RESPONSE_ERROR_400,
+  RESPONSE_ERROR_401,
+  RESPONSE_ERROR_403,
+} from './library/constants';
+
 // TypeScript interfacts - START
 
 interface QuizId {
@@ -46,7 +53,10 @@ const MAX_NAME_LENGTH = 30;
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {{quizInfo}} - an array with all the quiz informations
  */
-function adminQuizInfo(authUserId: number, quizId: number): QuizInfo | ErrorObject  {
+function adminQuizInfo(
+  authUserId: number,
+  quizId: number
+): QuizInfo | ErrorObject {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -272,7 +282,10 @@ export { adminQuizList };
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {} - return nothing
  */
-function adminQuizRemove(authUserId: number, quizId: number): Record<string, never> | ErrorObject {
+function adminQuizRemove(
+  authUserId: number,
+  quizId: number
+): Record<string, never> | ErrorObject {
   const data = getData();
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -296,7 +309,9 @@ function adminQuizRemove(authUserId: number, quizId: number): Record<string, nev
   }
 
   const newdata = data;
-  const userToUpdata = data.users.find((user) => user.authUserId === authUserId);
+  const userToUpdata = data.users.find(
+    (user) => user.authUserId === authUserId
+  );
   data.quizzes = data.quizzes.filter((quiz) => quiz.quizId !== quizId);
   if (userToUpdata) {
     const indexToRemove = userToUpdata.quizId.indexOf(quizId);
@@ -555,9 +570,10 @@ function isQuizIdValid(data: DataStore, quizId: number): boolean {
  * @returns {boolean} - true if authId is valid / false if authId is not valid
  */
 function isAuthUserIdMatchQuizId(
-  data: DataStore, 
-  authUserId: number, 
-  quizId: number): boolean {
+  data: DataStore,
+  authUserId: number,
+  quizId: number
+): boolean {
   const usersArr = data.users;
   const userQuizIdArr = [];
   for (const arr of usersArr) {

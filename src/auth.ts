@@ -1,6 +1,13 @@
 import { getData, setData } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
 
+import {
+  RESPONSE_OK_200,
+  RESPONSE_ERROR_400,
+  RESPONSE_ERROR_401,
+  RESPONSE_ERROR_403,
+} from './library/constants';
+
 const MAX_NAME_LENGTH = 20;
 const MIN_NAME_LENGTH = 2;
 const MIN_PASSWORD_LENGTH = 8;
@@ -22,7 +29,7 @@ interface UserInfo {
     email: string;
     numSuccessfulLogins: number;
     numFailedPasswordsSinceLastLogin: number;
-  }
+  };
 }
 
 interface UserData {
@@ -80,13 +87,13 @@ export function adminUserDetails(authUserId: number): UserInfo | ErrorObject {
  * @returns {{error: string}} - on error
  */
 export function adminAuthRegister(
-  email: string, 
-  password: string, 
-  nameFirst: string, 
-  nameLast: string 
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
 ): ErrorObject | AuthUserId {
   const data = getData();
-  
+
   //email address is already in use
   if (data.users.length >= 1) {
     for (const pass of data.users) {
@@ -107,7 +114,7 @@ export function adminAuthRegister(
   if (!isValidPassword(password)) {
     return { error: 'Invalid password' };
   }
-  
+
   const newUser: UserData = {
     authUserId: data.users.length,
     nameFirst: nameFirst,
@@ -118,7 +125,7 @@ export function adminAuthRegister(
     numFailedPasswordsSinceLastLogin: 0,
     quizId: [],
   };
-  
+
   // console.log(newUser);
   data.users.push(newUser);
 
