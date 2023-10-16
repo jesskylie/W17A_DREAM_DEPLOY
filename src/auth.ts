@@ -1,3 +1,4 @@
+import { TokenClass } from 'typescript';
 import { getData, setData } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
 
@@ -11,12 +12,17 @@ import {
 const MAX_NAME_LENGTH = 20;
 const MIN_NAME_LENGTH = 2;
 const MIN_PASSWORD_LENGTH = 8;
+const MAX = 1000;
+const MIN = 10000;
 
 // TypeScript interfaces - START
-
 interface AuthUserId {
-  authUserId: number;
+ authUserId: number;
 }
+
+interface Token {
+  token: number[];
+ }
 
 interface ErrorObject {
   error: string;
@@ -41,8 +47,8 @@ interface UserData {
   numSuccessfulLogins: number;
   numFailedPasswordsSinceLastLogin: number;
   quizId: number[];
+  token: number[];
 }
-
 // TypeScript interfaces - END
 
 /**
@@ -55,10 +61,10 @@ interface UserData {
  *            numFailedPasswordsSinceLastLogin: number}}} - user details
  * @returns {{error: string}} - on error
  */
-export function adminUserDetails(authUserId: number): UserInfo | ErrorObject {
+export function adminUserDetails(token: number): UserInfo | ErrorObject {
   const data = getData();
   for (const user of data.users) {
-    if (user.authUserId === authUserId) {
+    if (user.token.includes(token)) {
       return {
         user: {
           authUserId: user.authUserId,
@@ -83,15 +89,15 @@ export function adminUserDetails(authUserId: number): UserInfo | ErrorObject {
  * @param {string} password - user's password
  * @param {string} nameFirst - user's first name
  * @param {string} nameLast- user's last name
- * @returns {{authUserId: number}} - unique identifier for a user
+ * @returns {{token: number}} - unique identifier for a user
  * @returns {{error: string}} - on error
  */
 export function adminAuthRegister(
-  email: string,
-  password: string,
-  nameFirst: string,
-  nameLast: string
-): ErrorObject | AuthUserId {
+  email: string, 
+  password: string, 
+  nameFirst: string, 
+  nameLast: string 
+): Token | ErrorObject {
   const data = getData();
 
   //email address is already in use
@@ -124,16 +130,15 @@ export function adminAuthRegister(
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
     quizId: [],
+    token: [],
   };
-
-  // console.log(newUser);
   data.users.push(newUser);
+  const tokenNumber = generateToken();
+  newUser.token.push(tokenNumber);
 
   setData(data);
 
-  return {
-    authUserId: newUser.authUserId,
-  };
+  return { token: newUser.token };
 }
 
 /**
@@ -237,3 +242,15 @@ function isValidPassword(password: string): boolean {
     return false;
   }
 }
+
+/**
+ * generates random number for a token between 1000 - 10000
+ * code taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+ * @param {}
+ * @returns {number} - returns a random token number 
+
+ */
+function generateToken(): number {
+  return Math.floor(Math.random() * (MAX - MIN)) + MIN;
+}
+

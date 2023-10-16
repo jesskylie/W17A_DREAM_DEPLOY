@@ -8,6 +8,7 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+import { adminAuthRegister, adminUserDetails } from './auth';
 
 import { adminAuthLogin } from './auth';
 
@@ -56,46 +57,22 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(ret);
 });
 
-// POST request to route /v1/admin/auth/login
-// From swagger.yaml:
-// Takes in information about an admin user to
-// determine if they can log in to manage quizzes.
-// This route is not relevant to guests who want to
-// play a particular quiz, but is used for the
-// creation of accounts of people who manage quizzes.
-
-app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
-  const response = adminAuthLogin(email, password);
-
-  console.log('from server.ts /v1/admin/auth/login : response ->', response);
-
+app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  const { email, password, nameFirst, nameLast } = req.body;
+  const response = adminAuthRegister(email, password, nameFirst, nameLast);
   if ('error' in response) {
     return res.status(400).json(response);
   }
   res.json(response);
 });
 
-// POST request to route /v1/admin/quiz
-// From swagger.yaml:
-// Given basic details about a new quiz,
-// create one for the logged in user
 
-app.post('/v1/admin/quiz', (req: Request, res: Response) => {
-  const { token, name, description } = req.body;
-
-  const response = adminQuizCreate(token, name, description);
-
-  console.log('from server.ts /v1/admin/quiz : response ->', response);
-
-  if ('error' in response) {
-    if (res.statusCode === 400) {
-    } else if (res.statusCode === 401) {
-      return res.status(401).json(response);
-    }
-  }
-  res.json(response);
+app.get('/v1/admin/user/details', (req: Request, res: Response) => {
+  const result = adminUserDetails(parseInt(req.query.token as string));
+  if ('error' in result) {
+    return res.status(400).json(result);
+   }
+   res.json(result);
 });
 
 // ====================================================================
