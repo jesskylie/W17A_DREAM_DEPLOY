@@ -10,10 +10,11 @@ import {
 } from './library/constants';
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
-import { requestadminAuthRegister, requestadminAuthLogin } from './auth_2.test';
+import { requestadminAuthRegister, requestadminAuthLogin, requestadminAuthLogout } from './auth_2.test';
 import { Quizzes, Users } from './dataStore';
 import exp from 'constants';
 import { InvalidatedProjectKind } from 'typescript';
+import { ok } from 'assert';
 
 // interfaces used throughout file - START
 
@@ -21,8 +22,8 @@ interface ErrorObject {
   error: string;
 }
 
-interface AuthUserId {
-  authUserId: number;
+interface Token {
+  token: number;
 }
 
 interface QuizId {
@@ -34,12 +35,12 @@ interface RequestAdminAuthRegisterReturn {
   bodyString: Users | ErrorObject;
 }
 
-interface RequestadminAuthLoginReturn {
+interface RequestAdminAuthLoginReturn {
   statusCode: number;
-  bodyString: AuthUserId | ErrorObject;
+  bodyString: Token | ErrorObject;
 }
 
-interface RequestadminQuizCreateReturn {
+interface RequestAdminQuizCreateReturn {
   statusCode: number;
   bodyString: QuizId | ErrorObject;
 }
@@ -47,6 +48,11 @@ interface RequestadminQuizCreateReturn {
 interface RequestAdminQuizInfoReturn {
   statusCode: number;
   bodyString: Quizzes | ErrorObject;
+}
+
+interface RequestAdminQuizListReturn {
+  statusCode: number;
+  bodyString: Quizzes[] | ErrorObject;
 }
 
 interface RequestAdminQuizRemoveReturn {
@@ -101,48 +107,54 @@ describe('HTTP tests using Jest', () => {
   });
 });
 
-// I'm not sure what is the function name for auth functions so I just name them as same as quiz.test.ts shown
-// probably need to change after finish auth_2.test.ts funcitons are done
+// Helper functions:
 
-// help funcitons:
-// if anyone know how to combine them to just one big function and muilt small fuctions like tut05/automarking
-// feel free to change what I have here (requestadminQuizCreate and requestadminQuizInfo)
+// token should be a para in body object but idk how does it work for the function
 const requestadminQuizCreate = (
-  authUserId: number,
+  token: number,
   name: string,
   describption: string
-) => {
-  const res = request('POST', SERVER_URL + `/v1/admin${authUserId}/quiz`, {
-    json: { name, describption },
+): RequestAdminQuizCreateReturn => {
+  const res = request('POST', SERVER_URL + `/v1/admin/quiz`, {
+    json: { token, name, describption },
   });
   const bodyString = JSON.parse(res.body.toString());
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
-// Problem: authUserId should not be here, cuz should be login first
-// But due to I'm not sure how login work so I'll leave them here first for
-// testing (make sure it can run)
-const requestadminQuizInfo = (authUserId: number, quizId: number) => {
+
+const requestadminQuizInfo = (token: number, quizid: number): RequestAdminQuizInfoReturn => {
   const res = request(
     'GET',
-    SERVER_URL + `v1/admin${authUserId}/quiz/${quizId}`,
-    { json: {} }
+    SERVER_URL + `v1/admin/quiz/${quizid}`,
+    { json: { quizid, token } }
   );
   const bodyString = JSON.parse(res.body.toString());
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
 
-const requestadminQuizRemove = (authUserId: number, quizId: number) => {
+const requestadminQuizRemove = (token: number, quizid: number): RequestAdminQuizRemoveReturn => {
   const res = request(
     'DELETE',
-    SERVER_URL + `v1/admin${authUserId}/quiz/${quizId}`,
-    { json: {} }
+    SERVER_URL + `v1/admin/quiz/${quizid}`,
+    { json: { quizid, token } }
   );
   const bodyString = JSON.parse(res.body.toString());
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
+
+const requestadminQuizList = (token: number): RequestAdminQuizListReturn => {
+  const res = request(
+    'GET',
+    SERVER_URL + `v1/admin/quiz/list`,
+    { json: { token } }
+  );
+  const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+  return { statusCode, bodyString };
+}
 
 // tests:
 describe('adminQuizInfo testing', () => {
@@ -150,9 +162,9 @@ describe('adminQuizInfo testing', () => {
   // let JackUser: RequestAdminAuthRegisterReturn;
   // let JackAuthUserId: RequestadminAuthLoginReturn;
   // let QuizOne: RequestadminQuizCreateReturn;
-  let JackUser: any;
-  let JackAuthUserId: any;
-  let QuizOne: any;
+  let JackUser: RequestAdminAuthRegisterReturn;
+  let returnToken: RequestAdminAuthLoginReturn;
+  let QuizOne: RequestAdminQuizCreateReturn;
   beforeAll(() => {
     JackUser = requestadminAuthRegister(
       'jack@hotmail.com',
@@ -160,20 +172,22 @@ describe('adminQuizInfo testing', () => {
       'Jack',
       'Harlow'
     );
-    // for future if we done the login part: we probably should login before doing anything
-    JackAuthUserId = requestadminAuthLogin('jack@hotmail.com', '123456ab');
+    // shouldn't the token inside body String returning? what's does this error
+    // mean Qvq
+    returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab');
     QuizOne = requestadminQuizCreate(
-      JackUser.bodyString.authUserId,
+      returnToken.bodyString.token,
       'Quiz One',
       'this is my first quiz'
     );
   });
   test('success print out quizInfo', () => {
     const quiz1Info = requestadminQuizInfo(
-      JackUser.bodyString.authUserId,
+      returnToken.bodyString.token,
       QuizOne.bodyString.quizId
     );
     expect(quiz1Info.statusCode).toBe(RESPONSE_OK_200);
+    // there are objects 'duration' & 'numQuestion' & question' didn't add in it
     expect(quiz1Info.bodyString).toStrictEqual({
       quizId: QuizOne.bodyString.quizId,
       name: 'Quiz One',
@@ -183,12 +197,12 @@ describe('adminQuizInfo testing', () => {
     });
 
     const QuizTwo = requestadminQuizCreate(
-      JackUser.bodyString.authUserId,
+      returnToken.bodyString.token,
       'Quiz Two',
       'this is my second quiz'
     );
     const quiz2Info = requestadminQuizInfo(
-      JackUser.bodyString.authUserId,
+      returnToken.bodyString.token,
       QuizTwo.bodyString.quizId
     );
     expect(quiz2Info.statusCode).toBe(RESPONSE_OK_200);
@@ -201,9 +215,9 @@ describe('adminQuizInfo testing', () => {
     });
   });
 
-  test('Quiz ID does not refer to a valid quiz', () => {
+  test('Error 400: Quiz ID does not refer to a valid quiz', () => {
     const emptyQuizId = requestadminQuizInfo(
-      JackUser.bodyString.authUserId,
+      returnToken.bodyString.token,
       ''
     );
     expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_400);
@@ -211,7 +225,7 @@ describe('adminQuizInfo testing', () => {
       error: expect.any(String),
     });
     const invalidQuizId = requestadminQuizInfo(
-      JackUser.bodyString.authUserId,
+      returnToken.bodyString.token,
       'S'
     );
     expect(invalidQuizId.statusCode).toBe(RESPONSE_ERROR_400);
@@ -220,90 +234,98 @@ describe('adminQuizInfo testing', () => {
     });
   });
 
-  test('Quiz ID does not refer to a quiz that this user owns', () => {
-    const TonyUser = requestadminAuthRegister(
+  test('Error 401: Token is empty or invalid(does not refer to valid logged in user session)', () => {
+    const emptyQuizId = requestadminQuizInfo(
+      (-1) * returnToken.bodyString.token,
+      QuizOne.bodyString.quizId
+    );
+    expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(emptyQuizId.bodyString).toStrictEqual({
+      error: expect.any(String),
+    });
+  });
+
+  test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
+    requestadminAuthLogout(returnToken);
+    requestadminAuthRegister(
       'tony@hotmail.com',
       'ab123456b',
       'Tony',
       'Stark'
     );
+    const returnToken2 = requestadminAuthLogin(
+      'tony@hotmail.com',
+      'ab123456b'
+    );
     const TonyQuiz = requestadminQuizCreate(
-      TonyUser.bodyString.authUserId,
+      returnToken2.bodyString.token,
       'Jack',
       'Tony quiz'
     );
+    // Problem: concept confused - once we get the link SERVER_URL, we did log in to Jack
+    // User and then do we need to logout on the server and then log in to Tony User?
+    // Or we can log in two account at the same time? (I'm assuming we need to log out Jack before
+    // we log in to TonyUser)
     const quizIdNotReferToUser1 = requestadminQuizInfo(
-      JackUser.bodyString.authUserId,
-      TonyQuiz.bodyString.quizId
-    );
-    // not very sure it is refer to 403 or 400 error cuz in swagger it mentions in both
-    expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
-    expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
-    const quizIdNotReferToUser2 = requestadminQuizInfo(
-      TonyUser.bodyString.authUserId,
+      returnToken.bodyString.token,
       QuizOne.bodyString.quizId
     );
-    expect(quizIdNotReferToUser2.statusCode).toBe(RESPONSE_ERROR_403);
-    expect(quizIdNotReferToUser2.bodyString).toStrictEqual({
+    expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
+    expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
     });
   });
 });
 
 describe('Testing adminQuizRemove', () => {
-  test('Correct input', () => {
-    const NewUser = requestadminAuthRegister(
-      'jess@hotmail.com',
+  let returnToken: RequestAdminAuthLoginReturn;
+  let QuizOne: RequestAdminQuizCreateReturn;
+  beforeAll(() => {
+    requestadminAuthRegister(
+      'jack@hotmail.com',
       '123456ab',
-      'Jess',
-      'Tran'
+      'Jack',
+      'Harlow'
     );
-    const QuizId = requestadminQuizCreate(
-      NewUser.bodyString.authUserId,
-      'Jess',
-      'description'
+    // shouldn't the token inside body String returning? what's does this error
+    // mean Qvq
+    returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab');
+    QuizOne = requestadminQuizCreate(
+      returnToken.bodyString.token,
+      'Quiz One',
+      'this is my first quiz'
     );
-    const removeQuiz = requestadminQuizRemove(
-      NewUser.bodyString.authUserId,
-      QuizId.bodyString.quizId
+  });
+  test('StatusCode 200: Valid input', () => {
+    requestadminQuizRemove(
+      returnToken.bodyString.token, 
+      QuizOne.bodyString.quizId
+      );
+    const checkQuizIsRemoved = requestadminQuizCreate(
+      returnToken.bodyString.token,
+      'Quiz Check',
+      'this is the only quiz'
     );
-    expect(removeQuiz.statusCode).toBe(RESPONSE_OK_200);
-    expect(removeQuiz.bodyString).toStrictEqual({});
-    const checkQuizIsRemove = requestadminQuizCreate(
-      NewUser.bodyString.authUserId,
-      'Jess',
-      'description'
-    );
-    expect(checkQuizIsRemove.statusCode).toBe(RESPONSE_OK_200);
-    expect(checkQuizIsRemove.bodyString).toStrictEqual({
+    expect(checkQuizIsRemoved.statusCode).toBe(RESPONSE_OK_200);
+    expect(checkQuizIsRemoved.bodyString).toStrictEqual({
       quizId: expect.any(Number),
     });
   });
 
-  test('Empty input', () => {
-    const emptyQuizId = requestadminQuizRemove('', '');
+  test('Error 400: Empty input for QuizId', () => {
+    const emptyQuizId = requestadminQuizRemove(
+      returnToken.bodyString.token, 
+      ''
+    );
     expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_400);
     expect(emptyQuizId.bodyString).toStrictEqual({
       error: expect.any(String),
     });
   });
 
-  test('Invalid QuizId', () => {
-    const NewUser = requestadminAuthRegister(
-      'jess@hotmail.com',
-      '123456ab',
-      'Jess',
-      'Tran'
-    );
-    const QuizId = requestadminQuizCreate(
-      NewUser.bodyString.authUserId,
-      'Jess',
-      'description'
-    );
+  test('Error 400: Invalid QuizId', () => {
     const invalidQuizId = requestadminQuizRemove(
-      NewUser.bodyString.authUserId,
+      returnToken.bodyString.token,
       'abc'
     );
     expect(invalidQuizId.statusCode).toBe(RESPONSE_ERROR_400);
@@ -312,38 +334,105 @@ describe('Testing adminQuizRemove', () => {
     });
   });
 
-  test('QuizId does not refer to a quiz that this user owns', () => {
-    const JessUser = requestadminAuthRegister(
+  test('Error 401: Token is empty', () => {
+    const invalidToken = requestadminQuizRemove(
+      '',
+      QuizOne.bodyString.quizId
+    );
+    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(invalidToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+    });
+  });
+  
+  test('Error 401: Token is invalid', () => {
+    const invalidToken = requestadminQuizRemove(
+      (-1) * returnToken.bodyString.token,
+      QuizOne.bodyString.quizId
+    );
+    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(invalidToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+    });
+  });
+
+  test('Error 403: QuizId does not refer to a quiz that this user owns', () => {
+    requestadminAuthRegister(
       'jess@hotmail.com',
       '123456ab',
       'Jess',
       'Tran'
     );
-    const AdamUser = requestadminAuthRegister(
-      'adam@hotmail.com',
-      'ab123456',
-      'Adam',
-      'Lee'
-    );
-    const JessQuizId = requestadminQuizCreate(
-      JessUser.bodyString.authUserId,
-      'Jess',
-      'description'
-    );
-    const AdamQuizId = requestadminQuizCreate(
-      AdamUser.bodyString.authUserId,
-      'Jess',
-      'description'
+    const returnToken2 = requestadminAuthLogin(
+      'jess@hotmail.com',
+      '123456ab'
     );
     const quizIdNotReferToUser = requestadminQuizRemove(
-      JessUser.bodyString.authUserId,
-      AdamQuizId.bodyString.quizId
+      returnToken2.bodyString.token,
+      QuizOne.bodyString.quizId
     );
     expect(quizIdNotReferToUser.statusCode).toBe(RESPONSE_ERROR_403);
     expect(quizIdNotReferToUser.bodyString).toStrictEqual({
       error: expect.any(String),
     });
   });
+});
+
+describe('adminQuizList testing', () => {
+  test('Status Code 200: valid input', () => {
+    requestadminAuthRegister(
+      'jack@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    );
+    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab');
+    const QuizOne = requestadminQuizCreate(
+      returnToken.bodyString.token,
+      'Quiz One',
+      'this is my first quiz'
+    );
+    const QuizTwo = requestadminQuizCreate(
+      returnToken.bodyString.token,
+      'Quiz Two',
+      'this is my second quiz'
+    );
+    const QuizPrint = requestadminQuizList(returnToken.bodyString.token);
+    expect(QuizPrint.statusCode).toBe(RESPONSE_OK_200);
+    expect(QuizPrint.bodyString).toStrictEqual({
+      quizzes: [
+        {
+          quizId: QuizOne.bodyString.quizId,
+          name: 'Quiz One',
+          timeCreated: expect.any(Number),
+          timeLastEdited: expect.any(Number),
+          description: 'this is my first quiz',
+        },
+        {
+          quizId: QuizTwo.bodyString.quizId,
+          name: 'Quiz Two',
+          timeCreated: expect.any(Number),
+          timeLastEdited: expect.any(Number),
+          description: 'this is my second quiz',
+        }
+      ]
+    });
+  });
+  test('Error 401: invalid token', () => {
+    const invalidToken = requestadminQuizList('invalid');
+    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(invalidToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+    });
+  });
+  test('Error 401: empty token', () => {
+    const invalidToken = requestadminQuizList('');
+    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(invalidToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+    });
+  });
+  
 });
 
 // Test suite for /v1/admin/quiz route adminQuizCreate() - START
