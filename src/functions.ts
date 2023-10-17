@@ -47,7 +47,7 @@ export const saveDataInFile = (dataStore: DataStore): Record<string, never> => {
  *     if the file does not exist: an empty object
  * }
  */
-export const getDataFromFile = (): getDataReturnObject => {
+const getDataFromFile = (): getDataReturnObject => {
   // inspiration for checking if file exists taken from
   // https://byby.dev/node-check-if-file-exists
   if (fs.existsSync(DATASTORE_FILENAME)) {
@@ -69,3 +69,24 @@ export const getDataFromFile = (): getDataReturnObject => {
 
   return returnObj;
 };
+
+/**
+ * Iteration 2 - new data retrieval system
+ * Retrives data from local file
+ * Uses getDataFromFile() imported from './functions.ts'
+ * @param - nil
+ * @returns {array} type DataStore
+ */
+export function retrieveDataFromFile(): DataStore {
+  const dataStoreObj = getDataFromFile();
+
+  let data: DataStore;
+
+  if (!dataStoreObj.result) {
+    data = { users: [], quizzes: [] };
+  } else {
+    data = dataStoreObj.data as DataStore;
+  }
+
+  return data;
+}

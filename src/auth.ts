@@ -1,7 +1,7 @@
 import { TokenClass } from 'typescript';
-import { getData, setData } from './dataStore';
+import { getData, setData, DataStore } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
-import { getDataFromFile, saveDataInFile } from './functions';
+import { retrieveDataFromFile, saveDataInFile } from './functions';
 
 import {
   RESPONSE_OK_200,
@@ -93,13 +93,18 @@ export function adminUserDetails(token: number): UserInfo | ErrorObject {
  * @returns {{token: number}} - unique identifier for a user
  * @returns {{error: string}} - on error
  */
+
 export function adminAuthRegister(
   email: string,
   password: string,
   nameFirst: string,
   nameLast: string
 ): TokenNumber | ErrorObject {
-  const data = getData();
+  // const data = getData();
+
+  // Iteration 2: New data retrieval system - START
+  const data: DataStore = retrieveDataFromFile();
+  // Iteration 2: New data retrieval system - END
 
   //email address is already in use
   if (data.users.length >= 1) {
@@ -137,9 +142,12 @@ export function adminAuthRegister(
   const tokenNumber = generateToken();
   newUser.token.push(tokenNumber);
 
-  setData(data);
+  // Iteration 2: New data save system - START
+  saveDataInFile(data);
+  // Iteration 2: New data save system - END
 
-  // return { token: newUser.token };
+  // setData(data);
+
   return { token: tokenNumber };
 }
 
@@ -158,7 +166,11 @@ export function adminAuthLogin(
   password: string
 ): TokenNumber | ErrorObject {
   // implemented by Paul 29Sep23
-  const data = getData();
+  // const data = getData();
+
+  // Iteration 2: New data retrieval system - START
+  const data: DataStore = retrieveDataFromFile();
+  // Iteration 2: New data retrieval system - END
 
   // test for email exists
   let emailExistsBool = false;
@@ -203,7 +215,11 @@ export function adminAuthLogin(
     }
   }
 
-  setData(data);
+  // Iteration 2: New data save system - START
+  saveDataInFile(data);
+  // Iteration 2: New data save system - END
+
+  // setData(data);
 
   return {
     token: token,
