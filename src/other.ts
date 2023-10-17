@@ -9,7 +9,7 @@ import { getData, setData } from './dataStore';
  */
 
 export function clear() {
-  let data = getData();
+  const data = getData();
 
   data.users = [];
   data.quizzes = [];

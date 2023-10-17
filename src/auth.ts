@@ -21,10 +21,6 @@ interface AuthUserId {
   authUserId: number;
 }
 
-interface Token {
-  token: number[];
-}
-
 interface TokenNumber {
   token: number;
 }
