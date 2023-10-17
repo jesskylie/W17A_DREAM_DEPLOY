@@ -1,4 +1,5 @@
 import { getData, setData, DataStore } from './dataStore';
+import { retrieveDataFromFile, saveDataInFile } from './functions';
 
 import {
   RESPONSE_OK_200,
@@ -121,7 +122,11 @@ function adminQuizCreate(
   name: string,
   description: string
 ): QuizId | ErrorObjectWithCode {
-  let data = getData();
+  // let data = getData();
+
+  // Iteration 2: New data retrieval system - START
+  const data: DataStore = retrieveDataFromFile();
+  // Iteration 2: New data retrieval system - END
   // 1. check that authUserId is valid
   // if not, then return error
   // const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -189,7 +194,11 @@ function adminQuizCreate(
 
   pushNewQuizIdToUserArray(data, authUserId, newQuizId);
 
-  setData(data);
+  // Iteration 2: New data save system - START
+  saveDataInFile(data);
+  // Iteration 2: New data save system - END
+
+  // setData(data);
 
   return {
     quizId: newQuizId,

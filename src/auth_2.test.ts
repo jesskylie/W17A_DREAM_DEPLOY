@@ -255,7 +255,7 @@ const requestPersonLogin = (
 };
 
 // Tests
-describe.only('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
+describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
   clear();
   // Step 1 create user with /v1/admin/auth/register
   const email = 'paulemail@gmail.com';
@@ -286,7 +286,7 @@ describe.only('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
   });
 });
 
-describe.only('test /v1/admin/auth/login -> EXPECT ERROR', () => {
+describe('test /v1/admin/auth/login -> EXPECT ERROR', () => {
   clear();
   // Email address does not exist
   const email = 'thisemaildoesnotexist@gmail.com';
