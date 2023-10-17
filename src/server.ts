@@ -65,13 +65,56 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   res.json(response);
 });
 
+// POST request to route /v1/admin/auth/login
+// From swagger.yaml:
+// Takes in information about an admin user to
+// determine if they can log in to manage quizzes.
+// This route is not relevant to guests who want to
+// play a particular quiz, but is used for the
+// creation of accounts of people who manage quizzes.
+
+app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  const response = adminAuthLogin(email, password);
+
+  console.log('from server.ts /v1/admin/auth/login : response ->', response);
+
+  if ('error' in response) {
+    return res.status(400).json(response);
+  }
+  res.json(response);
+});
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const result = adminUserDetails(parseInt(req.query.token as string));
   if ('error' in result) {
     return res.status(401).json(result);
-   }
-   res.json(result);
+  }
+  res.json(result);
+});
+
+// POST request to route /v1/admin/quiz
+// From swagger.yaml:
+// Given basic details about a new quiz,
+// create one for the logged in user
+
+app.post('/v1/admin/quiz', (req: Request, res: Response) => {
+  const { token, name, description } = req.body;
+
+  const response = adminQuizCreate(token, name, description);
+
+  console.log('from server.ts /v1/admin/quiz : response ->', response);
+
+  if ('error' in response) {
+    console.log('error in response');
+    if (response.errorCode === 400) {
+      return res.status(400).json(response);
+    } else if (response.errorCode === 401) {
+      return res.status(401).json(response);
+    }
+  }
+  res.json(response);
 });
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
