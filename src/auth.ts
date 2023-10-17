@@ -1,6 +1,7 @@
 import { TokenClass } from 'typescript';
 import { getData, setData } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
+import { getDataFromFile, saveDataInFile } from './functions';
 
 import {
   RESPONSE_OK_200,
@@ -17,12 +18,16 @@ const MIN = 10000;
 
 // TypeScript interfaces - START
 interface AuthUserId {
- authUserId: number;
+  authUserId: number;
 }
 
 interface Token {
   token: number[];
- }
+}
+
+interface TokenNumber {
+  token: number;
+}
 
 interface ErrorObject {
   error: string;
@@ -93,11 +98,11 @@ export function adminUserDetails(token: number): UserInfo | ErrorObject {
  * @returns {{error: string}} - on error
  */
 export function adminAuthRegister(
-  email: string, 
-  password: string, 
-  nameFirst: string, 
-  nameLast: string 
-): Token | ErrorObject {
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+): TokenNumber | ErrorObject {
   const data = getData();
 
   //email address is already in use
@@ -138,7 +143,8 @@ export function adminAuthRegister(
 
   setData(data);
 
-  return { token: newUser.token };
+  // return { token: newUser.token };
+  return { token: tokenNumber };
 }
 
 /**
@@ -154,7 +160,7 @@ export function adminAuthRegister(
 export function adminAuthLogin(
   email: string,
   password: string
-): AuthUserId | ErrorObject {
+): TokenNumber | ErrorObject {
   // implemented by Paul 29Sep23
   const data = getData();
 
@@ -191,10 +197,11 @@ export function adminAuthLogin(
   // return authUserId of logged in user
   // as email exists && password matches
   // increments successful login, numFailed login resets to 0
-  let authUserId;
+  let token;
   for (const arr of data.users) {
     if (arr.email === email && arr.password === password) {
-      authUserId = arr.authUserId;
+      console.log('arr ->', arr);
+      token = arr.token[0];
       arr.numSuccessfulLogins++;
       arr.numFailedPasswordsSinceLastLogin = 0;
     }
@@ -203,7 +210,7 @@ export function adminAuthLogin(
   setData(data);
 
   return {
-    authUserId: authUserId,
+    token: token,
   };
 }
 
@@ -253,4 +260,3 @@ function isValidPassword(password: string): boolean {
 function generateToken(): number {
   return Math.floor(Math.random() * (MAX - MIN)) + MIN;
 }
-
