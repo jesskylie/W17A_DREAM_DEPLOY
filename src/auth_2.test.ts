@@ -32,10 +32,6 @@ interface ErrorObject {
 // interfaces used throughout file - END
 
 // Functions to execute before each test is run - START
-function requestDelete() {
-  return request('DELETE', SERVER_URL + '/v1/clear', { json: {} });
-}
-
 beforeEach(() => {
   requestDelete();
 });
@@ -90,7 +86,7 @@ function requestAdminRegister(email: string, password: string, nameFirst: string
 describe('Testing POST /v1/admin/auth/register - SUCCESS', () => {
   test('Test successful adminAuthRegister', () => {
     const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    expect(response.body).toStrictEqual({ token: expect.any(Array<Number>) });
+    expect(response.body).toStrictEqual({ token: expect.any(Number) });
     expect(response.status).toStrictEqual(RESPONSE_OK_200);
   });
 });
@@ -162,11 +158,10 @@ function requestUserDetails(token: number) {
   }
 }
 
-describe('Testing GET /v1/admin/user/details - SUCCESS', () => {
+describe('Testing GET /v1/admin/user/details', () => {
   test('Test successful adminUserDetails', () => {
     const response = requestAdminRegister('kayla@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    const userDetails = requestUserDetails(response.body);
-    const token =  response.body.token[0];
+    const userDetails = requestUserDetails(response.body.token);
     expect(userDetails.body).toStrictEqual({ 
       user: {
         authUserId: expect.any(Number),
@@ -183,6 +178,35 @@ describe('Testing GET /v1/admin/user/details - SUCCESS', () => {
     const response = requestUserDetails(-1);
     expect(response.body).toStrictEqual({error: expect.any(String)});
     expect(response.status).toStrictEqual(RESPONSE_ERROR_401);
+  });
+});
+
+function requestDelete() {
+  const res = request(
+    'DELETE', 
+    SERVER_URL + '/v1/clear',
+  );
+  return {
+    body: JSON.parse(res.body.toString()),
+    status: res.statusCode
+  }
+}
+
+describe('Testing DELETE /v1/clear', () => {
+  test('Test successful delete by searching for deleted users token', () => {
+    const response = requestAdminRegister('kayla@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const deleteResponse = requestDelete();
+    const user = requestUserDetails(response.body.token);
+    expect(user.body).toStrictEqual({ error: expect.any(String)});
+    expect(deleteResponse.status).toStrictEqual(RESPONSE_OK_200);
+  });
+  
+  test('Test successful delete by displaying users after deleting', () => {
+    const response = requestAdminRegister('kayla@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const deleteResponse = requestDelete();
+    const user = requestUserDetails(response.body.token);
+    expect(user.body).toStrictEqual({ error: expect.any(String)});
+    expect(deleteResponse.status).toStrictEqual(RESPONSE_OK_200);
   });
 });
 
@@ -214,7 +238,7 @@ const requestPersonLogin = (
 };
 
 // Tests
-describe.only('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
+describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
   clear();
   // Step 1 create user with /v1/admin/auth/register
   const email = 'paulemail@gmail.com';
@@ -245,7 +269,7 @@ describe.only('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
   });
 });
 
-describe.only('test /v1/admin/auth/login -> EXPECT ERROR', () => {
+describe('test /v1/admin/auth/login -> EXPECT ERROR', () => {
   clear();
   // Email address does not exist
   const email = 'thisemaildoesnotexist@gmail.com';
