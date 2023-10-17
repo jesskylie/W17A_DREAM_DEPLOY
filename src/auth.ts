@@ -56,7 +56,7 @@ interface UserData {
  * Successful login starts at 1 at user registration
  * Number of failed logins is reset every time they have a successful login
  *
- * @param {number} authUserId - users authUserId
+ * @param {number} token- users authUserId
  * @returns {{user: {userId: number, name: string, email: string, numSuccessfulLogins: number
  *            numFailedPasswordsSinceLastLogin: number}}} - user details
  * @returns {{error: string}} - on error
@@ -78,7 +78,7 @@ export function adminUserDetails(token: number): UserInfo | ErrorObject {
     }
   }
   setData(data);
-  return { error: 'Invalid UserId' };
+  return { error: 'Invalid Token' };
 }
 
 /**

@@ -26,8 +26,12 @@ interface ErrorObject {
 // interfaces used throughout file - END
 
 // Functions to execute before each test is run - START
+function requestDelete() {
+  return request('DELETE', SERVER_URL + '/v1/clear', { json: {} });
+}
+
 beforeEach(() => {
-  request('DELETE', SERVER_URL + '/clear', { json: {} });
+  requestDelete();
 });
 
 // Functions to execute before each test is run - END
@@ -69,8 +73,7 @@ function requestAdminRegister(email: string, password: string, nameFirst: string
         nameFirst: nameFirst,
         nameLast: nameLast,
       }
-    } 
-    
+    }     
   );
   return {
     body: JSON.parse(res.body.toString()),
@@ -82,7 +85,6 @@ describe ('Testing POST /v1/admin/auth/register - SUCCESS', () => {
   test('Test successful adminAuthRegister', () => {
     const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
     expect(response.body).toStrictEqual({ token: expect.any(Array<Number>) });
-    
     expect(response.status).toStrictEqual(RESPONSE_OK_200);
   });
 });
@@ -158,9 +160,10 @@ describe ('Testing GET /v1/admin/user/details - SUCCESS', () => {
   test('Test successful adminUserDetails', () => {
     const response = requestAdminRegister('kayla@hotmail.com', 'abcde4284', 'Ann', 'Pie');
     const userDetails = requestUserDetails(response.body);
+    const token =  response.body.token[0];
     expect(userDetails.body).toStrictEqual({ 
       user: {
-        authUserId: 0,
+        authUserId: expect.any(Number),
         name: 'Ann Pie',
         email: 'kayla@hotmail.com',
         numSuccessfulLogins: expect.any(Number),

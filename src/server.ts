@@ -8,10 +8,8 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { adminAuthRegister, adminUserDetails } from './auth';
-
-import { adminAuthLogin } from './auth';
-
+import { adminAuthRegister, adminUserDetails, adminAuthLogin } from './auth';
+import { clear } from './other'
 import { adminQuizCreate } from './quiz';
 
 import {
@@ -20,6 +18,7 @@ import {
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
 } from './library/constants';
+import { request } from 'http';
 
 // Set up web app
 const app = express();
@@ -73,6 +72,11 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
     return res.status(401).json(result);
    }
    res.json(result);
+});
+
+app.delete('/v1/clear', (req: Request, res: Response) => {
+  const result = clear();
+  return res.json(result);
 });
 
 // ====================================================================
