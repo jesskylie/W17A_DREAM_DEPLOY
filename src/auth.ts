@@ -2,6 +2,7 @@ import { TokenClass } from 'typescript';
 import { getData, setData, DataStore } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
 import { retrieveDataFromFile, saveDataInFile } from './functions';
+import { uid } from 'uid';
 
 import {
   RESPONSE_OK_200,
@@ -17,12 +18,8 @@ const MAX = 1000;
 const MIN = 10000;
 
 // TypeScript interfaces - START
-interface AuthUserId {
-  authUserId: number;
-}
-
-interface TokenNumber {
-  token: number;
+interface TokenString {
+  token: string;
 }
 
 interface ErrorObject {
@@ -45,10 +42,11 @@ interface UserData {
   nameLast: string;
   email: string;
   password: string;
+  oldPasswords: string[];
   numSuccessfulLogins: number;
   numFailedPasswordsSinceLastLogin: number;
   quizId: number[];
-  token: number[];
+  token: string[];
 }
 // TypeScript interfaces - END
 
@@ -57,16 +55,16 @@ interface UserData {
  * Successful login starts at 1 at user registration
  * Number of failed logins is reset every time they have a successful login
  *
- * @param {number} token- users authUserId
+ * @param {string} - token- users authUserId
  * @returns {{user: {userId: number, name: string, email: string, numSuccessfulLogins: number
  *            numFailedPasswordsSinceLastLogin: number}}} - user details
  * @returns {{error: string}} - on error
  */
-export function adminUserDetails(token: number): UserInfo | ErrorObject {
-  const data = getData();
+export function adminUserDetails(token: string): UserInfo | ErrorObject {
+  const data: DataStore = retrieveDataFromFile();
   for (const user of data.users) {
     if (user.token.includes(token)) {
-      return {
+       return {
         user: {
           authUserId: user.authUserId,
           name: user.nameFirst + ' ' + user.nameLast,
@@ -78,9 +76,10 @@ export function adminUserDetails(token: number): UserInfo | ErrorObject {
       };
     }
   }
-  setData(data);
+  saveDataInFile(data);
   return { error: 'Invalid Token' };
 }
+
 
 /**
  * Registers a user with their email, password, name and returns their authUserId value
@@ -90,7 +89,7 @@ export function adminUserDetails(token: number): UserInfo | ErrorObject {
  * @param {string} password - user's password
  * @param {string} nameFirst - user's first name
  * @param {string} nameLast- user's last name
- * @returns {{token: number}} - unique identifier for a user
+ * @returns {{token: string}} - unique identifier for a user
  * @returns {{error: string}} - on error
  */
 
@@ -99,7 +98,7 @@ export function adminAuthRegister(
   password: string,
   nameFirst: string,
   nameLast: string
-): TokenNumber | ErrorObject {
+): TokenString | ErrorObject {
   // const data = getData();
 
   // Iteration 2: New data retrieval system - START
@@ -133,14 +132,15 @@ export function adminAuthRegister(
     nameLast: nameLast,
     email: email,
     password: password,
+    oldPasswords: [],
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
     quizId: [],
     token: [],
   };
   data.users.push(newUser);
-  const tokenNumber = generateToken();
-  newUser.token.push(tokenNumber);
+  const tokenString = uid();
+  newUser.token.push(tokenString);
 
   // Iteration 2: New data save system - START
   saveDataInFile(data);
@@ -148,7 +148,7 @@ export function adminAuthRegister(
 
   // setData(data);
 
-  return { token: tokenNumber };
+  return { token: tokenString };
 }
 
 /**
@@ -164,7 +164,7 @@ export function adminAuthRegister(
 export function adminAuthLogin(
   email: string,
   password: string
-): TokenNumber | ErrorObject {
+): TokenString | ErrorObject {
   // implemented by Paul 29Sep23
   // const data = getData();
 
@@ -226,6 +226,46 @@ export function adminAuthLogin(
   };
 }
 
+/**
+ * Given details relating to a password change, update the password of a logged in user
+ * Returns an error if old password is not correct old password, new password cannot be the same
+ * as old password, new password has already been used before, new password is less than 8 chars
+ * Updates successful/unsuccessful logins with each admin login call
+ * @param {string} token - user's current sessionId
+ * @param {string} password - user's new password
+ * @returns {void} - returns {} on successful password change
+ * @returns {{error: string}} - on error
+ */
+
+export function updatePassword(token: string, newPassword: string): void | ErrorObject {
+  //new password must be more than 8 characters, and have letters and numbers
+  if (!isValidPassword(newPassword)) {
+    return { error: 'Invalid password'};
+  }
+  
+  //loop through datastore to find the token 
+  const data: DataStore = retrieveDataFromFile();
+  for (const user of data.users) {
+    if (user.token.includes(token)) {
+      //token is found
+      if (newPassword === user.password) {
+         //check if new password is equal to old password
+        return { error: 'New password can not be the same as old password'};
+      } else if (user.oldPasswords.includes(newPassword)) {
+        //check if old password exists in old password array
+        return { error: 'New password has already been used by this user'};
+      } else {
+        //move current password to old passwords array
+        //update new password
+        const password = user.password;
+        user.oldPasswords.push(password);
+        user.password = newPassword;
+      }
+    }
+  }
+  saveDataInFile(data);
+}
+
 // Helper functions
 
 /**
@@ -260,15 +300,4 @@ function isValidPassword(password: string): boolean {
   } else {
     return false;
   }
-}
-
-/**
- * generates random number for a token between 1000 - 10000
- * code taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
- * @param {}
- * @returns {number} - returns a random token number 
-
- */
-function generateToken(): number {
-  return Math.floor(Math.random() * (MAX - MIN)) + MIN;
 }
