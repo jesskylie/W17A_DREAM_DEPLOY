@@ -96,6 +96,7 @@ export interface Users {
   numSuccessfulLogins: number;
   numFailedPasswordsSinceLastLogin: number;
   quizId: number[];
+  token: number[];
 }
 
 export interface Quizzes {

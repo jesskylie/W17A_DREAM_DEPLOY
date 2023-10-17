@@ -1,4 +1,10 @@
 // Do not delete this file
+// ####################################
+// TEMP ONLY - UNTIL /v1/clear is implemented
+// make sure it is deleted
+import { clear } from './other';
+// ####################################
+
 import request from 'sync-request-curl';
 import config from './config.json';
 
@@ -58,117 +64,168 @@ describe('HTTP tests using Jest', () => {
   });
 });
 
-function requestAdminRegister(email: string, password: string, nameFirst: string, nameLast: string) {
-  const res = request(
-    'POST', 
-    SERVER_URL + '/v1/admin/auth/register',
-    {
-      json: {
-        email: email,
-        password: password,
-        nameFirst: nameFirst,
-        nameLast: nameLast,
-      }
-    } 
-  );
+function requestAdminRegister(
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+) {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+    json: {
+      email: email,
+      password: password,
+      nameFirst: nameFirst,
+      nameLast: nameLast,
+    },
+  });
   return JSON.parse(res.body.toString());
 }
 
-describe ('Testing POST /v1/admin/auth/register - SUCCESS', () => {
+describe('Testing POST /v1/admin/auth/register - SUCCESS', () => {
   test('Test successful adminAuthRegister', () => {
-    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const response = requestAdminRegister(
+      'abc@hotmail.com',
+      'abcde4284',
+      'Ann',
+      'Pie'
+    );
     expect(response).toStrictEqual({ token: expect.any(Number) });
     expect(response.statusCode).toStrictEqual(RESPONSE_OK_200);
   });
 });
 
-describe ('Testing POST /v1/admin/auth/register - UNSUCCESSFUL', () => {
+describe('Testing POST /v1/admin/auth/register - UNSUCCESSFUL', () => {
   test('Email does not satisfy validator.isEmail', () => {
-    const response = requestAdminRegister('invalid-email', 'adheh38753', 'Pea', 'Nut');
-    expect(response).toStrictEqual( {error: expect.any(String)} );
+    const response = requestAdminRegister(
+      'invalid-email',
+      'adheh38753',
+      'Pea',
+      'Nut'
+    );
+    expect(response).toStrictEqual({ error: expect.any(String) });
     expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
-  
+
   test('Email is already in use by another user', () => {
     requestAdminRegister('jess@hotmail.com', '123456abce', 'Pea', 'Nut');
-    const response = requestAdminRegister('jess@hotmail.com', '123456abce', 'Jess', 'Tee');
-    expect(response).toStrictEqual( {error: expect.any(String)} );
+    const response = requestAdminRegister(
+      'jess@hotmail.com',
+      '123456abce',
+      'Jess',
+      'Tee'
+    );
+    expect(response).toStrictEqual({ error: expect.any(String) });
     expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
-  
+
   test('Name contains invalid characters', () => {
-    const invalidFirstName = requestAdminRegister('harry@hotmail.com', '123456abce', 'har%%$@#%', 'Tee');
-    const invalidLastName = requestAdminRegister('harry@hotmail.com', '123456abce', 'harry', 'Tee#$%*%');
-    expect(invalidFirstName).toStrictEqual( {error: expect.any(String)} );
-    expect(invalidLastName).toStrictEqual( {error: expect.any(String)} );
+    const invalidFirstName = requestAdminRegister(
+      'harry@hotmail.com',
+      '123456abce',
+      'har%%$@#%',
+      'Tee'
+    );
+    const invalidLastName = requestAdminRegister(
+      'harry@hotmail.com',
+      '123456abce',
+      'harry',
+      'Tee#$%*%'
+    );
+    expect(invalidFirstName).toStrictEqual({ error: expect.any(String) });
+    expect(invalidLastName).toStrictEqual({ error: expect.any(String) });
     expect(invalidFirstName.statusCode).toStrictEqual(RESPONSE_ERROR_400);
     expect(invalidLastName.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
-  
+
   test('Name is not between 2 to 20 characters', () => {
-    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'A', 'Pie');
-    const responseTwo = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Amy', 'P');
-    expect(response).toStrictEqual( {error: expect.any(String)} );
-    expect(responseTwo).toStrictEqual( {error: expect.any(String)} );
+    const response = requestAdminRegister(
+      'abc@hotmail.com',
+      'abcde4284',
+      'A',
+      'Pie'
+    );
+    const responseTwo = requestAdminRegister(
+      'abc@hotmail.com',
+      'abcde4284',
+      'Amy',
+      'P'
+    );
+    expect(response).toStrictEqual({ error: expect.any(String) });
+    expect(responseTwo).toStrictEqual({ error: expect.any(String) });
     expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
     expect(responseTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
-  
+
   test('Password is less than 8 characters', () => {
-    const response= requestAdminRegister('harry@hotmail.com', '12345', 'harry', 'Tee');
-    expect(response).toStrictEqual( {error: expect.any(String)} );
+    const response = requestAdminRegister(
+      'harry@hotmail.com',
+      '12345',
+      'harry',
+      'Tee'
+    );
+    expect(response).toStrictEqual({ error: expect.any(String) });
     expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
-  
+
   test('Password is less than 8 characters', () => {
-    const response= requestAdminRegister('harry@hotmail.com', '12345', 'harry', 'Tee');
-    expect(response).toStrictEqual( {error: expect.any(String)} );
+    const response = requestAdminRegister(
+      'harry@hotmail.com',
+      '12345',
+      'harry',
+      'Tee'
+    );
+    expect(response).toStrictEqual({ error: expect.any(String) });
     expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
-  
+
   test('Password does not contain at least 1 number and 1 letter', () => {
-    const response= requestAdminRegister('harry@hotmail.com', '12345689', 'harry', 'Tee');
-    expect(response).toStrictEqual( {error: expect.any(String)} );
+    const response = requestAdminRegister(
+      'harry@hotmail.com',
+      '12345689',
+      'harry',
+      'Tee'
+    );
+    expect(response).toStrictEqual({ error: expect.any(String) });
     expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });
 });
 
 function requestUserDetails(token: number) {
-  const res = request(
-    'GET', 
-    SERVER_URL + '/v1/admin/user/details',
-    {
-      qs: {
-        token: token,
-      }
-    }
-  );
+  const res = request('GET', SERVER_URL + '/v1/admin/user/details', {
+    qs: {
+      token: token,
+    },
+  });
   return JSON.parse(res.body.toString());
 }
 
-describe ('Testing GET /v1/admin/user/details - SUCCESS', () => {
+describe('Testing GET /v1/admin/user/details - SUCCESS', () => {
   test('Test successful adminUserDetails', () => {
-    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const response = requestAdminRegister(
+      'abc@hotmail.com',
+      'abcde4284',
+      'Ann',
+      'Pie'
+    );
     const userDetails = requestUserDetails(response.token);
-    expect(userDetails).toStrictEqual({ 
+    expect(userDetails).toStrictEqual({
       user: {
         authUserId: response.authUserId,
         name: 'Ann Pie',
         email: 'abc@hotmail.com',
         numSuccessfulLogins: expect.any(Number),
         numFailedPasswordsSinceLastLogin: expect.any(Number),
-      }, 
+      },
     });
     expect(userDetails.statusCode).toStrictEqual(RESPONSE_OK_200);
   });
-  
+
   test('Testing unsuccessful adminUserDetails', () => {
     const response = requestUserDetails(-1);
-    expect(response).toStrictEqual({error: expect.any(String)});
+    expect(response).toStrictEqual({ error: expect.any(String) });
     expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_401);
   });
 });
-
 
 // Test suite for /v1/admin/auth/login route adminAuthLogin() - START
 
@@ -190,7 +247,7 @@ const requestPersonLogin = (
   email: string,
   password: string
 ): PersonLoginReturn | ErrorObject => {
-  const res = request('POST', SERVER_URL + 'v1/admin/auth/login', {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/login', {
     json: { email, password },
   });
 
@@ -198,33 +255,50 @@ const requestPersonLogin = (
 };
 
 // Tests
-describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
+describe.only('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
+  clear();
+  // Step 1 create user with /v1/admin/auth/register
   const email = 'paulemail@gmail.com';
   const password = 'password123456789';
+  const nameFirst = 'Paul';
+  const nameLast = 'Reynolds';
+
+  requestAdminRegister(email, password, nameFirst, nameLast);
+
   test('Test successfully logging in person return type', () => {
+    const loginResponse = requestPersonLogin(email, password);
+
+    if ('token' in loginResponse) {
+      const token = loginResponse.token;
+      console.log(token);
+    } else {
+      console.log(loginResponse.error);
+    }
     expect(requestPersonLogin(email, password)).toStrictEqual({
       token: expect.any(Number),
     });
   });
   test('Test successfully logging in person return status code 200', () => {
-    const responsePOST = request('POST', SERVER_URL + 'v1/admin/auth/login', {
+    const responsePOST = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: { email, password },
     });
     expect(responsePOST.statusCode).toStrictEqual(RESPONSE_OK_200);
   });
 });
 
-describe('test /v1/admin/auth/login -> EXPECT ERROR', () => {
+describe.only('test /v1/admin/auth/login -> EXPECT ERROR', () => {
+  clear();
   // Email address does not exist
   const email = 'thisemaildoesnotexist@gmail.com';
   const password = 'password123456789';
+
   test('/v1/admin/auth/login : Email address does not exist -> EXPECT ERROR', () => {
     expect(requestPersonLogin(email, password)).toStrictEqual({
       error: expect.any(String),
     });
   });
   test('Test unsuccessfully logging in person return status code 400', () => {
-    const responsePOST = request('POST', SERVER_URL + 'v1/admin/auth/login', {
+    const responsePOST = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: { email, password },
     });
     expect(responsePOST.statusCode).toStrictEqual(RESPONSE_ERROR_400);
@@ -239,7 +313,7 @@ describe('test /v1/admin/auth/login -> EXPECT ERROR', () => {
     });
   });
   test('Test unsuccessfully logging in person return status code 400', () => {
-    const responsePOST = request('POST', SERVER_URL + 'v1/admin/auth/login', {
+    const responsePOST = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: { email_2, password_2 },
     });
     expect(responsePOST.statusCode).toStrictEqual(RESPONSE_ERROR_400);

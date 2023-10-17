@@ -17,6 +17,11 @@ interface ErrorObject {
   error: string;
 }
 
+interface ErrorObjectWithCode {
+  error: string;
+  errorCode: number;
+}
+
 interface IsQuizNameValidReturnObject {
   result: boolean;
   error: string;
@@ -98,6 +103,7 @@ function adminQuizInfo(
 export { adminQuizInfo };
 
 /**
+ * Refactored for Iteration 2
  * Creates a new quiz for the logged in user, returning an object containing
  * a unique quizId
  *
@@ -111,25 +117,38 @@ export { adminQuizInfo };
  */
 
 function adminQuizCreate(
-  authUserId: number,
+  token: number,
   name: string,
   description: string
-): QuizId | ErrorObject {
+): QuizId | ErrorObjectWithCode {
   let data = getData();
   // 1. check that authUserId is valid
   // if not, then return error
-  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+  // const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
-  if (!isAuthUserIdValidTest) {
-    return { error: 'AuthUserId is not a valid user' };
+  // 1. check that token is valid
+  // if not, then return error
+
+  const isTokenValidTest = isTokenValid(data, token);
+
+  if (!isTokenValidTest) {
+    return { error: 'Token is empty or invalid', errorCode: 401 };
   }
+
+  // 2a. get authUserId using token
+
+  const authUserId = getAuthUserIdUsingToken(data, token);
 
   // 2. check that quiz name is valid
   // if not, then return error
-  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
+  const isQuizNameValidTest = isQuizNameValid(
+    data,
+    name,
+    authUserId.authUserId
+  );
 
   if (!isQuizNameValidTest.result) {
-    return { error: isQuizNameValidTest.error };
+    return { error: isQuizNameValidTest.error, errorCode: 400 };
   }
 
   // 3. check that description is not more than 100 characters in length
@@ -138,6 +157,7 @@ function adminQuizCreate(
     return {
       error:
         'Description is more than 100 characters in length (note: empty strings are OK)',
+      errorCode: 400,
     };
   }
 
@@ -161,7 +181,7 @@ function adminQuizCreate(
     description,
     timeCreated: timeStamp,
     timeLastEdited: timeStamp,
-    userId: [authUserId],
+    userId: [authUserId.authUserId],
   });
 
   // Add quizId to quizId[] array in data.users
@@ -177,6 +197,74 @@ function adminQuizCreate(
 }
 
 export { adminQuizCreate };
+
+// function adminQuizCreate(
+//   authUserId: number,
+//   name: string,
+//   description: string
+// ): QuizId | ErrorObject {
+//   let data = getData();
+//   // 1. check that authUserId is valid
+//   // if not, then return error
+//   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+
+//   if (!isAuthUserIdValidTest) {
+//     return { error: 'AuthUserId is not a valid user' };
+//   }
+
+//   // 2. check that quiz name is valid
+//   // if not, then return error
+//   const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
+
+//   if (!isQuizNameValidTest.result) {
+//     return { error: isQuizNameValidTest.error };
+//   }
+
+//   // 3. check that description is not more than 100 characters in length
+//   // if not, then return error
+//   if (description.length > MAX_DESCRIPTION_LENGTH) {
+//     return {
+//       error:
+//         'Description is more than 100 characters in length (note: empty strings are OK)',
+//     };
+//   }
+
+//   // determine new quizId
+//   // Inspiration taken from adminAuthRegister() in auth.js
+//   const length = data.quizzes.length;
+//   let newQuizId;
+//   if (length === 0) {
+//     newQuizId = 0;
+//   } else {
+//     newQuizId = data.quizzes[length - 1].quizId + 1;
+//   }
+
+//   // Inspiration taken from
+//   // https://stackoverflow.com/questions/3830244/how-to-get-the-current-date-or-and-time-in-seconds
+//   const timeStamp = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
+
+//   data.quizzes.push({
+//     quizId: newQuizId,
+//     name,
+//     description,
+//     timeCreated: timeStamp,
+//     timeLastEdited: timeStamp,
+//     userId: [authUserId],
+//   });
+
+//   // Add quizId to quizId[] array in data.users
+//   // Step 1. mutate relevant array of authUserId from data.users
+
+//   pushNewQuizIdToUserArray(data, authUserId, newQuizId);
+
+//   setData(data);
+
+//   return {
+//     quizId: newQuizId,
+//   };
+// }
+
+// export { adminQuizCreate };
 
 /**
  * Update the name of the relevant quiz.
@@ -262,13 +350,6 @@ function adminQuizList(authUserId) {
   }
   return { quizzes: quizzesList };
 }
-
-const NewUser = adminAuthRegister(
-  'Belinda@gamil.com',
-  'password1234',
-  'Belinda',
-  'Wong'
-);
 
 export { adminQuizList };
 
@@ -429,7 +510,57 @@ function isAuthUserIdValid(data: DataStore, authId: number): boolean {
 
   return false;
 }
+/**
+ * Iteration 2 function
+ * Function to test whether token is valid
+ * Used in:
+ * adminQuizCreate()
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} token - the id of the person creating the quiz
+ * ...
+ *
+ * @returns {boolean} - true if token is valid / false if token is not valid
+ */
+function isTokenValid(data: DataStore, token: number): boolean {
+  // 1. test for token is integer or less than 0
+  if (!Number.isInteger(token) || token < 0) {
+    return false;
+  }
 
+  // 2. test that token exists in dataStore
+  // if the token is found while iterating
+  // over the array, the token is pushed
+  // to userIdArr[]
+  // If at the end of the iteration, the
+  // length of userIdArr[] is exactly 1
+  // then: the token exists and only
+  // one copy of token exists and the boolean
+  // true is returned
+  // If userIdArr[].length is not exactly 1
+  // then either it does not exist, or more than
+  // one copy exists, and the boolean false is returned
+
+  const usersArr = data.users;
+  const tokenArr = [];
+
+  for (const arr of usersArr) {
+    if (arr.token.includes(token)) {
+      tokenArr.push(token);
+    }
+  }
+
+  // not testing for type equality here
+  // as during testing tokenArray.length does not return true
+  // for type number
+  if (tokenArr.length == 1) {
+    return true;
+  }
+
+  return false;
+}
 /**
  * Function to test whether quiz name is valid
  * quiz name is invalid if:
@@ -452,6 +583,7 @@ function isQuizNameValid(
 ): IsQuizNameValidReturnObject {
   // 1. test for not containing invalid characters
   // assistance taken from https://regex101.com/codegen?language=javascript
+
   const regexMain = /^[a-z\d\s]+$/gim;
 
   const regexMainTest = regexMain.test(name);
@@ -589,4 +721,34 @@ function isAuthUserIdMatchQuizId(
     return true;
   }
   return false;
+}
+
+/**
+ * Function that returns authUserId using token
+ * Used in:
+ * adminQuizCreate()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} token - the token of the logged in user
+ * ...
+ *
+ * @returns {array} - authUserId : number
+ */
+
+interface AuthUserIdFromToken {
+  authUserId: number;
+}
+function getAuthUserIdUsingToken(
+  data: DataStore,
+  token: number
+): AuthUserIdFromToken {
+  const usersArr = data.users;
+
+  let authUserId;
+  for (const arr of usersArr) {
+    if (arr.token.includes(token)) {
+      authUserId = arr.authUserId;
+    }
+  }
+  return { authUserId };
 }
