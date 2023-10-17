@@ -170,7 +170,11 @@ export function adminAuthLogin(
   password: string
 ): TokenNumber | ErrorObject {
   // implemented by Paul 29Sep23
-  const data = getData();
+  // const data = getData();
+
+  // Iteration 2: New data retrieval system - START
+  const data: DataStore = retrieveDataFromFile();
+  // Iteration 2: New data retrieval system - END
 
   // test for email exists
   let emailExistsBool = false;
@@ -215,7 +219,11 @@ export function adminAuthLogin(
     }
   }
 
-  setData(data);
+  // Iteration 2: New data save system - START
+  saveDataInFile(data);
+  // Iteration 2: New data save system - END
+
+  // setData(data);
 
   return {
     token: token,
