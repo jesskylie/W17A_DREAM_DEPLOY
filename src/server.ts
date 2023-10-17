@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 import { adminAuthRegister, adminUserDetails, adminAuthLogin } from './auth';
-import { clear } from './other'
+import { clear, newClear } from './other';
 import { adminQuizCreate } from './quiz';
 
 import {
@@ -118,7 +118,7 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 });
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
-  const result = clear();
+  const result = newClear();
   return res.json(result);
 });
 

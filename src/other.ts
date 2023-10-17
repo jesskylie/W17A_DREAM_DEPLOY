@@ -1,4 +1,5 @@
-import { getData, setData } from './dataStore';
+import { getData, setData, DataStore } from './dataStore';
+import { saveDataInFile } from './functions';
 
 /**
  * Clears the data store upon call
@@ -15,6 +16,14 @@ export function clear() {
   data.quizzes = [];
 
   setData(data);
+
+  return {};
+}
+
+export function newClear(): Record<string, never> {
+  const data: DataStore = { users: [], quizzes: [] };
+
+  saveDataInFile(data);
 
   return {};
 }
