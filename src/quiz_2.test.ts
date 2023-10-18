@@ -176,18 +176,7 @@ const requestadminQuizRemove = (token: string, quizid: number): RequestAdminQuiz
     { qs: { quizid, token } }
   );
   const bodyString = JSON.parse(res.body.toString());
-  let bodyObject: any;
-  try {
-    bodyObject = JSON.parse(bodyObject);
-  } catch (error: any) {
-    bodyObject = {
-      error: bodyString
-    };
-  }
-  if ('error' in bodyObject) {
-    return { statusCode: res.statusCode, ...bodyObject };
-  }
-  return bodyObject;
+  return {statusCode: res.statusCode, bodyString: bodyString};
 };
 
 const requestadminQuizList = (token: string): RequestAdminQuizListReturn => {
@@ -295,7 +284,7 @@ describe('adminQuizInfo testing', () => {
       TonyQuiz.quizId
     );
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
-    console.log(quizIdNotReferToUser1.bodyString);
+    // console.log(quizIdNotReferToUser1.bodyString);
     // this should only return error instead of returnning both error and errorcode in 
     // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
@@ -368,7 +357,7 @@ describe('Testing adminQuizRemove', () => {
       'Peter',
       'description'
     ).bodyString as QuizId;
-    console.log(peterQuizId);
+    // console.log(peterQuizId);
     const quizIdNotReferToUser = requestadminQuizRemove(
       returnToken.token,
       peterQuizId.quizId

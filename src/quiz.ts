@@ -86,7 +86,7 @@ function adminQuizInfo(
     authUserId.authUserId,
     quizId
   );
-  console.log(token);
+  // console.log(token);
   if (!isQuizIdValidTest) {
     return { error: 'QuizId is invalid', errorCode: 400 };
   }
@@ -464,8 +464,8 @@ function adminQuizRemove(
     authUserId.authUserId,
     quizId
   );
-    console.log(data.users);
-    console.log(data.quizzes);
+    // console.log(data.users);
+    // console.log(data.quizzes);
   if (!isQuizIdValidTest) {
     return { error: 'QuizId is invalid', errorCode: 400 };
   }

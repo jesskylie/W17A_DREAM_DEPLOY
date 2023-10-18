@@ -188,7 +188,6 @@ app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
     } else if (result.errorCode === RESPONSE_ERROR_401) {
       return res.status(RESPONSE_ERROR_401).json(result);
     } else if (result.errorCode === RESPONSE_ERROR_403) {
-      console.log(result);
       return res.status(RESPONSE_ERROR_403).json(result);
     }
   }
@@ -197,8 +196,8 @@ app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
 
 app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  // const quizId = parseInt(req.params.quizid);
-  const result = adminQuizRemove(token, parseInt(req.params.quizid));
+  const quizId = parseInt(req.params.quizid);
+  const result = adminQuizRemove(token, quizId);
   if ('error' in result) {
     console.log('error in response');
     if (result.errorCode === RESPONSE_ERROR_400) {
