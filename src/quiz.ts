@@ -103,16 +103,16 @@ function adminQuizInfo(
     quizId
   );
   if (!isQuizIdValidTest) {
-    return { error: 'QuizId is invalid', errorCode: 400 };
+    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
   if (!token) {
-    return { error: 'Token is empty', errorCode: 401 };
+    return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
   }
   if (!isTokenValidTest) {
-    return { error: 'Token is invalid', errorCode: 401 };
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: 'QuizId does not match authUserId', errorCode: 403 };
+    return { error: 'QuizId does not match authUserId', errorCode: RESPONSE_ERROR_403 };
   }
 
   for (const check of data.quizzes) {
@@ -173,7 +173,7 @@ function adminQuizCreate(
   const isTokenValidTest = isTokenValid(data, token);
 
   if (!isTokenValidTest) {
-    return { error: 'Token is empty or invalid', errorCode: 401 };
+    return { error: 'Token is empty or invalid', errorCode: RESPONSE_ERROR_401 };
   }
 
   // 2a. get authUserId using token
@@ -189,7 +189,7 @@ function adminQuizCreate(
   );
 
   if (!isQuizNameValidTest.result) {
-    return { error: isQuizNameValidTest.error, errorCode: 400 };
+    return { error: isQuizNameValidTest.error, errorCode: RESPONSE_ERROR_400 };
   }
 
   // 3. check that description is not more than 100 characters in length
@@ -331,17 +331,17 @@ function adminQuizDescriptionUpdate(
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
   if (!isAuthUserIdValidTest) {
-    return { error: 'AuthUserId is not a valid user', errorCode: 401 };
+    return { error: 'AuthUserId is not a valid user', errorCode: RESPONSE_ERROR_401 };
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: 'quizId does not refer to a valid quiz.', errorCode: 400 };
+    return { error: 'quizId does not refer to a valid quiz.', errorCode: RESPONSE_ERROR_400 };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
     return {
       error: 'Quiz ID does not refer to a quiz that this user owns',
-      errorCode: 403,
+      errorCode: RESPONSE_ERROR_403,
     };
   }
 
@@ -349,7 +349,7 @@ function adminQuizDescriptionUpdate(
     return {
       error:
         'Description is more than 100 characters in length (note: empty strings are OK)',
-      errorCode: 400,
+      errorCode: RESPONSE_ERROR_400,
     };
   }
 
@@ -379,18 +379,18 @@ function adminQuizNameUpdate(
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId.authUserId);
   for (const user of data.users) {
     if (!user.token.includes(token)) {
-      return { error: 'Token is invalid or empty', errorCode: 401 };
+      return { error: 'Token is invalid or empty', errorCode: RESPONSE_ERROR_401 };
     }
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: 'QuizId does not refer to a valid quiz.', errorCode: 400 };
+    return { error: 'QuizId does not refer to a valid quiz.', errorCode: RESPONSE_ERROR_400 };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId.authUserId)) {
     return {
       error: 'Quiz ID does not refer to a quiz that this user owns',
-      errorCode: 403,
+      errorCode: RESPONSE_ERROR_403,
     };
   }
 
@@ -400,7 +400,7 @@ function adminQuizNameUpdate(
     authUserId.authUserId
   );
   if (!isQuizNameValidTest.result) {
-    return { error: isQuizNameValidTest.error, errorCode: 400 };
+    return { error: isQuizNameValidTest.error, errorCode: RESPONSE_ERROR_400 };
   }
 
   for (const quiz of data.quizzes) {
@@ -444,10 +444,10 @@ function adminQuizList(token: string): QuizListReturn | ErrorObjectWithCode {
   const authUserId = getAuthUserIdUsingToken(data, token);
 
   if (!token) {
-    return { error: 'Token is empty', errorCode: 401 };
+    return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
   }
   if (!isTokenValidTest) {
-    return { error: 'Token is invalid', errorCode: 401 };
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
   for (const quiz of data.quizzes) {
     if (quiz.userId.includes(authUserId.authUserId)) {
@@ -488,16 +488,16 @@ function adminQuizRemove(
     // console.log(data.users);
     // console.log(data.quizzes);
   if (!isQuizIdValidTest) {
-    return { error: 'QuizId is invalid', errorCode: 400 };
+    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
   if (!token) {
-    return { error: 'Token is invalid', errorCode: 401 };
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
   if (!isTokenValidTest) {
-    return { error: 'Token is invalid', errorCode: 401 };
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: 'QuizId does not match authUserId', errorCode: 403 };
+    return { error: 'QuizId does not match authUserId', errorCode: RESPONSE_ERROR_403 };
   }
 
   const newdata = data;
