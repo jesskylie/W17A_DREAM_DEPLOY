@@ -4,62 +4,16 @@ import config from './config.json';
 
 import {
   RESPONSE_OK_200,
-  RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  RESPONSE_ERROR_403,
   WAIT_TIME,
 } from './library/constants';
 
-import { Quizzes } from './dataStore';
-import { adminAuthRegister, adminUserDetails } from './auth';
+import { adminAuthRegister, adminUserDetails, adminAuthLogout } from './auth';
 
 // interfaces used throughout file - START
 
 interface ErrorObject {
   error: string;
-}
-
-interface ErrorObjectWithCode {
-  error: string;
-  errorCode: number;
-}
-
-interface Token {
-  token: string;
-}
-
-interface QuizId {
-  quizId: number;
-}
-
-interface RequestAdminAuthLoginReturn {
-  statusCode?: number;
-  bodyString: Token | ErrorObject;
-}
-
-interface RequestAdminQuizCreateReturn {
-  statusCode?: number;
-  bodyString: QuizId | ErrorObject;
-}
-
-interface RequestAdminQuizInfoReturn {
-  statusCode?: number;
-  bodyString: Quizzes | ErrorObject;
-}
-
-interface RequestAdminQuizListReturn {
-  statusCode?: number;
-  bodyString: Quizzes[] | ErrorObject;
-}
-
-interface RequestAdminQuizRemoveReturn {
-  statusCode?: number;
-  bodyString: Record<string, never> | ErrorObject;
-}
-
-interface RequestAdminQuizCreateReturn {
-  statusCode?: number;
-  bodyString: QuizId | ErrorObject;
 }
 
 interface RequestAdminLogoutReturn {
@@ -117,10 +71,6 @@ const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-// beforeAll(() => {
-//   requestClear();
-// });
-
 // Functions to call routes used within this file - END
 
 // --------------------------------------------------
@@ -146,7 +96,7 @@ describe('test adminLogout : Returns an empty object -> EXPECT SUCCESS', () => {
 
     if ('token' in testRegisterFn) {
       const token = testRegisterFn.token;
-      const testLogoutFn = adminLogout(token);
+      const testLogoutFn = adminAuthLogout(token);
 
       // test for returned empty object
       expect(testLogoutFn).toStrictEqual({});
@@ -171,7 +121,7 @@ describe('test adminLogout : Token is invalid or empty -> EXPECT ERROR', () => {
     // logout user
     const token = '';
 
-    const testLogoutFn = adminLogout(token);
+    const testLogoutFn = adminAuthLogout(token);
 
     if ('error' in testLogoutFn) {
       const errorObj = testLogoutFn;
@@ -206,8 +156,6 @@ describe('test /v1/admin/auth/logout : Returns an empty object -> EXPECT 200 SUC
       nameLast
     );
 
-    console.log('testRegisterRt ->', testRegisterRt);
-
     // logout user
     if ('token' in testRegisterRt) {
       const token = testRegisterRt.token;
@@ -216,7 +164,7 @@ describe('test /v1/admin/auth/logout : Returns an empty object -> EXPECT 200 SUC
 
       // test for returned empty object
       if ('bodyString' in testLogout) {
-        expect(testLogout).toStrictEqual({});
+        expect(testLogout.bodyString).toStrictEqual({});
       }
 
       if ('statusCode' in testLogout) {
@@ -239,7 +187,11 @@ describe('test /v1/admin/auth/logout : Returns an error object -> EXPECT ERROR C
 
     // test for returned empty object
     if ('bodyString' in testLogout) {
-      expect(testLogout).toStrictEqual({ error: expect.any(String) });
+      if ('error' in testLogout.bodyString) {
+        expect(testLogout.bodyString).toStrictEqual({
+          error: expect.any(String),
+        });
+      }
     }
 
     if ('statusCode' in testLogout) {
