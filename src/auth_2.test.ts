@@ -167,23 +167,23 @@ function requestUpdatePassword(token: string, newPassword: string, oldPassword: 
 describe('Testing PUT /v1/admin/user/password', () => {
   test('Testing successful password change', () => {
     const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    requestUpdatePassword(response.body.token, 'HelloWorld1234', 'abcde4284');
-    expect(response.status).toStrictEqual(RESPONSE_OK_200);
-    expect(response.body).toStrictEqual({});
+    const result = requestUpdatePassword(response.body.token, 'HelloWorld1234', 'abcde4284');
+    expect(result.status).toStrictEqual(RESPONSE_OK_200);
+    expect(result.body).toStrictEqual({});
   });
   
   test('Testing unsuccessful password change with error code 401', () => {
     const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    requestUpdatePassword(response.body.token, 'abcde4284', 'abcde4284');
-    expect(response.status).toStrictEqual(RESPONSE_ERROR_401);
-    expect(response.body).toStrictEqual( {error: expect.any(String)} );
+    const result = requestUpdatePassword(response.body.token, 'abcde4284', 'abcde4284');
+    expect(result.status).toStrictEqual(RESPONSE_ERROR_401);
+    expect(result.body).toStrictEqual( {error: expect.any(String), errorCode: 401} );
   });
   
   test('Testing unsuccessful password change with error code 400', () => {
     const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    requestUpdatePassword('a', 'HelloWorld1234', 'abcde4284');
-    expect(response.status).toStrictEqual(RESPONSE_ERROR_400);
-    expect(response.body).toStrictEqual( {error: expect.any(String)} );
+    const result = requestUpdatePassword('a', 'HelloWorld1234', 'abcde4284');
+    expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
+    expect(result.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
   });
   
   
