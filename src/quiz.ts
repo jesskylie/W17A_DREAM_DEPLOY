@@ -24,8 +24,8 @@ export interface ErrorObjectWithCode {
 }
 
 interface IsQuizNameValidReturnObject {
-  result: boolean;
-  error: string;
+  result: boolean ;
+  error?: string;
 }
 
 interface QuizInfo {
@@ -194,7 +194,7 @@ function adminQuizCreate(
   // Add quizId to quizId[] array in data.users
   // Step 1. mutate relevant array of authUserId from data.users
 
-  pushNewQuizIdToUserArray(data, authUserId, newQuizId);
+  pushNewQuizIdToUserArray(data, authUserId.authUserId, newQuizId);
 
   // Iteration 2: New data save system - START
   saveDataInFile(data);
@@ -288,26 +288,68 @@ export { adminQuizCreate };
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {} - return nothing
  */
-function adminQuizNameUpdate(authUserId, quizId, name) {
+function adminQuizDescriptionUpdate(authUserId: number, quizId: number, description: string): Record<string, never> | {error: string, errorCode: number} {
   const data = getData();
-  // 1. check that authUserId is valid
-  // if not, then return error
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+
+
   if (!isAuthUserIdValidTest) {
-    return { error: 'AuthUserId is not a valid user' };
+    return { error: 'AuthUserId is not a valid user' , errorCode: 401};
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: 'QuizId does not refer to a valid quiz.' };
+    return { error: 'quizId does not refer to a valid quiz.' , errorCode: 400};
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns' };
+    return { error: 'Quiz ID does not refer to a quiz that this user owns' , errorCode: 403};
+  }
+  
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
+    return { error: 'Description is more than 100 characters in length (note: empty strings are OK)', errorCode: 400};
   }
 
-  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
+  const timeStamp = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
+
+  for (const quiz of data.quizzes) {
+    if (quiz.quizId === quizId) {
+      quiz.description = description;
+      quiz.timeLastEdited = timeStamp;
+    }
+  }
+
+  return {};
+}
+
+export { adminQuizDescriptionUpdate };
+
+
+
+
+function adminQuizNameUpdate(token: string, quizId: number, name: string): Record<string, never> | {error: string, errorCode: number} {
+  const data = getData();
+  // 1. check that authUserId is valid
+  // if not, then return error
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId.authUserId);
+  for (const user of data.users) {
+    if(!user.token.includes(token)) {
+      return { error: 'Token is invalid or empty', errorCode: 401};
+    }
+  }
+    
+
+  if (!isQuizIdValid(data, quizId)) {
+    return { error: 'QuizId does not refer to a valid quiz.', errorCode: 400 };
+  }
+
+  if (!doesQuizIdRefer(quizId, authUserId.authUserId)) {
+    return { error: 'Quiz ID does not refer to a quiz that this user owns', errorCode: 403};
+  }
+
+  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId.authUserId);
   if (!isQuizNameValidTest.result) {
-    return { error: isQuizNameValidTest.error };
+    return { error: isQuizNameValidTest.error , errorCode: 400};
   }
 
   for (const quiz of data.quizzes) {
@@ -320,7 +362,10 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
 }
 export { adminQuizNameUpdate };
 
-function doesQuizIdRefer(quizId, authUserId) {
+
+
+
+function doesQuizIdRefer(quizId: number, authUserId: number) {
   // let is_valid = False;
   const data = getData();
   for (const quiz of data.quizzes) {
@@ -344,7 +389,7 @@ function doesQuizIdRefer(quizId, authUserId) {
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {{quizzes: array}} - return all quizzes that contain the user's authUserId
  */
-function adminQuizList(authUserId) {
+function adminQuizList(authUserId: number) {
   const data = getData();
   const quizzesList = [];
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
@@ -433,41 +478,7 @@ export { adminQuizRemove };
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {} - return nothing
  */
-function adminQuizDescriptionUpdate(authUserId, quizId, description) {
-  const data = getData();
-  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
-  if (!isAuthUserIdValidTest) {
-    return { error: 'AuthUserId is not a valid user' };
-  }
-
-  if (!isQuizIdValid(data, quizId)) {
-    return { error: 'quizId does not refer to a valid quiz.' };
-  }
-
-  if (!doesQuizIdRefer(quizId, authUserId)) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns' };
-  }
-  if (description.length > MAX_DESCRIPTION_LENGTH) {
-    return {
-      error:
-        'Description is more than 100 characters in length (note: empty strings are OK)',
-    };
-  }
-
-  const timeStamp = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
-
-  for (const quiz of data.quizzes) {
-    if (quiz.quizId === quizId) {
-      quiz.description = description;
-      quiz.timeLastEdited = timeStamp;
-    }
-  }
-
-  return {};
-}
-
-export { adminQuizDescriptionUpdate };
 
 // HELPER FUNCTIONS - START ------------------------------------------------------------------------
 
@@ -536,10 +547,17 @@ function isAuthUserIdValid(data: DataStore, authId: number): boolean {
  * @returns {boolean} - true if token is valid / false if token is not valid
  */
 function isTokenValid(data: DataStore, token: string): boolean {
+<<<<<<< HEAD
+  // 1. test for token is integer or less than 0
+  // if (!Number.isInteger(token) || token.length < 0) {
+  //   return false;
+  // }
+=======
   // 1. test for token is type string or length less than 1
   if (!(typeof token === 'string') || token.length < 1) {
     return false;
   }
+>>>>>>> d2b55666d4bc37cbf4c0b3fb78cfb9f198d49eb5
 
   // 2. test that token exists in dataStore
   // if the token is found while iterating
@@ -656,7 +674,7 @@ function isQuizNameValid(
  *
  * @returns {} - nil return; the existing array is mutated
  */
-function pushNewQuizIdToUserArray(data, authUserId, quizId) {
+function pushNewQuizIdToUserArray(data: DataStore, authUserId: number, quizId: number) {
   const userArr = data.users;
 
   for (const arr of userArr) {
