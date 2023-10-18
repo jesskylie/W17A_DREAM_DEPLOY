@@ -6,7 +6,7 @@ import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  RESPONSE_ERROR_403,
+  WAIT_TIME
 } from './library/constants';
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
@@ -15,6 +15,7 @@ import { Quizzes, Users } from './dataStore';
 import exp from 'constants';
 import { InvalidatedProjectKind } from 'typescript';
 import { clear } from 'console';
+import { TIMEOUT } from 'dns';
 
 function requestAdminRegister(
   email: string,
@@ -95,15 +96,16 @@ const SERVER_URL = `${url}:${port}`;
 // constants used throughout file - START
 
 const requestClear = () => {
-  const res = request('DELETE', SERVER_URL + `/v1/clear`);
+  const res = request('DELETE', SERVER_URL + `/v1/clear`, {timeout: WAIT_TIME});
   const bodyString = JSON.parse(res.body.toString());
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
 
-beforeEach(() => {
-  requestClear();
-});
+// beforeEach(async () => {
+//   requestClear();
+  
+// });
 
 describe('HTTP tests using Jest', () => {
   test('Test successful echo', () => {
@@ -133,7 +135,7 @@ describe('HTTP tests using Jest', () => {
 
 // Helper functions:
 
-/*
+
 // token should be a para in body object but idk how does it work for the function
 const requestadminQuizCreate = (
   token: number,
@@ -433,7 +435,7 @@ describe('adminQuizList testing', () => {
     });
   });
 });
-*/
+
 
 // Test suite for /v1/admin/quiz route adminQuizCreate() - START
 
@@ -474,11 +476,11 @@ const requestQuizCreateCombined = (
 };
 
 // Tests
-// Passed Tuesday 17-Oct-23 10:35
-// Passed Wednesday 18-Oct-23 10:50
-
-describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS', () => {
-  // requestClear();
+// Passed Wednesday 18-Oct-23 14:20
+describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS AND STATUSCODE 200', () => {
+  test('Test successfully creating a quiz', () => {
+  requestClear();
+  
   // Create user
   const email = 'paulemail1@gmail.com';
   const password = 'password123456789';
@@ -487,10 +489,11 @@ describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS', () => {
 
   const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
 
+  console.log("tokenObj ->", tokenObj)
+
   const name = 'Paul';
-  const name1 = 'Peter';
   const description = 'This is the first quiz';
-  test('Test successfully creating a quiz', () => {
+  
     const testrequestQuizCreate = requestQuizCreateCombined(
       tokenObj.token,
       name,
@@ -507,28 +510,25 @@ describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS', () => {
         });
       }
     }
-  });
-  test('Test successfully creating a quiz return status code 200', () => {
-    const testResponseCode = requestQuizCreateCombined(
-      tokenObj.token,
-      name1,
-      description
-    );
 
-    console.log('testResponseCode ->', testResponseCode);
+    // Test for code 200
 
-    if ('statusCode' in testResponseCode) {
-      const testStatusCode = testResponseCode.statusCode;
-      console.log('testStatusCode ->', testStatusCode);
-      expect(testStatusCode).toStrictEqual(RESPONSE_OK_200);
+    // need to test for code 200 in test1Obj as TS
+    // does not yet appreciate that .error property can
+    // be in test1Obj
+    if ('statusCode' in testrequestQuizCreate) {
+      const testStatusCode = testrequestQuizCreate.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_OK_200);
+      
     }
   });
 });
 
-// Passed Tuesday 17-Oct-23 11:20
-
+// Passed Wednesday 18-Oct-23 14:20
 describe('test 2: /v1/admin/quiz : Name contains invalid characters -> EXPECT ERROR 400', () => {
-  // requestClear();
+  test('Name contains invalid characters. Valid characters are alphanumeric and spaces -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+  requestClear();
+  
   // Create user
   const email = 'paulemail2@gmail.com';
   const password = 'password123456789';
@@ -539,8 +539,7 @@ describe('test 2: /v1/admin/quiz : Name contains invalid characters -> EXPECT ER
 
   const INVALID_NAME = 'InvalidQuizName!!!!';
   const description_1 = 'This is the first quiz';
-  const description_2 = 'This is the second quiz';
-  test('Name contains invalid characters. Valid characters are alphanumeric and spaces -> EXPECT ERROR STRING', () => {
+  
     const test1Obj = requestQuizCreateCombined(
       tokenObj.token,
       INVALID_NAME,
@@ -559,31 +558,28 @@ describe('test 2: /v1/admin/quiz : Name contains invalid characters -> EXPECT ER
           error: expect.any(String),
         });
       }
-    }
-  });
-  test('Name contains invalid characters. Valid characters are alphanumeric and spaces -> EXPECT STATUS CODE 400', () => {
-    const test2Obj = requestQuizCreateCombined(
-      tokenObj.token,
-      INVALID_NAME,
-      description_1
-    );
+
+      // Test for error code 400
 
     // need to test for error in test1Obj as TS
     // does not yet appreciate that .error property can
     // be in test1Obj
-    if ('resBody' in test2Obj) {
-      const testErrorObj = test2Obj.resBody;
-      if ('statusCode' in testErrorObj) {
-        const testCase = testErrorObj.statusCode;
-        expect(testCase).toStrictEqual(RESPONSE_ERROR_400);
+    if ('resBody' in test1Obj) {
+      const testResBody = test1Obj.resBody;
+      if ('errorCode' in testResBody) {
+        const errorCode = testResBody.errorCode;
+        expect(errorCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
+    }
   });
+ 
 });
 
-// Tests passed Tuesday 17-Oct-23 11:50
+// Passed Wednesday 18-Oct-23 14:20
 describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => {
-  // requestClear();
+  test('Name too short -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+  requestClear();
   // Create user
   const email = 'paulemail3@gmail.com';
   const password = 'password123456789';
@@ -592,19 +588,10 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
 
   const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
 
-  const VALID_NAME = 'ValidQuizName';
-  const VALID_NAME2 = 'ValidQuizNamee';
   const INVALID_NAME_TOO_SHORT = 'Va';
-  const INVALID_NAME_TOO_LONG =
-    'TTTTTTTTTTTTTTTTTTTTHHHHHHHHHHHHHHHHHHHHHHHHIIIIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNAAAAAAAAAAAAAAAAAMMMMMMMMMMMMMMMEEEEEEEEEEEIISSSSSSSSTTTTTTTTTTTTOOOOOOOOOOOOOOOOLLLLLLLLLLLOOOOOOOOOOOONNNNNNNNNNNNNNNGGGGGGGGGGG';
+  
   const description1 = 'This is the first quiz';
-  const description2 = 'This is the second quiz';
-  const description3 = 'This is the third quiz';
-  const description4 = 'This is the fourth quiz';
-  const INVALID_DESCRIPTION =
-    'One possible solution is to generate type guards. Type guards are normal functions but with a signature that tells TS that the parameter of the function has a specific type. The signature consists of two things. The function must return boolean and has return type of param is myType.';
-
-  test('Name too short -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+  
     const test1Obj = requestQuizCreateCombined(
       tokenObj.token,
       INVALID_NAME_TOO_SHORT,
@@ -641,6 +628,19 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
   });
 
   test('Name too long -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user
+  const email = 'paulemail3@gmail.com';
+  const password = 'password123456789';
+  const nameFirst = 'Paul';
+  const nameLast = 'Reynolds';
+  const description3 = 'This is the third quiz';
+
+  const INVALID_NAME_TOO_LONG =
+    'TTTTTTTTTTTTTTTTTTTTHHHHHHHHHHHHHHHHHHHHHHHHIIIIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNAAAAAAAAAAAAAAAAAMMMMMMMMMMMMMMMEEEEEEEEEEEIISSSSSSSSTTTTTTTTTTTTOOOOOOOOOOOOOOOOLLLLLLLLLLLOOOOOOOOOOOONNNNNNNNNNNNNNNGGGGGGGGGGG';
+
+  const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
     const test2Obj = requestQuizCreateCombined(
       tokenObj.token,
       INVALID_NAME_TOO_LONG,
@@ -677,6 +677,18 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
   });
 
   test('Name is already used by the current logged in user for another quiz -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+    requestClear();
+
+     // Create user
+  const email = 'paulemail3@gmail.com';
+  const password = 'password123456789';
+  const nameFirst = 'Paul';
+  const nameLast = 'Reynolds';
+
+  const VALID_NAME = 'ValidQuizName';
+  const description1 = "This is the first quiz"
+
+  const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
     requestQuizCreateCombined(tokenObj.token, VALID_NAME, description1);
     const test4Obj = requestQuizCreateCombined(
       tokenObj.token,
@@ -714,6 +726,20 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
   });
 
   test('Description is more than 100 characters in length -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user
+  const email = 'paulemail3@gmail.com';
+  const password = 'password123456789';
+  const nameFirst = 'Paul';
+  const nameLast = 'Reynolds';
+  
+  const VALID_NAME2 = 'ValidQuizNamee';
+
+  const INVALID_DESCRIPTION =
+    'One possible solution is to generate type guards. Type guards are normal functions but with a signature that tells TS that the parameter of the function has a specific type. The signature consists of two things. The function must return boolean and has return type of param is myType.';
+
+  const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
     const test5Obj = requestQuizCreateCombined(
       tokenObj.token,
       VALID_NAME2,
@@ -750,8 +776,10 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
   });
 });
 
+// Passed Wednesday 18-Oct-23 14:20
 describe('test /v1/admin/quiz : Token is empty or invalid -> EXPECT ERROR 401', () => {
-  // requestClear();
+  test('Token is empty or invalid -> EXPECT ERROR STRING AND ERROR CODE 401', () => {
+  requestClear();
   // Create user
   const email = 'paulemail3@gmail.com';
   const password = 'password123456789';
@@ -763,7 +791,6 @@ describe('test /v1/admin/quiz : Token is empty or invalid -> EXPECT ERROR 401', 
   const VALID_NAME = 'Paul';
   const description = 'This is the first quiz';
 
-  test('Token is empty or invalid -> EXPECT ERROR STRING AND ERROR CODE 401', () => {
     const test6Obj = requestQuizCreateCombined(token, VALID_NAME, description);
 
     // Test for error string
