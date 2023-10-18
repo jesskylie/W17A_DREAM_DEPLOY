@@ -108,17 +108,19 @@ export { adminQuizInfo };
  * Creates a new quiz for the logged in user, returning an object containing
  * a unique quizId
  *
- * @param {number} authUserId - the id of the person creating the quiz - must exist / be valid / be unique
+ * @param {string} token - the id of the person creating the quiz - must exist / be valid / be unique
  * @param {string} name - name of the quiz being created
  * @param {string} description - description of the quiz being created
  * ...
  *
- * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{array}} - if an error occurs, an array of an
+ * error object containing an error message, and
+ * an errorCode object with error codes 400 or 401
  * @returns {{quizId: number}} - an object with the key quizId and the value the, unique, quizId
  */
 
 function adminQuizCreate(
-  token: number,
+  token: string,
   name: string,
   description: string
 ): QuizId | ErrorObjectWithCode {
@@ -533,9 +535,9 @@ function isAuthUserIdValid(data: DataStore, authId: number): boolean {
  *
  * @returns {boolean} - true if token is valid / false if token is not valid
  */
-function isTokenValid(data: DataStore, token: number): boolean {
-  // 1. test for token is integer or less than 0
-  if (!Number.isInteger(token) || token < 0) {
+function isTokenValid(data: DataStore, token: string): boolean {
+  // 1. test for token is type string or length less than 1
+  if (!(typeof token === 'string') || token.length < 1) {
     return false;
   }
 
@@ -749,7 +751,7 @@ interface AuthUserIdFromToken {
 }
 function getAuthUserIdUsingToken(
   data: DataStore,
-  token: number
+  token: string
 ): AuthUserIdFromToken {
   const usersArr = data.users;
 

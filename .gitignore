@@ -170,3 +170,6 @@ Thumbs.db
 
 # Ignore built ts files
 dist/**/*
+
+# DREAMTEAM additions
+database.json
