@@ -66,7 +66,7 @@ interface ErrorObjectWithCode {
 }
 
 interface Token {
-  token: number;
+  token: string;
 }
 
 interface QuizId {
@@ -96,10 +96,6 @@ interface RequestAdminQuizListReturn {
 interface RequestAdminQuizRemoveReturn {
   statusCode?: number;
   bodyString: Record<string, never> | ErrorObject;
-}
-
-interface Token {
-  token: string;
 }
 
 interface RequestAdminQuizCreateReturn {
@@ -153,7 +149,7 @@ describe('HTTP tests using Jest', () => {
 // Helper functions:
 
 const requestadminQuizCreate = (
-  token: number,
+  token: string,
   name: string,
   describption: string
 ): RequestAdminQuizCreateReturn => {
@@ -175,7 +171,7 @@ const requestadminQuizCreate = (
   return bodyString;
 };
 
-const requestadminQuizInfo = (token: number, quizid: number): RequestAdminQuizInfoReturn => {
+const requestadminQuizInfo = (token: string, quizid: number): RequestAdminQuizInfoReturn => {
   const res = request(
     'GET',
     SERVER_URL + `v1/admin/quiz/${quizid}`,
@@ -196,7 +192,7 @@ const requestadminQuizInfo = (token: number, quizid: number): RequestAdminQuizIn
   return bodyObject;
 };
 
-const requestadminQuizRemove = (token: number, quizid: number): RequestAdminQuizRemoveReturn => {
+const requestadminQuizRemove = (token: string, quizid: number): RequestAdminQuizRemoveReturn => {
   const res = request(
     'DELETE',
     SERVER_URL + `v1/admin/quiz/${quizid}`,
@@ -217,7 +213,7 @@ const requestadminQuizRemove = (token: number, quizid: number): RequestAdminQuiz
   return bodyObject;
 };
 
-const requestadminQuizList = (token: number): RequestAdminQuizListReturn => {
+const requestadminQuizList = (token: string): RequestAdminQuizListReturn => {
   const res = request(
     'GET',
     SERVER_URL + `v1/admin/quiz/list`,
