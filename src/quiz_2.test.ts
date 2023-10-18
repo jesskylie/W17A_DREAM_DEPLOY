@@ -102,11 +102,6 @@ const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-// beforeEach(async () => {
-//   requestClear();
-  
-// });
-
 describe('HTTP tests using Jest', () => {
   test('Test successful echo', () => {
     const res = request('GET', `${url}:${port}/echo`, {
@@ -435,7 +430,6 @@ describe('adminQuizList testing', () => {
     });
   });
 });
-
 
 // Test suite for /v1/admin/quiz route adminQuizCreate() - START
 
