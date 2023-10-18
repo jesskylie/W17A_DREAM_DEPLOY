@@ -6,6 +6,7 @@ import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
+  RESPONSE_ERROR_403,
   WAIT_TIME
 } from './library/constants';
 
@@ -487,7 +488,7 @@ interface AdminQuizCreateReturnCombined {
 }
 
 const requestQuizCreateCombined = (
-  token: number,
+  token: string,
   name: string,
   description: string
 ): AdminQuizCreateReturnCombined | HTTPResponse => {
