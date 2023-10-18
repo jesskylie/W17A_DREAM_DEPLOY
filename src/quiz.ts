@@ -18,7 +18,7 @@ interface ErrorObject {
   error: string;
 }
 
-interface ErrorObjectWithCode {
+export interface ErrorObjectWithCode {
   error: string;
   errorCode: number;
 }

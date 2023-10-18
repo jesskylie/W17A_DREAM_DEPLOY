@@ -93,10 +93,11 @@ export interface Users {
   nameLast: string;
   email: string;
   password: string;
+  oldPasswords: string[];
   numSuccessfulLogins: number;
   numFailedPasswordsSinceLastLogin: number;
   quizId: number[];
-  token: number[];
+  token: string[];
 }
 
 export interface Quizzes {
