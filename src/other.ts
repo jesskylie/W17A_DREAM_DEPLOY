@@ -10,7 +10,7 @@ import { saveDataInFile } from './functions';
  */
 
 export function clear() {
-  let data = getData();
+  const data = getData();
 
   data.users = [];
   data.quizzes = [];

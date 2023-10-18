@@ -29,6 +29,10 @@ interface ErrorObject {
   error: string;
 }
 
+interface TokenString {
+  token: string;
+}
+
 // interfaces used throughout file - END
 
 // Functions to execute before each test is run - START
@@ -86,7 +90,7 @@ function requestAdminRegister(email: string, password: string, nameFirst: string
 describe('Testing POST /v1/admin/auth/register - SUCCESS', () => {
   test('Test successful adminAuthRegister', () => {
     const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    expect(response.body).toStrictEqual({ token: expect.any(Number) });
+    expect(response.body).toStrictEqual({ token: expect.any(String) });
     expect(response.status).toStrictEqual(RESPONSE_OK_200);
   });
 });
@@ -142,7 +146,7 @@ describe('Testing POST /v1/admin/auth/register - UNSUCCESSFUL', () => {
   });
 });
 
-function requestUserDetails(token: number) {
+function requestUserDetails(token: String) {
   const res = request(
     'GET', 
     SERVER_URL + '/v1/admin/user/details',
@@ -175,7 +179,7 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 
   test('Testing unsuccessful adminUserDetails', () => {
-    const response = requestUserDetails(-1);
+    const response = requestUserDetails('-1');
     expect(response.body).toStrictEqual({error: expect.any(String)});
     expect(response.status).toStrictEqual(RESPONSE_ERROR_401);
   });
@@ -258,7 +262,7 @@ describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
       console.log(loginResponse.error);
     }
     expect(requestPersonLogin(email, password)).toStrictEqual({
-      token: expect.any(Number),
+      token: expect.any(String),
     });
   });
   test('Test successfully logging in person return status code 200', () => {
