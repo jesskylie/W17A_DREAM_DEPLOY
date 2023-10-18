@@ -14,7 +14,7 @@ import { DataStore } from './dataStore';
 
 interface getDataReturnObject {
   result: boolean;
-  data: DataStore | {};
+  data: DataStore | Record<string, never>;
 }
 
 /**
