@@ -11,9 +11,7 @@ import {
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
 import { adminAuthRegister, adminAuthLogin } from './auth';
-import { Quizzes, Users } from './dataStore';
-import exp from 'constants';
-import { InvalidatedProjectKind } from 'typescript';
+import { Quizzes } from './dataStore';
 import { clear } from 'console';
 import { TIMEOUT } from 'dns';
 
@@ -32,7 +30,29 @@ function requestAdminRegister(
     },
   });
   return JSON.parse(res.body.toString());
-}
+};
+
+const requestadminAuthLogin = (
+  email: string,
+  password: string
+): RequestAdminAuthLoginReturn => {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/login', {
+    json: { email, password },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  let bodyObject: any;
+  try {
+    bodyObject = JSON.parse(bodyObject);
+  } catch (error: any) {
+    bodyObject = {
+      error: bodyString
+    };
+  }
+  if ('error' in bodyObject) {
+    return { statusCode: res.statusCode, ...bodyObject };
+  }
+  return bodyObject;
+};
 
 // interfaces used throughout file - START
 
@@ -45,8 +65,22 @@ interface ErrorObjectWithCode {
   errorCode: number;
 }
 
+interface Token {
+  token: number;
+}
+
 interface QuizId {
   quizId: number;
+}
+
+interface RequestAdminAuthLoginReturn {
+  statusCode?: number;
+  bodyString: Token | ErrorObject;
+}
+
+interface RequestAdminQuizCreateReturn {
+  statusCode?: number;
+  bodyString: QuizId | ErrorObject;
 }
 
 interface RequestAdminQuizInfoReturn {
@@ -81,7 +115,7 @@ const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;
 
-// constants used throughout file - START
+// constants used throughout file - END
 
 const requestClear = () => {
   const res = request('DELETE', SERVER_URL + `/v1/clear`, {timeout: WAIT_TIME});

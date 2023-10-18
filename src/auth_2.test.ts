@@ -29,6 +29,10 @@ interface ErrorObject {
   error: string;
 }
 
+interface TokenString {
+  token: string;
+}
+
 // interfaces used throughout file - END
 
 // Functions to execute before each test is run - START
@@ -86,7 +90,7 @@ function requestAdminRegister(email: string, password: string, nameFirst: string
 describe('Testing POST /v1/admin/auth/register - SUCCESS', () => {
   test('Test successful adminAuthRegister', () => {
     const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    expect(response.body).toStrictEqual({ token: expect.any(Number) });
+    expect(response.body).toStrictEqual({ token: expect.any(String) });
     expect(response.status).toStrictEqual(RESPONSE_OK_200);
   });
 });
@@ -142,7 +146,51 @@ describe('Testing POST /v1/admin/auth/register - UNSUCCESSFUL', () => {
   });
 });
 
-function requestUserDetails(token: number) {
+function requestUpdatePassword(token: string, newPassword: string, oldPassword: string) {
+  const res = request(
+    'PUT', 
+    SERVER_URL + '/v1/admin/user/password',
+    {
+      json: {
+        token: token,
+        newPassword: newPassword,
+        oldPassword: oldPassword,
+      }
+    }     
+  );
+  return {
+    body: JSON.parse(res.body.toString()),
+    status: res.statusCode
+  }
+}
+
+describe('Testing PUT /v1/admin/user/password', () => {
+  test('Testing successful password change', () => {
+    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const result = requestUpdatePassword(response.body.token, 'HelloWorld1234', 'abcde4284');
+    expect(result.status).toStrictEqual(RESPONSE_OK_200);
+    expect(result.body).toStrictEqual({});
+  });
+  
+  test('Testing unsuccessful password change with error code 401', () => {
+    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const result = requestUpdatePassword(response.body.token, 'abcde4284', 'abcde4284');
+    expect(result.status).toStrictEqual(RESPONSE_ERROR_401);
+    expect(result.body).toStrictEqual( {error: expect.any(String), errorCode: 401} );
+  });
+  
+  test('Testing unsuccessful password change with error code 400', () => {
+    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const result = requestUpdatePassword('a', 'HelloWorld1234', 'abcde4284');
+    expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
+    expect(result.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
+  });
+  
+  
+});
+
+
+function requestUserDetails(token: String) {
   const res = request(
     'GET', 
     SERVER_URL + '/v1/admin/user/details',
@@ -175,7 +223,7 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 
   test('Testing unsuccessful adminUserDetails', () => {
-    const response = requestUserDetails(-1);
+    const response = requestUserDetails('-1');
     expect(response.body).toStrictEqual({error: expect.any(String)});
     expect(response.status).toStrictEqual(RESPONSE_ERROR_401);
   });
@@ -202,12 +250,25 @@ describe('Testing DELETE /v1/clear', () => {
   });
   
   test('Test successful delete by displaying users after deleting', () => {
-    const response = requestAdminRegister('kayla@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const user1 = requestAdminRegister('kayla@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const user2 =  requestAdminRegister('angel@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const user3 = requestAdminRegister('Zac@hotmail.com', 'abcde4284', 'Ann', 'Pie');
     const deleteResponse = requestDelete();
-    const user = requestUserDetails(response.body.token);
-    expect(user.body).toStrictEqual({ error: expect.any(String)});
+    
+    const result = requestUserDetails(user1.body.token);
+    expect(result.body).toStrictEqual({ error: expect.any(String)});
+    
+    
+    const result2 = requestUserDetails(user2.body.token);
+    expect(result2.body).toStrictEqual({ error: expect.any(String)});
+    
+    
+    const result3 = requestUserDetails(user3.body.token);
+    expect(result3.body).toStrictEqual({ error: expect.any(String)});
+    
     expect(deleteResponse.status).toStrictEqual(RESPONSE_OK_200);
   });
+
 });
 
 // Test suite for /v1/admin/auth/login route adminAuthLogin() - START
@@ -258,7 +319,7 @@ describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
       console.log(loginResponse.error);
     }
     expect(requestPersonLogin(email, password)).toStrictEqual({
-      token: expect.any(Number),
+      token: expect.any(String),
     });
   });
   test('Test successfully logging in person return status code 200', () => {
