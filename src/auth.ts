@@ -3,6 +3,7 @@ import { getData, setData, DataStore } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
 import { retrieveDataFromFile, saveDataInFile } from './functions';
 import { uid } from 'uid';
+import { ErrorObjectWithCode } from './quiz';
 
 import {
   RESPONSE_OK_200,
@@ -237,10 +238,10 @@ export function adminAuthLogin(
  * @returns {{error: string}} - on error
  */
 
-export function updatePassword(token: string, newPassword: string): void | ErrorObject {
+export function updatePassword(token: string, newPassword: string, oldPassword: string): Record<string,never> | ErrorObjectWithCode {
   //new password must be more than 8 characters, and have letters and numbers
   if (!isValidPassword(newPassword)) {
-    return { error: 'Invalid password'};
+    return { error: 'Invalid password', errorCode: 401};
   }
   
   //loop through datastore to find the token 
@@ -248,22 +249,27 @@ export function updatePassword(token: string, newPassword: string): void | Error
   for (const user of data.users) {
     if (user.token.includes(token)) {
       //token is found
-      if (newPassword === user.password) {
+      if (newPassword === user.password || newPassword === oldPassword) {
          //check if new password is equal to old password
-        return { error: 'New password can not be the same as old password'};
+        return { error: 'New password can not be the same as old password', errorCode: 401};
+      } else if (oldPassword != user.password) {
+        //old password does not match old password
+        return { error: 'Old password does not match old password', errorCode: 401};
       } else if (user.oldPasswords.includes(newPassword)) {
         //check if old password exists in old password array
-        return { error: 'New password has already been used by this user'};
+        return { error: 'New password has already been used by this user', errorCode: 401};
       } else {
         //move current password to old passwords array
         //update new password
         const password = user.password;
         user.oldPasswords.push(password);
         user.password = newPassword;
+        return {};
       }
     }
   }
   saveDataInFile(data);
+  return { error: 'Token is empty or invalid', errorCode: 400};
 }
 
 // Helper functions
