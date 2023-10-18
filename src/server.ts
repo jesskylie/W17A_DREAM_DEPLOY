@@ -51,6 +51,8 @@ app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   const ret = echo(data);
   if ('error' in ret) {
+    
+    
     res.status(400);
   }
   return res.json(ret);
