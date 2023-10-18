@@ -136,8 +136,11 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
-  const result = newClear();
-  return res.json(result);
+  const response = newClear();
+  if ('error' in response) {
+    return res.status(400).json(response);
+  }
+  res.status(200).json(response);
 });
 
 // ====================================================================

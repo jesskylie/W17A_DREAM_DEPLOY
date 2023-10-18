@@ -1,4 +1,4 @@
-// Do not delete this file
+// Do not delete this file _
 import request from 'sync-request-curl';
 import config from './config.json';
 
@@ -6,13 +6,14 @@ import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  RESPONSE_ERROR_403,
+  WAIT_TIME
 } from './library/constants';
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
 import { adminAuthRegister, adminAuthLogin } from './auth';
 import { Quizzes } from './dataStore';
 import { clear } from 'console';
+import { TIMEOUT } from 'dns';
 
 function requestAdminRegister(
   email: string,
@@ -97,6 +98,15 @@ interface RequestAdminQuizRemoveReturn {
   bodyString: Record<string, never> | ErrorObject;
 }
 
+interface Token {
+  token: string;
+}
+
+interface RequestAdminQuizCreateReturn {
+  statusCode?: number;
+  bodyString: QuizId | ErrorObject;
+}
+
 // interfaces used throughout file - END
 
 // constants used throughout file - START
@@ -107,14 +117,12 @@ const SERVER_URL = `${url}:${port}`;
 
 // constants used throughout file - END
 
-const requestClear = (): Record<string, never> => {
-  const res = request('DELETE', SERVER_URL + `/clear`, { json: {} });
-  return JSON.parse(res.body.toString());
+const requestClear = () => {
+  const res = request('DELETE', SERVER_URL + `/v1/clear`, {timeout: WAIT_TIME});
+  const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+  return { statusCode, bodyString };
 };
-
-beforeEach(() => {
-  requestClear();
-});
 
 describe('HTTP tests using Jest', () => {
   test('Test successful echo', () => {
@@ -478,34 +486,31 @@ interface HTTPResponse {
   statusCode: number;
 }
 
-const requestQuizCreate = (
+interface AdminQuizCreateReturnCombined {
+  resBody: AdminQuizCreateReturn | ErrorObjectWithCode;
+}
+
+const requestQuizCreateCombined = (
   token: number,
   name: string,
   description: string
-): AdminQuizCreateReturn | ErrorObjectWithCode => {
+): AdminQuizCreateReturnCombined | HTTPResponse => {
   const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
     json: { token, name, description },
   });
 
-  return JSON.parse(res.body.toString());
-};
+  const resBody = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
 
-const requestQuizCreateStatusCode = (
-  token: number,
-  name: string,
-  description: string
-): HTTPResponse | ErrorObject => {
-  const res: any = request('POST', SERVER_URL + '/v1/admin/quiz', {
-    json: { token, name, description },
-  });
-
-  return res.statusCode;
+  return { resBody, statusCode };
 };
 
 // Tests
-// Passed Tuesday 17-Oct-23 10:35
-describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS', () => {
-  clear();
+// Passed Wednesday 18-Oct-23 14:20
+describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS AND STATUSCODE 200', () => {
+  test('Test successfully creating a quiz', () => {
+  requestClear();
+  
   // Create user
   const email = 'paulemail1@gmail.com';
   const password = 'password123456789';
@@ -514,36 +519,46 @@ describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS', () => {
 
   const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
 
+  console.log("tokenObj ->", tokenObj)
+
   const name = 'Paul';
-  const name1 = 'Peter';
   const description = 'This is the first quiz';
-  test('Test successfully creating a quiz', () => {
-    const testrequestQuizCreate = requestQuizCreate(
+  
+    const testrequestQuizCreate = requestQuizCreateCombined(
       tokenObj.token,
       name,
       description
     );
 
-    console.log('testrequestQuizCreate ->', testrequestQuizCreate);
-    expect(testrequestQuizCreate).toStrictEqual({
-      quizId: expect.any(Number),
-    });
-  });
-  test('Test successfully creating a quiz return status code 200', () => {
-    const testResponseCode = requestQuizCreateStatusCode(
-      tokenObj.token,
-      name1,
-      description
-    );
+    if ('resBody' in testrequestQuizCreate) {
+      const testResBody = testrequestQuizCreate;
+      if ('quizId' in testResBody) {
+        const testQuizId = testResBody.quizId;
+        const testCase = { quizId: testQuizId };
+        expect(testCase).toStrictEqual({
+          quizId: expect.any(Number),
+        });
+      }
+    }
 
-    console.log('test100Obj ->', testResponseCode);
-    expect(testResponseCode).toStrictEqual(RESPONSE_OK_200);
+    // Test for code 200
+
+    // need to test for code 200 in test1Obj as TS
+    // does not yet appreciate that .error property can
+    // be in test1Obj
+    if ('statusCode' in testrequestQuizCreate) {
+      const testStatusCode = testrequestQuizCreate.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_OK_200);
+      
+    }
   });
 });
 
-// Passed Tuesday 17-Oct-23 11:20
+// Passed Wednesday 18-Oct-23 14:20
 describe('test 2: /v1/admin/quiz : Name contains invalid characters -> EXPECT ERROR 400', () => {
-  clear();
+  test('Name contains invalid characters. Valid characters are alphanumeric and spaces -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+  requestClear();
+  
   // Create user
   const email = 'paulemail2@gmail.com';
   const password = 'password123456789';
@@ -554,9 +569,8 @@ describe('test 2: /v1/admin/quiz : Name contains invalid characters -> EXPECT ER
 
   const INVALID_NAME = 'InvalidQuizName!!!!';
   const description_1 = 'This is the first quiz';
-  const description_2 = 'This is the second quiz';
-  test('Name contains invalid characters. Valid characters are alphanumeric and spaces -> EXPECT ERROR STRING', () => {
-    const test1Obj = requestQuizCreate(
+  
+    const test1Obj = requestQuizCreateCombined(
       tokenObj.token,
       INVALID_NAME,
       description_1
@@ -565,23 +579,37 @@ describe('test 2: /v1/admin/quiz : Name contains invalid characters -> EXPECT ER
     // need to test for error in test1Obj as TS
     // does not yet appreciate that .error property can
     // be in test1Obj
-    if ('error' in test1Obj) {
-      const errorStringObj = { error: test1Obj.error };
-      expect(errorStringObj).toStrictEqual({
-        error: expect.any(String),
-      });
+    if ('resBody' in test1Obj) {
+      const testErrorObj = test1Obj.resBody;
+      if ('error' in testErrorObj) {
+        const testCase = testErrorObj.error;
+        const errorStringObj = { error: testCase };
+        expect(errorStringObj).toStrictEqual({
+          error: expect.any(String),
+        });
+      }
+
+      // Test for error code 400
+
+    // need to test for error in test1Obj as TS
+    // does not yet appreciate that .error property can
+    // be in test1Obj
+    if ('resBody' in test1Obj) {
+      const testResBody = test1Obj.resBody;
+      if ('errorCode' in testResBody) {
+        const errorCode = testResBody.errorCode;
+        expect(errorCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
+    }
     }
   });
-  test('Name contains invalid characters. Valid characters are alphanumeric and spaces -> EXPECT STATUS CODE 400', () => {
-    expect(
-      requestQuizCreateStatusCode(tokenObj.token, INVALID_NAME, description_1)
-    ).toStrictEqual(RESPONSE_ERROR_400);
-  });
+ 
 });
 
-// Tests passed Tuesday 17-Oct-23 11:50
+// Passed Wednesday 18-Oct-23 14:20
 describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => {
-  clear();
+  test('Name too short -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+  requestClear();
   // Create user
   const email = 'paulemail3@gmail.com';
   const password = 'password123456789';
@@ -590,158 +618,238 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
 
   const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
 
-  const VALID_NAME = 'ValidQuizName';
-  const VALID_NAME2 = 'ValidQuizNamee';
   const INVALID_NAME_TOO_SHORT = 'Va';
-  const INVALID_NAME_TOO_LONG =
-    'TTTTTTTTTTTTTTTTTTTTHHHHHHHHHHHHHHHHHHHHHHHHIIIIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNAAAAAAAAAAAAAAAAAMMMMMMMMMMMMMMMEEEEEEEEEEEIISSSSSSSSTTTTTTTTTTTTOOOOOOOOOOOOOOOOLLLLLLLLLLLOOOOOOOOOOOONNNNNNNNNNNNNNNGGGGGGGGGGG';
+  
   const description1 = 'This is the first quiz';
-  const description2 = 'This is the second quiz';
-  const description3 = 'This is the third quiz';
-  const description4 = 'This is the fourth quiz';
-  const INVALID_DESCRIPTION =
-    'One possible solution is to generate type guards. Type guards are normal functions but with a signature that tells TS that the parameter of the function has a specific type. The signature consists of two things. The function must return boolean and has return type of param is myType.';
-
-  test('Name too short -> EXPECT ERROR STRING', () => {
-    const test1Obj = requestQuizCreate(
+  
+    const test1Obj = requestQuizCreateCombined(
       tokenObj.token,
       INVALID_NAME_TOO_SHORT,
       description1
     );
 
+    // Test for error string
+
     // need to test for error in test1Obj as TS
     // does not yet appreciate that .error property can
     // be in test1Obj
-    if ('error' in test1Obj) {
-      const errorStringObj = { error: test1Obj.error };
-      expect(errorStringObj).toStrictEqual({
-        error: expect.any(String),
-      });
+    if ('resBody' in test1Obj) {
+      const testResBody = test1Obj.resBody;
+      if ('error' in testResBody) {
+        const errorStringObj = { error: testResBody.error };
+        expect(errorStringObj).toStrictEqual({
+          error: expect.any(String),
+        });
+      }
+    }
+
+    // Test for error code 400
+
+    // need to test for error in test1Obj as TS
+    // does not yet appreciate that .error property can
+    // be in test1Obj
+    if ('resBody' in test1Obj) {
+      const testResBody = test1Obj.resBody;
+      if ('errorCode' in testResBody) {
+        const errorCode = testResBody.errorCode;
+        expect(errorCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
     }
   });
-  test('Name too short -> EXPECT ERROR -> EXPECT STATUS CODE 400', () => {
-    expect(
-      requestQuizCreateStatusCode(
-        tokenObj.token,
-        INVALID_NAME_TOO_SHORT,
-        description2
-      )
-    ).toStrictEqual(RESPONSE_ERROR_400);
-  });
 
-  test('Name too long -> EXPECT ERROR STRING', () => {
-    const test2Obj = requestQuizCreate(
+  test('Name too long -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user
+  const email = 'paulemail3@gmail.com';
+  const password = 'password123456789';
+  const nameFirst = 'Paul';
+  const nameLast = 'Reynolds';
+  const description3 = 'This is the third quiz';
+
+  const INVALID_NAME_TOO_LONG =
+    'TTTTTTTTTTTTTTTTTTTTHHHHHHHHHHHHHHHHHHHHHHHHIIIIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNAAAAAAAAAAAAAAAAAMMMMMMMMMMMMMMMEEEEEEEEEEEIISSSSSSSSTTTTTTTTTTTTOOOOOOOOOOOOOOOOLLLLLLLLLLLOOOOOOOOOOOONNNNNNNNNNNNNNNGGGGGGGGGGG';
+
+  const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
+    const test2Obj = requestQuizCreateCombined(
       tokenObj.token,
       INVALID_NAME_TOO_LONG,
       description3
     );
 
+    // Test for error string
+
     // need to test for error in test1Obj as TS
     // does not yet appreciate that .error property can
     // be in test1Obj
-    if ('error' in test2Obj) {
-      const errorStringObj = { error: test2Obj.error };
-      expect(errorStringObj).toStrictEqual({
-        error: expect.any(String),
-      });
+    if ('resBody' in test2Obj) {
+      const testResBody = test2Obj.resBody;
+      if ('error' in testResBody) {
+        const errorStringObj = { error: testResBody.error };
+        expect(errorStringObj).toStrictEqual({
+          error: expect.any(String),
+        });
+      }
+    }
+
+    // Test for error code 400
+
+    // need to test for error in test2Obj as TS
+    // does not yet appreciate that .error property can
+    // be in test2Obj
+    if ('resBody' in test2Obj) {
+      const testResBody = test2Obj.resBody;
+      if ('errorCode' in testResBody) {
+        const errorCode = testResBody.errorCode;
+        expect(errorCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
     }
   });
-  test('Name too long -> EXPECT ERROR -> EXPECT STATUS CODE 400', () => {
-    expect(
-      requestQuizCreateStatusCode(
-        tokenObj.token,
-        INVALID_NAME_TOO_LONG,
-        description4
-      )
-    ).toStrictEqual(RESPONSE_ERROR_400);
-  });
 
-  test('Name is already used by the current logged in user for another quiz -> EXPECT ERROR STRING', () => {
-    const test3Obj = requestQuizCreate(
+  test('Name is already used by the current logged in user for another quiz -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+    requestClear();
+
+     // Create user
+  const email = 'paulemail3@gmail.com';
+  const password = 'password123456789';
+  const nameFirst = 'Paul';
+  const nameLast = 'Reynolds';
+
+  const VALID_NAME = 'ValidQuizName';
+  const description1 = "This is the first quiz"
+
+  const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
+    requestQuizCreateCombined(tokenObj.token, VALID_NAME, description1);
+    const test4Obj = requestQuizCreateCombined(
       tokenObj.token,
       VALID_NAME,
       description1
     );
-    const test4Obj = requestQuizCreate(
-      tokenObj.token,
-      VALID_NAME,
-      description1
-    );
+
+    // Test for error string
+
+    // need to test for error in test1Obj as TS
+    // does not yet appreciate that .error property can
+    // be in test1Obj
+    if ('resBody' in test4Obj) {
+      const testResBody = test4Obj.resBody;
+      if ('error' in testResBody) {
+        const errorStringObj = { error: testResBody.error };
+        expect(errorStringObj).toStrictEqual({
+          error: expect.any(String),
+        });
+      }
+    }
+
+    // Test for error code 400
 
     // need to test for error in test4Obj as TS
     // does not yet appreciate that .error property can
     // be in test4Obj
-    if ('error' in test4Obj) {
-      const errorStringObj = { error: test4Obj.error };
-      expect(errorStringObj).toStrictEqual({
-        error: expect.any(String),
-      });
+    if ('resBody' in test4Obj) {
+      const testResBody = test4Obj.resBody;
+      if ('errorCode' in testResBody) {
+        const errorCode = testResBody.errorCode;
+        expect(errorCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
     }
   });
-  test('Name is already used by the current logged in user for another quiz -> EXPECT ERROR -> EXPECT STATUS CODE 400', () => {
-    expect(
-      requestQuizCreateStatusCode(tokenObj.token, VALID_NAME, description1)
-    ).toStrictEqual(RESPONSE_ERROR_400);
-  });
 
-  test('Description is more than 100 characters in length -> EXPECT ERROR STRING', () => {
-    const test5Obj = requestQuizCreate(
+  test('Description is more than 100 characters in length -> EXPECT ERROR STRING AND ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user
+  const email = 'paulemail3@gmail.com';
+  const password = 'password123456789';
+  const nameFirst = 'Paul';
+  const nameLast = 'Reynolds';
+  
+  const VALID_NAME2 = 'ValidQuizNamee';
+
+  const INVALID_DESCRIPTION =
+    'One possible solution is to generate type guards. Type guards are normal functions but with a signature that tells TS that the parameter of the function has a specific type. The signature consists of two things. The function must return boolean and has return type of param is myType.';
+
+  const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
+    const test5Obj = requestQuizCreateCombined(
       tokenObj.token,
       VALID_NAME2,
       INVALID_DESCRIPTION
     );
 
+    // Test for error string
+
+    // need to test for error in test1Obj as TS
+    // does not yet appreciate that .error property can
+    // be in test1Obj
+    if ('resBody' in test5Obj) {
+      const testResBody = test5Obj.resBody;
+      if ('error' in testResBody) {
+        const errorStringObj = { error: testResBody.error };
+        expect(errorStringObj).toStrictEqual({
+          error: expect.any(String),
+        });
+      }
+    }
+
+    // Test for error code 400
+
     // need to test for error in test5Obj as TS
     // does not yet appreciate that .error property can
     // be in test5Obj
-    if ('error' in test5Obj) {
-      const errorStringObj = { error: test5Obj.error };
-      expect(errorStringObj).toStrictEqual({
-        error: expect.any(String),
-      });
+    if ('resBody' in test5Obj) {
+      const testResBody = test5Obj.resBody;
+      if ('errorCode' in testResBody) {
+        const errorCode = testResBody.errorCode;
+        expect(errorCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
     }
-  });
-  test('Description is more than 100 characters in length -> EXPECT ERROR -> EXPECT STATUS CODE 400', () => {
-    expect(
-      requestQuizCreateStatusCode(
-        tokenObj.token,
-        VALID_NAME,
-        INVALID_DESCRIPTION
-      )
-    ).toStrictEqual(RESPONSE_ERROR_400);
   });
 });
 
+// Passed Wednesday 18-Oct-23 14:20
 describe('test /v1/admin/quiz : Token is empty or invalid -> EXPECT ERROR 401', () => {
-  clear();
+  test('Token is empty or invalid -> EXPECT ERROR STRING AND ERROR CODE 401', () => {
+  requestClear();
   // Create user
   const email = 'paulemail3@gmail.com';
   const password = 'password123456789';
   const nameFirst = 'Paul';
   const nameLast = 'Reynolds';
 
-  const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
+  requestAdminRegister(email, password, nameFirst, nameLast);
   let token: any;
   const VALID_NAME = 'Paul';
   const description = 'This is the first quiz';
 
-  test('Token is empty or invalid -> EXPECT ERROR STRING', () => {
-    const test6Obj = requestQuizCreate(token, VALID_NAME, description);
+    const test6Obj = requestQuizCreateCombined(token, VALID_NAME, description);
+
+    // Test for error string
+
+    // need to test for error in test1Obj as TS
+    // does not yet appreciate that .error property can
+    // be in test1Obj
+    if ('resBody' in test6Obj) {
+      const testResBody = test6Obj.resBody;
+      if ('error' in testResBody) {
+        const errorStringObj = { error: testResBody.error };
+        expect(errorStringObj).toStrictEqual({
+          error: expect.any(String),
+        });
+      }
+    }
+
+    // Test for error code 400
 
     // need to test for error in test6Obj as TS
     // does not yet appreciate that .error property can
     // be in test6Obj
-    if ('error' in test6Obj) {
-      const errorStringObj = { error: test6Obj.error };
-      expect(errorStringObj).toStrictEqual({
-        error: expect.any(String),
-      });
+    if ('resBody' in test6Obj) {
+      const testResBody = test6Obj.resBody;
+      if ('errorCode' in testResBody) {
+        const errorCode = testResBody.errorCode;
+        expect(errorCode).toStrictEqual(RESPONSE_ERROR_401);
+      }
     }
-  });
-  test('Token is empty or invalid -> EXPECT ERROR -> EXPECT STATUS CODE 401', () => {
-    expect(
-      requestQuizCreateStatusCode(token, VALID_NAME, description)
-    ).toStrictEqual(RESPONSE_ERROR_401);
   });
 });
 
