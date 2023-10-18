@@ -8,7 +8,7 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { adminAuthRegister, adminUserDetails, adminAuthLogin } from './auth';
+import { adminAuthRegister, adminUserDetails, adminAuthLogin, updatePassword } from './auth';
 import { clear, newClear } from './other';
 import { adminQuizCreate } from './quiz';
 
@@ -87,7 +87,8 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 });
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  const result = adminUserDetails(parseInt(req.query.token as string));
+  const token = req.query.token as string;
+  const result = adminUserDetails(token);
   if ('error' in result) {
     return res.status(401).json(result);
   }
@@ -116,6 +117,23 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   }
   res.json(response);
 });
+
+app.put('/v1/admin/user/password', (req: Request, res: Response) => {
+  const { token, newPassword, oldPassword } = req.body;
+  const response = updatePassword(token, newPassword, oldPassword);
+  
+  if ('error' in response) {
+    console.log('error in response');
+    if (response.errorCode === 400) {
+      return res.status(400).json(response);
+    } else if (response.errorCode === 401) {
+      return res.status(401).json(response);
+    }
+  }
+  res.json(response);
+})
+
+
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
   const result = newClear();
