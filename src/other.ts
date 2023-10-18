@@ -9,7 +9,7 @@ import { saveDataInFile } from './functions';
  * @returns {{}} - empty object
  */
 
-export function clear() {
+export function clear(): Record<string, never> {
   const data = getData();
 
   data.users = [];
@@ -21,7 +21,7 @@ export function clear() {
 }
 
 export function newClear(): Record<string, never> {
-  const data: DataStore = { users: [], quizzes: [] };
+  const data: DataStore = { users: [], quizzes: [], trash: [] };
 
   saveDataInFile(data);
 

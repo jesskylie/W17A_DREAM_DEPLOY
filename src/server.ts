@@ -10,7 +10,7 @@ import path from 'path';
 import process from 'process';
 import { adminAuthRegister, adminUserDetails, adminAuthLogin, updatePassword } from './auth';
 import { clear, newClear } from './other';
-import { adminQuizCreate, adminQuizInfo, adminQuizList, adminQuizRemove } from './quiz';
+import { adminQuizCreate, adminQuizInfo, adminQuizList, adminQuizRemove, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
 
 import {
   RESPONSE_OK_200,
@@ -185,6 +185,44 @@ app.delete('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
     }
     res.json(result);
   }
+});
+
+app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
+  const { token, name } = req.body;
+  const quizId = parseInt(req.params.quizid);
+  const response = adminQuizNameUpdate(token, quizId, name);
+
+  if ('error' in response) {
+    console.log('error in response');
+    if (response.errorCode === 400) {
+      return res.status(400).json(response);
+    } else if (response.errorCode === 401) {
+      return res.status(401).json(response);
+    } else if (response.errorCode === 403) {
+      return res.status(403).json(response);
+    }
+  }
+  res.json(response);
+});
+
+// ***********************************************************************
+
+app.put('/v1/admin/quiz/{quizid}/description', (req: Request, res: Response) => {
+  const { token, quizid, description } = req.body;
+
+  const response = adminQuizDescriptionUpdate(token, quizid, description);
+
+  if ('error' in response) {
+    console.log('error in response');
+    if (response.errorCode === 400) {
+      return res.status(400).json(response);
+    } else if (response.errorCode === 401) {
+      return res.status(401).json(response);
+    } else if (response.errorCode === 401) {
+      return res.status(403).json(response);
+    }
+  }
+  res.json(response);
 });
 
 // ====================================================================
