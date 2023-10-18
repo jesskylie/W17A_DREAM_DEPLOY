@@ -10,7 +10,7 @@ import path from 'path';
 import process from 'process';
 import { adminAuthRegister, adminUserDetails, adminAuthLogin, updatePassword } from './auth';
 import { clear, newClear } from './other';
-import { adminQuizCreate } from './quiz';
+import { adminQuizCreate, adminQuizInfo, adminQuizList, adminQuizRemove } from './quiz';
 
 import {
   RESPONSE_OK_200,
@@ -133,14 +133,56 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   res.json(response);
 })
 
-
-
 app.delete('/v1/clear', (req: Request, res: Response) => {
   const response = newClear();
   if ('error' in response) {
     return res.status(400).json(response);
   }
   res.status(200).json(response);
+});
+
+app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminQuizList(token);
+  if ('error' in result) {
+    return res.status(401).json(result);
+  }
+  res.json(result);
+});
+
+app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
+  const token = req.params.token as string;
+  const quizId = parseInt(req.params.quizid);
+  const result = adminQuizInfo(token, quizId);
+  if ('error' in result) {
+    console.log('error in response');
+    if (result.errorCode === 400) {
+      return res.status(400).json(result);
+    } else if (result.errorCode === 401) {
+      return res.status(401).json(result);
+    } else if (result.errorCode === 403) {
+      return res.status(403).json(result);
+    }
+    res.json(result);
+  }
+  res.json(result);
+});
+
+app.delete('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
+  const token = req.params.token as string;
+  const quizId = parseInt(req.params.quizid);
+  const result = adminQuizRemove(token, quizId);
+  if ('error' in result) {
+    console.log('error in response');
+    if (result.errorCode === 400) {
+      return res.status(400).json(result);
+    } else if (result.errorCode === 401) {
+      return res.status(401).json(result);
+    } else if (result.errorCode === 403) {
+      return res.status(403).json(result);
+    }
+    res.json(result);
+  }
 });
 
 // ====================================================================

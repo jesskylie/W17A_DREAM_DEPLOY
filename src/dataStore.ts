@@ -86,6 +86,7 @@ export { getData, setData };
 export interface DataStore {
   users: Users[];
   quizzes: Quizzes[];
+  trash: Quizzes[];
 }
 export interface Users {
   authUserId: number;
@@ -93,10 +94,11 @@ export interface Users {
   nameLast: string;
   email: string;
   password: string;
+  oldPasswords: string[];
   numSuccessfulLogins: number;
   numFailedPasswordsSinceLastLogin: number;
   quizId: number[];
-  token: number[];
+  token: string[];
 }
 
 export interface Quizzes {
@@ -111,6 +113,7 @@ export interface Quizzes {
 export let data: DataStore = {
   users: [],
   quizzes: [],
+  trash: [],
 };
 
 // TypeScript interfaces for Iteration 2 - END
