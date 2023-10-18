@@ -83,7 +83,7 @@ export function retrieveDataFromFile(): DataStore {
   let data: DataStore;
 
   if (!dataStoreObj.result) {
-    data = { users: [], quizzes: [] };
+    data = { users: [], quizzes: [], trash: [] };
   } else {
     data = dataStoreObj.data as DataStore;
   }
