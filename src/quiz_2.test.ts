@@ -242,26 +242,6 @@ describe('adminQuizInfo testing', () => {
     });
   });
 
-  // test('Error 400: empty QuizId and invalid QuizId', () => {
-  //   let returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-  //   const emptyQuizId = requestadminQuizInfo(
-  //     returnToken.token,
-  //     ''
-  //   );
-  //   expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_400);
-  //   expect(emptyQuizId.bodyString).toStrictEqual({
-  //     error: expect.any(String),
-  //   });
-  //   const invalidQuizId = requestadminQuizInfo(
-  //     returnToken.token,
-  //     'S'
-  //   );
-  //   expect(invalidQuizId.statusCode).toBe(RESPONSE_ERROR_400);
-  //   expect(invalidQuizId.bodyString).toStrictEqual({
-  //     error: expect.any(String),
-  //   });
-  // });
-
   test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
     const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
     requestAdminRegister(
@@ -323,30 +303,6 @@ describe('Testing adminQuizRemove', () => {
       quizId: expect.any(Number),
     });
   });
-
-  // test('Error 400: Empty input for QuizId', () => {
-  //   const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-  //   const emptyQuizId = requestadminQuizRemove(
-  //     returnToken.token, 
-  //     ''
-  //   );
-  //   expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_400);
-  //   expect(emptyQuizId.bodyString).toStrictEqual({
-  //     error: expect.any(String),
-  //   });
-  // });
-
-  // test('Error 400: Invalid QuizId', () => {
-  //   const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-  //   const invalidQuizId = requestadminQuizRemove(
-  //     returnToken.token,
-  //     'abc'
-  //   );
-  //   expect(invalidQuizId.statusCode).toBe(400);
-  //   expect(invalidQuizId.bodyString).toStrictEqual({
-  //     error: expect.any(String),
-  //   });
-  // });
 
   test('Error 403: QuizId does not refer to a quiz that this user owns', () => {
     const returnToken = requestadminAuthLogin('jess@hotmail.com', '123456ab').bodyString as Token;
