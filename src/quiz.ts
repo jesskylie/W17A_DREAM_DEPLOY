@@ -1,4 +1,4 @@
-import { getData, setData, DataStore } from './dataStore';
+import { getData, setData, DataStore, Quizzes } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -19,10 +19,6 @@ interface QuizId {
   quizId: number;
 }
 
-interface ErrorObject {
-  error: string;
-}
-
 export interface ErrorObjectWithCode {
   error: string;
   errorCode: number;
@@ -39,7 +35,27 @@ interface QuizInfoReturn {
   timeCreated: number;
   timeLastEdited: number;
   description: string;
+  /*
+  (Part 2)
+  numQuestions: number;
+  questions: QuestionsArray[];
+  duration: number;
 }
+interface QuestionsArray {
+  questionId: number;
+  question: string;
+  duration: number;
+  points: number;
+  answer: AnswerArray[];
+}
+interface AnswerArray {
+  answerId: number;
+  answer: string;
+  colour: string;
+  correct: boolean;
+*/
+}
+
 
 interface ListArray {
   quizId: number;
@@ -86,7 +102,6 @@ function adminQuizInfo(
     authUserId.authUserId,
     quizId
   );
-  // console.log(token);
   if (!isQuizIdValidTest) {
     return { error: 'QuizId is invalid', errorCode: 400 };
   }
@@ -108,6 +123,12 @@ function adminQuizInfo(
         timeCreated: check.timeCreated,
         timeLastEdited: check.timeLastEdited,
         description: check.description,
+        /*
+        for part 2
+        numQuestions: check.numQuestions,
+        questions: check.questions,
+        duration: check.duration,
+        */
       };
     }
   }
@@ -483,6 +504,7 @@ function adminQuizRemove(
   const userToUpdata = data.users.find(
     (user) => user.authUserId === authUserId.authUserId
   );
+  const quizToTrash = data.quizzes.filter((quiz) => quiz.quizId === quizId);
   data.quizzes = data.quizzes.filter((quiz) => quiz.quizId !== quizId);
   if (userToUpdata) {
     const indexToRemove = userToUpdata.quizId.indexOf(quizId);
@@ -495,7 +517,8 @@ function adminQuizRemove(
       check = userToUpdata;
     }
   }
-  setData(newdata);
+  newdata.trash.push(quizToTrash[0]);
+  saveDataInFile(newdata);
   return {};
 }
 
