@@ -1,7 +1,12 @@
 import { TokenClass } from 'typescript';
 import { getData, setData, DataStore } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
-import { retrieveDataFromFile, saveDataInFile } from './functions';
+import {
+  retrieveDataFromFile,
+  saveDataInFile,
+  isTokenValid,
+  getAuthUserIdUsingToken,
+} from './functions';
 import { uid } from 'uid';
 import { ErrorObjectWithCode } from './quiz';
 
@@ -49,6 +54,7 @@ interface UserData {
   quizId: number[];
   token: string[];
 }
+
 // TypeScript interfaces - END
 
 /**
@@ -65,7 +71,7 @@ export function adminUserDetails(token: string): UserInfo | ErrorObject {
   const data: DataStore = retrieveDataFromFile();
   for (const user of data.users) {
     if (user.token.includes(token)) {
-       return {
+      return {
         user: {
           authUserId: user.authUserId,
           name: user.nameFirst + ' ' + user.nameLast,
@@ -80,7 +86,6 @@ export function adminUserDetails(token: string): UserInfo | ErrorObject {
   saveDataInFile(data);
   return { error: 'Invalid Token' };
 }
-
 
 /**
  * Registers a user with their email, password, name and returns their authUserId value
@@ -238,26 +243,39 @@ export function adminAuthLogin(
  * @returns {{error: string}} - on error
  */
 
-export function updatePassword(token: string, newPassword: string, oldPassword: string): Record<string,never> | ErrorObjectWithCode {
+export function updatePassword(
+  token: string,
+  newPassword: string,
+  oldPassword: string
+): Record<string, never> | ErrorObjectWithCode {
   //new password must be more than 8 characters, and have letters and numbers
   if (!isValidPassword(newPassword)) {
-    return { error: 'Invalid password', errorCode: 401};
+    return { error: 'Invalid password', errorCode: 401 };
   }
-  
-  //loop through datastore to find the token 
+
+  //loop through datastore to find the token
   const data: DataStore = retrieveDataFromFile();
   for (const user of data.users) {
     if (user.token.includes(token)) {
       //token is found
       if (newPassword === user.password || newPassword === oldPassword) {
-         //check if new password is equal to old password
-        return { error: 'New password can not be the same as old password', errorCode: 401};
+        //check if new password is equal to old password
+        return {
+          error: 'New password can not be the same as old password',
+          errorCode: 401,
+        };
       } else if (oldPassword != user.password) {
         //old password does not match old password
-        return { error: 'Old password does not match old password', errorCode: 401};
+        return {
+          error: 'Old password does not match old password',
+          errorCode: 401,
+        };
       } else if (user.oldPasswords.includes(newPassword)) {
         //check if old password exists in old password array
-        return { error: 'New password has already been used by this user', errorCode: 401};
+        return {
+          error: 'New password has already been used by this user',
+          errorCode: 401,
+        };
       } else {
         //move current password to old passwords array
         //update new password
@@ -269,8 +287,60 @@ export function updatePassword(token: string, newPassword: string, oldPassword: 
     }
   }
   saveDataInFile(data);
-  return { error: 'Token is empty or invalid', errorCode: 400};
+  return { error: 'Token is empty or invalid', errorCode: 400 };
 }
+
+// Iteration 2 functions
+
+/**
+ * Log outs an admin user who has an active session
+ * Returns an empty object if successful and removes token from token array in Users: []
+ * Returns an error if token is empty or invalid (does not refer to valid logged in user session)
+ * @param {string} token - user's current sessionId
+ *
+ * @returns {void} - returns {} on successful password change
+ * @returns {{error: string}} - on error
+ */
+function adminAuthLogout(token: string): Record<string, never> | ErrorObject {
+  // retrieveDataFromFile, saveDataInFile
+
+  const data: DataStore = retrieveDataFromFile();
+
+  // test if token is valid; if not, return error
+  const isTokenValidTest = isTokenValid(data, token);
+
+  if (!isTokenValidTest) {
+    return {
+      error:
+        'Token is empty or invalid (does not refer to valid logged in user session)',
+    };
+  }
+
+  // Token is valid
+  // get authUserId using token
+
+  const authUserIdTest = getAuthUserIdUsingToken(data, token);
+
+  const userArr = data.users;
+
+  for (const user of userArr) {
+    if (user.authUserId === authUserIdTest.authUserId) {
+      const tokenArray = user.token;
+      const index = tokenArray.indexOf(token);
+
+      if (index !== -1) {
+        tokenArray.splice(index, 1);
+      }
+    }
+  }
+
+  // save data to file
+  saveDataInFile(data);
+
+  return {};
+}
+
+export { adminAuthLogout };
 
 // Helper functions
 

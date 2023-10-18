@@ -1,5 +1,10 @@
 import { getData, setData, DataStore } from './dataStore';
-import { retrieveDataFromFile, saveDataInFile } from './functions';
+import {
+  retrieveDataFromFile,
+  saveDataInFile,
+  isTokenValid,
+  getAuthUserIdUsingToken,
+} from './functions';
 
 import {
   RESPONSE_OK_200,
@@ -545,57 +550,7 @@ function isAuthUserIdValid(data: DataStore, authId: number): boolean {
 
   return false;
 }
-/**
- * Iteration 2 function
- * Function to test whether token is valid
- * Used in:
- * adminQuizCreate()
- * adminQuizInfo()
- * adminQuizRemove()
- *
- * @param {object} data - the dataStore object
- * @param {number} token - the id of the person creating the quiz
- * ...
- *
- * @returns {boolean} - true if token is valid / false if token is not valid
- */
-function isTokenValid(data: DataStore, token: string): boolean {
-  // 1. test for token is type string or length less than 1
-  if (!(typeof token === 'string') || token.length < 1) {
-    return false;
-  }
 
-  // 2. test that token exists in dataStore
-  // if the token is found while iterating
-  // over the array, the token is pushed
-  // to userIdArr[]
-  // If at the end of the iteration, the
-  // length of userIdArr[] is exactly 1
-  // then: the token exists and only
-  // one copy of token exists and the boolean
-  // true is returned
-  // If userIdArr[].length is not exactly 1
-  // then either it does not exist, or more than
-  // one copy exists, and the boolean false is returned
-
-  const usersArr = data.users;
-  const tokenArr = [];
-
-  for (const arr of usersArr) {
-    if (arr.token.includes(token)) {
-      tokenArr.push(token);
-    }
-  }
-
-  // not testing for type equality here
-  // as during testing tokenArray.length does not return true
-  // for type number
-  if (tokenArr.length == 1) {
-    return true;
-  }
-
-  return false;
-}
 /**
  * Function to test whether quiz name is valid
  * quiz name is invalid if:
@@ -760,34 +715,4 @@ function isAuthUserIdMatchQuizId(
     return true;
   }
   return false;
-}
-
-/**
- * Function that returns authUserId using token
- * Used in:
- * adminQuizCreate()
- *
- * @param {object} data - the dataStore object
- * @param {number} token - the token of the logged in user
- * ...
- *
- * @returns {array} - authUserId : number
- */
-
-interface AuthUserIdFromToken {
-  authUserId: number;
-}
-function getAuthUserIdUsingToken(
-  data: DataStore,
-  token: string
-): AuthUserIdFromToken {
-  const usersArr = data.users;
-
-  let authUserId;
-  for (const arr of usersArr) {
-    if (arr.token.includes(token)) {
-      authUserId = arr.authUserId;
-    }
-  }
-  return { authUserId };
 }
