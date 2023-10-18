@@ -108,12 +108,14 @@ export { adminQuizInfo };
  * Creates a new quiz for the logged in user, returning an object containing
  * a unique quizId
  *
- * @param {number} authUserId - the id of the person creating the quiz - must exist / be valid / be unique
+ * @param {string} token - the id of the person creating the quiz - must exist / be valid / be unique
  * @param {string} name - name of the quiz being created
  * @param {string} description - description of the quiz being created
  * ...
  *
- * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{array}} - if an error occurs, an array of an
+ * error object containing an error message, and
+ * an errorCode object with error codes 400 or 401
  * @returns {{quizId: number}} - an object with the key quizId and the value the, unique, quizId
  */
 
@@ -545,10 +547,17 @@ function isAuthUserIdValid(data: DataStore, authId: number): boolean {
  * @returns {boolean} - true if token is valid / false if token is not valid
  */
 function isTokenValid(data: DataStore, token: string): boolean {
+<<<<<<< HEAD
   // 1. test for token is integer or less than 0
   // if (!Number.isInteger(token) || token.length < 0) {
   //   return false;
   // }
+=======
+  // 1. test for token is type string or length less than 1
+  if (!(typeof token === 'string') || token.length < 1) {
+    return false;
+  }
+>>>>>>> d2b55666d4bc37cbf4c0b3fb78cfb9f198d49eb5
 
   // 2. test that token exists in dataStore
   // if the token is found while iterating
