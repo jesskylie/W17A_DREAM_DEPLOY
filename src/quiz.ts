@@ -28,12 +28,21 @@ interface IsQuizNameValidReturnObject {
   error?: string;
 }
 
-interface QuizInfo {
+interface QuizInfoReturn {
   quizId: number;
   name: string;
   timeCreated: number;
   timeLastEdited: number;
   description: string;
+}
+
+interface ListArray {
+  quizId: number;
+  name: string;
+}
+
+interface QuizListReturn {
+  quizzes: ListArray[];
 }
 
 // TypeScript interfacts - END
@@ -60,32 +69,32 @@ const MAX_NAME_LENGTH = 30;
  * @returns {{quizInfo}} - an array with all the quiz informations
  */
 function adminQuizInfo(
-  authUserId: number,
+  token: string,
   quizId: number
-): QuizInfo | ErrorObject {
-  const data = getData();
-  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+): QuizInfoReturn | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isTokenValidTest = isTokenValid(data, token);
   const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
     data,
-    authUserId,
+    authUserId.authUserId,
     quizId
   );
-
-  if (!authUserId || !quizId) {
-    return { error: 'AuthUserId and QuizId cannot be empty' };
-  }
-  if (!isAuthUserIdValidTest) {
-    return { error: 'AuthUserId is not a valid user' };
-  }
+  console.log(token);
   if (!isQuizIdValidTest) {
-    return { error: 'QuizId is invalid' };
+    return { error: 'QuizId is invalid', errorCode: 400 };
+  }
+  if (!token) {
+    return { error: 'Token is empty', errorCode: 401 };
+  }
+  if (!isTokenValidTest) {
+    return { error: 'Token is invalid', errorCode: 401 };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: 'QuizId does not match authUserId' };
+    return { error: 'QuizId does not match authUserId', errorCode: 403 };
   }
 
-  // let quizInfo = {};
   for (const check of data.quizzes) {
     if (check.quizId === quizId) {
       return {
@@ -98,7 +107,6 @@ function adminQuizInfo(
     }
   }
 
-  // return quizInfo;
 }
 
 export { adminQuizInfo };
@@ -397,21 +405,26 @@ function doesQuizIdRefer(quizId: number, authUserId: number) {
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
  *
- * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {string} token - the id of the person want to print quizzes - must exist / be valid / be unique
  * ...
  *
- * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
  * @returns {{quizzes: array}} - return all quizzes that contain the user's authUserId
  */
-function adminQuizList(authUserId: number) {
-  const data = getData();
+function adminQuizList(token: string): QuizListReturn | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
   const quizzesList = [];
-  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
-  if (!isAuthUserIdValidTest) {
-    return { error: 'AuthUserId is not a valid user' };
+  const isTokenValidTest = isTokenValid(data, token);
+  const authUserId = getAuthUserIdUsingToken(data, token);
+
+  if (!token) {
+    return { error: 'Token is empty', errorCode: 401 };
+  }
+  if (!isTokenValidTest) {
+    return { error: 'Token is invalid', errorCode: 401 };
   }
   for (const quiz of data.quizzes) {
-    if (quiz.userId.includes(authUserId)) {
+    if (quiz.userId.includes(authUserId.authUserId)) {
       quizzesList.push({
         quizId: quiz.quizId,
         name: quiz.name,
@@ -434,34 +447,36 @@ export { adminQuizList };
  * @returns {} - return nothing
  */
 function adminQuizRemove(
-  authUserId: number,
+  token: string,
   quizId: number
-): Record<string, never> | ErrorObject {
-  const data = getData();
-  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+): Record<string, never> | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isTokenValidTest = isTokenValid(data, token);
   const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
     data,
-    authUserId,
+    authUserId.authUserId,
     quizId
   );
-
-  if (!authUserId || !quizId) {
-    return { error: 'AuthUserId and QuizId cannot be empty' };
-  }
-  if (!isAuthUserIdValidTest) {
-    return { error: 'AuthUserId is not a valid user' };
-  }
+    console.log(data.users);
+    console.log(data.quizzes);
   if (!isQuizIdValidTest) {
-    return { error: 'QuizId is invalid' };
+    return { error: 'QuizId is invalid', errorCode: 400 };
+  }
+  if (!token) {
+    return { error: 'Token is invalid', errorCode: 401 };
+  }
+  if (!isTokenValidTest) {
+    return { error: 'Token is invalid', errorCode: 401 };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: 'QuizId does not match authUserId' };
+    return { error: 'QuizId does not match authUserId', errorCode: 403 };
   }
 
   const newdata = data;
   const userToUpdata = data.users.find(
-    (user) => user.authUserId === authUserId
+    (user) => user.authUserId === authUserId.authUserId
   );
   data.quizzes = data.quizzes.filter((quiz) => quiz.quizId !== quizId);
   if (userToUpdata) {
@@ -471,7 +486,7 @@ function adminQuizRemove(
     }
   }
   for (let check of newdata.users) {
-    if (check.authUserId === authUserId) {
+    if (check.authUserId === authUserId.authUserId) {
       check = userToUpdata;
     }
   }

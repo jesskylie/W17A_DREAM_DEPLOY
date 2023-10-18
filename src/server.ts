@@ -145,44 +145,44 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const result = adminQuizList(token);
   if ('error' in result) {
-    return res.status(401).json(result);
+    return res.status(RESPONSE_ERROR_401).json(result);
   }
-  res.json(result);
+  res.status(RESPONSE_OK_200).json(result);
 });
 
-app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
-  const token = req.params.token as string;
+app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
   const quizId = parseInt(req.params.quizid);
   const result = adminQuizInfo(token, quizId);
   if ('error' in result) {
     console.log('error in response');
-    if (result.errorCode === 400) {
-      return res.status(400).json(result);
-    } else if (result.errorCode === 401) {
-      return res.status(401).json(result);
-    } else if (result.errorCode === 403) {
-      return res.status(403).json(result);
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      console.log(result);
+      return res.status(RESPONSE_ERROR_403).json(result);
     }
-    res.json(result);
   }
-  res.json(result);
+  res.status(RESPONSE_OK_200).json(result);
 });
 
-app.delete('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
-  const token = req.params.token as string;
-  const quizId = parseInt(req.params.quizid);
-  const result = adminQuizRemove(token, quizId);
+app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  // const quizId = parseInt(req.params.quizid);
+  const result = adminQuizRemove(token, parseInt(req.params.quizid));
   if ('error' in result) {
     console.log('error in response');
-    if (result.errorCode === 400) {
-      return res.status(400).json(result);
-    } else if (result.errorCode === 401) {
-      return res.status(401).json(result);
-    } else if (result.errorCode === 403) {
-      return res.status(403).json(result);
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json(result);
     }
-    res.json(result);
   }
+  res.status(RESPONSE_OK_200).json(result);
 });
 
 app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
