@@ -236,7 +236,14 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { token, questionBody } = req.body;
   const response = createQuizQuestion(token, questionBody, quizId);
   if ('error' in response) {
-    return res.status(400).json(response);
+    console.log('error in response');
+    if (response.errorCode === 400) {
+      return res.status(400).json(response);
+    } else if (response.errorCode === 401) {
+      return res.status(401).json(response);
+    } else if (response.errorCode === 403) {
+      return res.status(403).json(response);
+    }
   }
   res.json(response);
 });

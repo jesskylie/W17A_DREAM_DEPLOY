@@ -8,68 +8,96 @@ import {
 
 import { adminAuthRegister } from './auth';
 import { adminQuizCreate } from './quiz';
+import { ErrorObjectWithCode } from './quiz';
 
-interface TokenString {
-  token: string;
-}
+const MIN_QUESTION_LENGTH = 5;
+const MAX_QUESTION_LENGTH = 50;
+const MIN_ANSWERS_LENGTH = 2;
+const MAX_ANSWERS_LENGTH = 6;
 
 interface Question {
-  questionBody: {
-    question: string;
-    duration: number;
-    points: number;
-    answers:
-      {
-        answer: string;
-        correct: boolean;
-      }[];
-  };
-}
+question: string;
+duration: number;
+points: number;
+answers:
+  {
+   answer: string;
+    correct: boolean;
+  }[];
+};
+
 
 export interface QuestionId {
-    questionId: number;
+  questionId: number;
 }
   
 
-export function createQuizQuestion(token: string, question: Question, quizId: number) {
+export function createQuizQuestion(token: string, question: Question, quizId: number): 
+QuestionId |ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
   
-  //gets authUserId number 
-  const authUserIdString = getAuthUserIdUsingToken(data, token);
-  const authUserId = authUserIdString.authUserId
-  
-  //checks if it exists before accessing 
-  let newQuestion;
-  if (question && question.questionBody && question.questionBody.question) {
-    newQuestion = {
-      questionBody: {
-        question: question.questionBody.question,
-        duration: question.questionBody.duration,
-        points: question.questionBody.points,
-        answers: question.questionBody.answers,
-    }
-    };
-}
-  
-  let questionIdNumber;
-  //loop through to find the correct authUserId
-  for (const users of data.users) {
-    if (users.authUserId === authUserId) {
-      if (users.quizId.includes(quizId)) {
-        //found correct quiz
-        const quiz = data.quizzes.find((q) => q.quizId === quizId);
-        if (quiz != undefined) {
-          //push new question to quizzes 
-          quiz.questions.push(newQuestion);
-          questionIdNumber = quiz.questions.length;
-          return {questionId: questionIdNumber};
-        }
-      }
-    }
+  //return errors
+  //Question string is <5 or > 50 error 400
+  if (question.question.length < MIN_QUESTION_LENGTH || question.question.length > MAX_QUESTION_LENGTH) {
+    return { error: 'Question length must be between 5 and 50', errorCode: 400};
   }
- 
-  saveDataInFile(data);
-  return {error: "Error"};
+  
+  //The question has more than 6 answers or less than 2 answers error 400
+  if (question.answers.length < MIN_ANSWERS_LENGTH || question.answers.length > MAX_ANSWERS_LENGTH) {
+    return { error: 'Answers must be between 2 and 6', errorCode: 400};
+  }
+  
+  //The question duration is not a positive number - error 400
+  if (question.duration < 0) {
+    return { error: 'Question duration must be a positive number', errorCode: 400};
+  }
+  
+  // The sum of the question durations in the quiz exceeds 3 minutes - 400
+  
+  // The points awarded for the question are less than 1 or greater than 10 - 400
+  
+  // The length of any answer is shorter than 1 character long, or longer than 30 characters long 
+  
+  // Any answer strings are duplicates of one another (within the same question)
+  
+  // There are no correct answers
+  const correctAnswer = question.answers.find(a => a.correct === true);
+  if (!correctAnswer) {
+    return { error: 'There must be at least one correct answer', errorCode: 400};
+  }
+  
+  //invalid token is error 401
+  if (!token) {
+    return { error: 'Token is empty or invalid', errorCode: 401};
+  }
+  
+  
+  //gets authUserId number from token
+  const authUserIdString = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdString.authUserId;
+
+  //find quiz by quizId number
+  const quiz = data.quizzes.find((q) => q.quizId === quizId);
+  if (quiz) {
+    //checks if this uer owns this quiz
+    if (quiz.userId.includes(authUserId)) {
+      //create new question
+      const newQuestion: Question = {
+        question: question.question,
+        duration: question.duration,
+        points: question.points,
+        answers: question.answers,
+      };
+      //adds question to questions
+      quiz.questions.push(newQuestion);
+      saveDataInFile(data);
+      return { questionId: quiz.questions.length };
+    } else {
+      return { error: "User does not own this quiz", errorCode: 403};
+    }  
+  } else {
+    return { error: "QuizId not found", errorCode: 400 };
+  }
 }
 
 
@@ -98,7 +126,7 @@ export function createQuizQuestion(token: string, question: Question, quizId: nu
 // 		};
 //     const validQuestion2 = {
 // 			questionBody: {
-// 				question: 'What color is the sky?',
+// 				question: 'HELLO ?',
 // 				duration: 2,
 // 				points: 10,
 // 				answers: [
@@ -114,7 +142,7 @@ export function createQuizQuestion(token: string, question: Question, quizId: nu
 // 			}
 // 		};
 //    console.log(createQuizQuestion(admin.token, validQuestion, newQuiz.quizId));
-//     console.log(createQuizQuestion(admin.token, validQuestion2, newQuiz.quizId));
+//    createQuizQuestion(admin.token, validQuestion2, newQuiz.quizId);
 //   }
 // }
 

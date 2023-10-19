@@ -2,7 +2,7 @@ import request from 'sync-request-curl';
 import config from './config.json';
 import { requestDelete, requestAdminRegister } from './auth_2.test';
 import { requestAdminQuizCreate } from './quiz_2.test'
-
+import { Question } from './dataStore';
 
 import {
   RESPONSE_OK_200,
@@ -19,20 +19,6 @@ const url = config.url;
 const SERVER_URL = `${url}:${port}`;
 
 // interfaces used throughout file - START
-
-interface Question {
-  questionBody: {
-    question: string;
-    duration: number;
-    points: number;
-    answers:
-			{
-      	answer: string;
-      	correct: boolean;
-			}[];
-  };
-}
-
 interface RequestResult {
 	body: any;
 	status: number;
@@ -51,10 +37,10 @@ function requestCreateQuestion(token: string, question: Question, quizId: number
     json: {
       token: token,
       questionBody: {
-        question: question.questionBody.question,
-        duration: question.questionBody.duration,
-        points: question.questionBody.points,
-        answers: question.questionBody.answers,
+        question: question.question,
+        duration: question.duration,
+        points: question.points,
+        answers: question.answers,
       },
     },
   });
@@ -65,7 +51,7 @@ function requestCreateQuestion(token: string, question: Question, quizId: number
 	}
 }
 
-describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
+describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 	let token: string;
 	let quizId: number;
 
@@ -78,27 +64,23 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 		if ('quizId' in quizCreateResponse.bodyString) {
 			quizId = quizCreateResponse.bodyString.quizId;
 		}
-	  });
+	});
 	
 	test('Testing successful creating a quiz question', () => {
-
-		const validQuestion = {
-			token: token,
-			questionBody: {
-				question: 'What color is the sky?',
-				duration: 2,
-				points: 10,
-				answers: [
-					{
-						answer: 'Blue',
-						correct: true,
-					},
-					{
-						answer: 'Green',
-						correct: false,
-					},
-				],
-			}
+	  const validQuestion = {
+			question: 'What color is the sky?',
+			duration: 2,
+			points: 10,
+			answers: [
+				{
+					answer: 'Blue',
+					correct: true,
+				},
+				{
+					answer: 'Green',
+					correct: false,
+				},
+			],
 		};
 		const newQuestion = requestCreateQuestion(token, validQuestion, quizId);
 		expect(newQuestion.body).toStrictEqual({ questionId: expect.any(Number) });
@@ -108,25 +90,23 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 	test('Testing QuizId does not refer to valid quiz - error code 400', () => {
 		const validQuestion = {
 			token: token,
-			questionBody: {
-				question: 'What color is the sky?',
-				duration: 2,
-				points: 10,
-				answers: [
-					{
-						answer: 'Blue',
-						correct: true,
-					},
-					{
-						answer: 'Green',
-						correct: false,
+			question: 'What color is the sky?',
+			duration: 2,
+			points: 10,
+			answers: [
+				{
+					answer: 'Blue',
+					correct: true,
+				},
+				{
+					answer: 'Green',
+					correct: false,
 					},
 				],
-			}
 		};
 		const newQuestion = requestCreateQuestion(token, validQuestion, quizId);
 		if (!quizId) {
-			expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+			expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400  });
 			expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 		}
 	});
@@ -134,8 +114,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 	test('Question string is less than 5 characters - error code 400', () => {
 		const shortQuizIdQuestion = {
 			token: token,
-			questionBody: {
-				question: '?',
+			question: '?',
 				duration: 2,
 				points: 10,
 				answers: [
@@ -148,17 +127,17 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, shortQuizIdQuestion, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
 	test('Question string is more than 50 characters - error code 400', () => {
 		const longQuizIdQuestion = {
 			token: token,
-			questionBody: {
+			
 				question: '1234567891 1234567891 1234567891 1234567891 1234567891?',
 				duration: 2,
 				points: 10,
@@ -172,17 +151,17 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, longQuizIdQuestion, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400  });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
 	test('Question duration is not a positive number - error code 400', () => {
 		const negativeLength = {
 			token: token,
-			questionBody: {
+			
 				question: 'What color is the sky?',
 				duration: -1,
 				points: 10,
@@ -196,17 +175,17 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, negativeLength, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
 	test('Question has less than 2 answers - error code 400', () => {
 		const oneAnswer = {
 			token: token,
-			questionBody: {
+			
 				question: 'What color is the sky?',
 				duration: 2,
 				points: 10,
@@ -216,17 +195,17 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: true,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, oneAnswer, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
 	test('Question has more than 6 answers - error code 400', () => {
 		const tooManyAnswers = {
 			token: token,
-			questionBody: {
+			
 				question: 'What color is the sky?',
 				duration: 2,
 				points: 10,
@@ -260,10 +239,10 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct:false,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, tooManyAnswers, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400  });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
@@ -271,7 +250,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 	test('Question duration exceeds 3 minutes - error code 400', () => {
 		const question = {
 			token: token,
-			questionBody: {
+			
 				question: 'What color is the sky?',
 				duration: 10,
 				points: 10,
@@ -285,17 +264,17 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, question, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
 	test('Points awarded for question is not between 1 and 10 - error code 400', () => {
 		const lessThanOne = {
 			token: token,
-			questionBody: {
+		
 				question: 'What color is the sky?',
 				duration: 2,
 				points: 0,
@@ -309,12 +288,12 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		
 		const moreThanTen = {
 			token: token,
-			questionBody: {
+		
 				question: 'What color is the sky?',
 				duration: 10,
 				points: 20,
@@ -328,21 +307,21 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, lessThanOne, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 		
 		const newQuestion2 = requestCreateQuestion(token, moreThanTen, quizId);
-		expect(newQuestion2.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion2.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion2.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
 	test('The length of the answers must be between 1 and 30 characters - error code 400', () => {
 		const lessThanOne = {
 			token: token,
-			questionBody: {
+		
 				question: 'What color is the sky?',
 				duration: 10,
 				points: 10,
@@ -356,12 +335,12 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		
 		const moreThanThirty = {
 			token: token,
-			questionBody: {
+		
 				question: 'What color is the sky?',
 				duration: 10,
 				points: 10,
@@ -375,21 +354,21 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, lessThanOne, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 		
 		const newQuestion2 = requestCreateQuestion(token, moreThanThirty, quizId);
-		expect(newQuestion2.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion2.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion2.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
 	test('Answer strings are duplicates of one another - error code 400', () => {
 		const duplicateAnswers = {
 			token: token,
-			questionBody: {
+			
 				question: 'What color is the sky?',
 				duration: 10,
 				points: 10,
@@ -403,17 +382,17 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: true,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, duplicateAnswers, quizId);
-		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
 	
 	test('There are no correct answers - error code 400', () => {
 		const incorrectAnswers = {
 			token: token,
-			questionBody: {
+			
 				question: 'What is 2 + 2?',
 				duration: 5,
 				points: 10,
@@ -427,18 +406,18 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 	
 		const newQuestion = requestCreateQuestion(token, incorrectAnswers, quizId);
 		expect (newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
-		expect (newQuestion.body).toStrictEqual({ error: expect.any(String) });
+		expect (newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 400 });
 	});
 	
 	test('Testing Token is empty or invalid - error code 401', () => {
 		const validQuestion = {
 			token: token,
-			questionBody: {
+			
 				question: 'What color is the sky?',
 				duration: 2,
 				points: 10,
@@ -452,11 +431,11 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 						correct: false,
 					},
 				],
-			}
+			
 		};
 		const newQuestion = requestCreateQuestion(token, validQuestion, quizId);
 		if (!token) {
-			expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
+			expect(newQuestion.body).toStrictEqual({ error: expect.any(String), errorCode: 401});
 			expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_401);
 		}
 	});
