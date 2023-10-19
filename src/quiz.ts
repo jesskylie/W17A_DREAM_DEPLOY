@@ -56,7 +56,6 @@ interface AnswerArray {
 */
 }
 
-
 interface ListArray {
   quizId: number;
   name: string;
@@ -112,7 +111,10 @@ function adminQuizInfo(
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: 'QuizId does not match authUserId', errorCode: RESPONSE_ERROR_403 };
+    return {
+      error: 'QuizId does not match authUserId',
+      errorCode: RESPONSE_ERROR_403,
+    };
   }
 
   for (const check of data.quizzes) {
@@ -132,7 +134,6 @@ function adminQuizInfo(
       };
     }
   }
-
 }
 
 export { adminQuizInfo };
@@ -173,7 +174,10 @@ function adminQuizCreate(
   const isTokenValidTest = isTokenValid(data, token);
 
   if (!isTokenValidTest) {
-    return { error: 'Token is empty or invalid', errorCode: RESPONSE_ERROR_401 };
+    return {
+      error: 'Token is empty or invalid',
+      errorCode: RESPONSE_ERROR_401,
+    };
   }
 
   // 2a. get authUserId using token
@@ -244,74 +248,6 @@ function adminQuizCreate(
 
 export { adminQuizCreate };
 
-// function adminQuizCreate(
-//   authUserId: number,
-//   name: string,
-//   description: string
-// ): QuizId | ErrorObject {
-//   let data = getData();
-//   // 1. check that authUserId is valid
-//   // if not, then return error
-//   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
-
-//   if (!isAuthUserIdValidTest) {
-//     return { error: 'AuthUserId is not a valid user' };
-//   }
-
-//   // 2. check that quiz name is valid
-//   // if not, then return error
-//   const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
-
-//   if (!isQuizNameValidTest.result) {
-//     return { error: isQuizNameValidTest.error };
-//   }
-
-//   // 3. check that description is not more than 100 characters in length
-//   // if not, then return error
-//   if (description.length > MAX_DESCRIPTION_LENGTH) {
-//     return {
-//       error:
-//         'Description is more than 100 characters in length (note: empty strings are OK)',
-//     };
-//   }
-
-//   // determine new quizId
-//   // Inspiration taken from adminAuthRegister() in auth.js
-//   const length = data.quizzes.length;
-//   let newQuizId;
-//   if (length === 0) {
-//     newQuizId = 0;
-//   } else {
-//     newQuizId = data.quizzes[length - 1].quizId + 1;
-//   }
-
-//   // Inspiration taken from
-//   // https://stackoverflow.com/questions/3830244/how-to-get-the-current-date-or-and-time-in-seconds
-//   const timeStamp = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
-
-//   data.quizzes.push({
-//     quizId: newQuizId,
-//     name,
-//     description,
-//     timeCreated: timeStamp,
-//     timeLastEdited: timeStamp,
-//     userId: [authUserId],
-//   });
-
-//   // Add quizId to quizId[] array in data.users
-//   // Step 1. mutate relevant array of authUserId from data.users
-
-//   pushNewQuizIdToUserArray(data, authUserId, newQuizId);
-
-//   setData(data);
-
-//   return {
-//     quizId: newQuizId,
-//   };
-// }
-
-// export { adminQuizCreate };
-
 /**
  * Update the name of the relevant quiz.
  *
@@ -332,11 +268,17 @@ function adminQuizDescriptionUpdate(
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
 
   if (!isAuthUserIdValidTest) {
-    return { error: 'AuthUserId is not a valid user', errorCode: RESPONSE_ERROR_401 };
+    return {
+      error: 'AuthUserId is not a valid user',
+      errorCode: RESPONSE_ERROR_401,
+    };
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: 'quizId does not refer to a valid quiz.', errorCode: RESPONSE_ERROR_400 };
+    return {
+      error: 'quizId does not refer to a valid quiz.',
+      errorCode: RESPONSE_ERROR_400,
+    };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId)) {
@@ -380,12 +322,18 @@ function adminQuizNameUpdate(
   const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId.authUserId);
   for (const user of data.users) {
     if (!user.token.includes(token)) {
-      return { error: 'Token is invalid or empty', errorCode: RESPONSE_ERROR_401 };
+      return {
+        error: 'Token is invalid or empty',
+        errorCode: RESPONSE_ERROR_401,
+      };
     }
   }
 
   if (!isQuizIdValid(data, quizId)) {
-    return { error: 'QuizId does not refer to a valid quiz.', errorCode: RESPONSE_ERROR_400 };
+    return {
+      error: 'QuizId does not refer to a valid quiz.',
+      errorCode: RESPONSE_ERROR_400,
+    };
   }
 
   if (!doesQuizIdRefer(quizId, authUserId.authUserId)) {
@@ -486,8 +434,8 @@ function adminQuizRemove(
     authUserId.authUserId,
     quizId
   );
-    // console.log(data.users);
-    // console.log(data.quizzes);
+  // console.log(data.users);
+  // console.log(data.quizzes);
   if (!isQuizIdValidTest) {
     return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
@@ -498,7 +446,10 @@ function adminQuizRemove(
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
   if (!isAuthUserIdMatchQuizIdTest) {
-    return { error: 'QuizId does not match authUserId', errorCode: RESPONSE_ERROR_403 };
+    return {
+      error: 'QuizId does not match authUserId',
+      errorCode: RESPONSE_ERROR_403,
+    };
   }
 
   const newdata = data;

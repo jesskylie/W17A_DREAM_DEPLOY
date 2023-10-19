@@ -32,7 +32,7 @@ interface ErrorObject {
   error: string;
 }
 
-interface UserInfo {
+export interface UserInfo {
   user: {
     authUserId: number;
     name: string;
@@ -53,6 +53,10 @@ interface UserData {
   numFailedPasswordsSinceLastLogin: number;
   quizId: number[];
   token: string[];
+}
+
+interface AdminUserDetailUpdateReturn {
+  detailsUpdateResponse: Record<string, never> | ErrorObjectWithCode;
 }
 
 // TypeScript interfaces - END
@@ -341,6 +345,107 @@ function adminAuthLogout(token: string): Record<string, never> | ErrorObject {
 }
 
 export { adminAuthLogout };
+
+/**
+ * Updates the details of a user: email, firstName, lastName
+ * Returns an empty object if successful
+ * Returns two error types if an error occurs
+ * error 400: errors relating to invalid names or emails
+ * error 401: error relating to an empty or invalid token
+ *
+ * @param {string} token - user's current sessionId
+ * @param {string} email - new email of user
+ * @param {string} nameFirst - new first name of user
+ * @param {string} nameLast - new last name of user
+ *
+ * @returns {void} - returns {} on successful password change
+ * @returns {{error: string}} - on error
+ */
+function adminUserDetailUpdate(
+  token: string,
+  email: string,
+  nameFirst: string,
+  nameLast: string
+): AdminUserDetailUpdateReturn {
+  const data = retrieveDataFromFile();
+  // step 1: check for valid token
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+
+  if (!isTokenValidTest) {
+    return {
+      detailsUpdateResponse: {
+        error: 'Token is empty or invalid',
+        errorCode: RESPONSE_ERROR_401,
+      },
+    };
+  }
+
+  // step 1a get authUserId from token
+
+  const authUserIdTest = getAuthUserIdUsingToken(data, token)
+    .authUserId as number;
+
+  // step 2: check if email is currently used by another user (excluding the current authorised user)
+  const userArr = data.users;
+  for (const user of userArr) {
+    if (user.authUserId != authUserIdTest && user.email === email) {
+      return {
+        detailsUpdateResponse: {
+          error:
+            'Email is currently used by another user (excluding the current authorised user)',
+          errorCode: RESPONSE_ERROR_400,
+        },
+      };
+    }
+  }
+
+  // step 2: check if email satisifes NPM email validator package
+  if (!isEmail(email)) {
+    return {
+      detailsUpdateResponse: {
+        error:
+          'Email does not satisfy this: https://www.npmjs.com/package/validator (validator.isEmail)',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // step 4: check if nameFirst is valid
+  if (!isValidName(nameFirst)) {
+    return {
+      detailsUpdateResponse: {
+        error: 'The first name is not valid',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // step 5: check if nameLast is valid
+  if (!isValidName(nameLast)) {
+    return {
+      detailsUpdateResponse: {
+        error: 'The last name is not valid',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // step 6: all negative conditions have been passed, now update the user details
+
+  for (const user of userArr) {
+    if (user.token.includes(token)) {
+      (user.email = email),
+        (user.nameFirst = nameFirst),
+        (user.nameLast = nameLast);
+    }
+  }
+
+  saveDataInFile(data);
+
+  return { detailsUpdateResponse: {} };
+}
+
+export { adminUserDetailUpdate };
 
 // Helper functions
 
