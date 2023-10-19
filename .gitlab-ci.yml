@@ -1,4 +1,4 @@
-image: node:18-bullseye-slim
+image: comp1531/automarking:latest
 
 stages:
   - checks
@@ -7,28 +7,35 @@ before_script:
   - echo 'Installing dependencies'
   - npm install
 
-tests:
+testing:
   stage: checks
   only:
     - master
     - merge_requests
   script:
-    - echo 'Running tests'
-
+    - echo "Running tests"
+    - npm install
     - SERVER_LOG=$(mktemp)
-    - npm run start >& $SERVER_LOG &
-    - timeout 10s grep -q "⚡️ Server started on port" <(tail -f $SERVER_LOG) || exit 1
-    - timeout -s SIGINT 180s npm run test || (cat $SERVER_LOG && exit 1)
-    - kill -SIGINT %1
+
+    # # Start server in background and capture output in temp file
+    - npm start &> $SERVER_LOG & pid=$!
     - sleep 2
+    - ps -o pid | egrep -q "^\s*${pid}$" || (cat $SERVER_LOG && exit 1)
+
+    # # Run test then kill server
+    - npm test || (cat $SERVER_LOG && exit 1)
+    - sleep 1
+    - kill -SIGINT %1
+
     - cat $SERVER_LOG
-    - npm run test
+
+    - npm test
 
 linting:
   stage: checks
-  script:
-    - echo "Running linters"
-    - npm run lint
   only:
     - master
     - merge_requests
+  script:
+    - echo 'Running linters'
+    - npm run lint
