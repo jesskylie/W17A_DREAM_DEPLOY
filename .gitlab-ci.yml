@@ -15,18 +15,13 @@ testing:
   script:
     - echo "Running tests"
     - npm install
+
     - SERVER_LOG=$(mktemp)
-
-    # # Start server in background and capture output in temp file
-    - npm start &> $SERVER_LOG & pid=$!
-    - sleep 2
-    - ps -o pid | egrep -q "^\s*${pid}$" || (cat $SERVER_LOG && exit 1)
-
-    # # Run test then kill server
-    - npm test || (cat $SERVER_LOG && exit 1)
-    - sleep 1
+    - npm run start >& $SERVER_LOG &
+    - timeout 10s grep -q "⚡️ Server started on port" <(tail -f $SERVER_LOG) || (cat $SERVER_LOG && exit 1)
+    - timeout -s SIGINT 180s npm run test || (cat $SERVER_LOG && exit 1)
     - kill -SIGINT %1
-
+    - sleep 2
     - cat $SERVER_LOG
 
     - npm test
