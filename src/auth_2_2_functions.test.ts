@@ -4,6 +4,7 @@ import config from './config.json';
 
 import {
   RESPONSE_OK_200,
+  RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   WAIT_TIME,
 } from './library/constants';
@@ -15,7 +16,6 @@ import {
   UserInfo,
   adminUserDetailUpdate,
 } from './auth';
-import { Token } from 'yaml/dist/parse/cst';
 
 // interfaces used throughout file - START
 
@@ -23,7 +23,7 @@ interface ErrorObject {
   error: string;
 }
 
-interface RequestAdminLogoutReturn {
+interface RequestGenericReturn {
   statusCode: number;
   bodyString: ErrorObject | Record<string, never>;
 }
@@ -61,10 +61,30 @@ function requestAdminRegister(
   return JSON.parse(res.body.toString());
 }
 
-function requestAdminLogout(token: string): RequestAdminLogoutReturn {
+function requestAdminLogout(token: string): RequestGenericReturn {
   const res = request('POST', SERVER_URL + '/v1/admin/auth/logout', {
     json: {
       token,
+    },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+
+  return { bodyString, statusCode };
+}
+
+function requestAdminUserDetailUpdate(
+  token: string,
+  email: string,
+  nameFirst: string,
+  nameLast: string
+): RequestGenericReturn {
+  const res = request('PUT', SERVER_URL + '/v1/admin/user/details', {
+    json: {
+      token,
+      email,
+      nameFirst,
+      nameLast,
     },
   });
   const bodyString = JSON.parse(res.body.toString());
@@ -186,7 +206,7 @@ describe('test /v1/admin/auth/logout : Returns an empty object -> EXPECT 200 SUC
     if ('token' in testRegisterRt) {
       const token = testRegisterRt.token;
 
-      const testLogout = requestAdminLogout(token) as RequestAdminLogoutReturn;
+      const testLogout = requestAdminLogout(token) as RequestGenericReturn;
 
       // test for returned empty object
       if ('bodyString' in testLogout) {
@@ -215,10 +235,9 @@ describe('test /v1/admin/auth/logout : Returns an error object -> EXPECT ERROR C
     requestClear();
 
     // logout user
-    // logout user
     const token = '';
 
-    const testLogout = requestAdminLogout(token) as RequestAdminLogoutReturn;
+    const testLogout = requestAdminLogout(token) as RequestGenericReturn;
 
     // test for returned empty object
     if ('bodyString' in testLogout) {
@@ -250,7 +269,7 @@ describe('test /v1/admin/auth/logout : Returns an error object -> EXPECT ERROR C
 // --------------------------------------------------
 // Test suite for adminUserDetailUpdate function - START
 // from swagger.yaml
-// Updat the details of an admin user (non-password)
+// Update the details of an admin user (non-password)
 // Function test 1 - OK - adminUserDetailUpdate
 
 describe('test adminUserDetailUpdate function : Returns an empty object -> EXPECT 200 SUCCESS', () => {
@@ -748,3 +767,496 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 });
 
 // Test suite for adminUserDetailUpdate function - END
+
+// --------------------------------------------------
+// Test suite for PUT /v1/admin/user/details route adminUserDetailUpdate() - START
+// from swagger.yaml
+// Update the details of an admin user (non-password)
+
+// Route test 1 - OK - adminUserDetailUpdate
+describe('test /v1/admin/user/details : Returns an empty object -> EXPECT 200 SUCCESS', () => {
+  test('Returns empty object -> EXPECT SUCESS CODE 200', () => {
+    requestClear();
+
+    // Create user
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    const tokenTest = testRegisterRt.token;
+
+    const newEmail = 'peter@gmail.com';
+    const newNameFirst = 'Peter';
+    const newNameLast = 'Archibald';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      newEmail,
+      newNameFirst,
+      newNameLast
+    ) as RequestGenericReturn;
+
+    // test for empty object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testEmptyObject = testAdminUserDetailUpdateRt.bodyString;
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testEmptyObject).toStrictEqual({});
+      expect(testStatusCode).toStrictEqual(RESPONSE_OK_200);
+    } else {
+      // throw an error if detailsUpdateResponse not in testAdminUserDetailUpdateRt
+      expect(true).toStrictEqual(false);
+    }
+  });
+});
+
+// Route tests ERROR - EMAIL AND NAMES INVALID
+describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SUCCESS', () => {
+  // invalid name / email test 2
+  test('Returns error object email used by another user -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // Create user secondary
+    const email2 = 'peter@gmail.com';
+    const password2 = 'password123456789';
+    const nameFirst2 = 'Peter';
+    const nameLast2 = 'Archibald';
+
+    const testRegisterRt2 = requestAdminRegister(
+      email2,
+      password2,
+      nameFirst2,
+      nameLast2
+    ) as TokenString;
+
+    // update user main's details with user secondary's email
+
+    const tokenTest = testRegisterRt.token;
+
+    const newEmail = 'peter@gmail.com';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      newEmail,
+      nameFirst,
+      nameLast
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // invalid name / email test 3
+  test('Returns error object email not valid -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // update user main's details with invalid email
+
+    const tokenTest = testRegisterRt.token;
+
+    const newEmail = 'peter@gmail';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      newEmail,
+      nameFirst,
+      nameLast
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // invalid name / email test 4
+  test('Returns error object nameFirst not valid character requirements not satisified -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // update user main's details with invalid email
+
+    const tokenTest = testRegisterRt.token;
+
+    const newNameFirst = '!Paul*';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      email,
+      newNameFirst,
+      nameLast
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // invalid name / email test 5
+  test('Returns error object nameFirst not valid less than 2 characters -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // update user main's details with invalid email
+
+    const tokenTest = testRegisterRt.token;
+
+    const newNameFirst = 'P';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      email,
+      newNameFirst,
+      nameLast
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // invalid name / email test 6
+  test('Returns error object nameFirst not valid more than 20 characters -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // update user main's details with invalid email
+
+    const tokenTest = testRegisterRt.token;
+
+    const newNameFirst =
+      'Pppppppaaaaaaaaaaaaaaaauuuuuuuuuuuuuuuuuuuuullllllllllllllllllllllll';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      email,
+      newNameFirst,
+      nameLast
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // invalid name / email test 7
+  test('Returns error object nameLast not valid character requirements not satisifed -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // update user main's details with invalid email
+
+    const tokenTest = testRegisterRt.token;
+
+    const newLastFirst = '!!Re#ynolds)';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      email,
+      nameFirst,
+      newLastFirst
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // invalid name / email test 8
+  test('Returns error object nameLast not valid less than 2 characters -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // update user main's details with invalid email
+
+    const tokenTest = testRegisterRt.token;
+
+    const newLastFirst = 'R';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      email,
+      nameFirst,
+      newLastFirst
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // invalid name / email test 9
+  test('Returns error object nameLast not valid more than 20 characters -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // update user main's details with invalid email
+
+    const tokenTest = testRegisterRt.token;
+
+    const newLastFirst =
+      'Rrrrrrrrrreeeeeeeeeeeeyyyyyyyyyyyynnnnnnnnnnnnooooooooooollllllllllllddddddddddssss';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      email,
+      nameFirst,
+      newLastFirst
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // invalid name / email test 10
+  test('Returns error object token is empty or invalid -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+
+    // Create user main
+    const email = 'paulemail3@gmail.com';
+    const password = 'password123456789';
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterRt = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as TokenString;
+
+    // update user main's details with invalid email
+
+    let tokenTest;
+
+    const newLastFirst = 'Archibald';
+
+    const testAdminUserDetailUpdateRt = requestAdminUserDetailUpdate(
+      tokenTest,
+      email,
+      nameFirst,
+      newLastFirst
+    ) as RequestGenericReturn;
+
+    // test for error object
+    if ('bodyString' in testAdminUserDetailUpdateRt) {
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('error' in testObject) {
+        const testErrorObject = { error: testObject.error };
+        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
+        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+});
+
+// Test suite for PUT /v1/admin/user/details route adminUserDetailUpdate() - END
