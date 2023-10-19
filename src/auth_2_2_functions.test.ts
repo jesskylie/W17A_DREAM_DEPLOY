@@ -13,6 +13,7 @@ import {
   adminUserDetails,
   adminAuthLogout,
   UserInfo,
+  adminUserDetailUpdate,
 } from './auth';
 import { Token } from 'yaml/dist/parse/cst';
 
@@ -270,9 +271,9 @@ describe('test adminUserDetailUpdate function : Returns an empty object -> EXPEC
     ) as TokenString;
 
     // Update user details
-    const newEmail = 'paulemail3@gmail.com';
-    const newNameFirst = 'Paul';
-    const newNameLast = 'Reynolds';
+    const newEmail = 'peter@gmail.com';
+    const newNameFirst = 'Peter';
+    const newNameLast = 'Archibald';
 
     const token = testRegisterFn.token;
     const testadminUserDetailUpdateFn = adminUserDetailUpdate(
@@ -281,8 +282,9 @@ describe('test adminUserDetailUpdate function : Returns an empty object -> EXPEC
       newNameFirst,
       newNameLast
     );
+
     // test for returned empty object
-    expect(testadminUserDetailUpdateFn).toStrictEqual({});
+    expect(testadminUserDetailUpdateFn.detailsUpdateResponse).toStrictEqual({});
 
     // test for invalid token (token does not exist now)
 
@@ -290,10 +292,32 @@ describe('test adminUserDetailUpdate function : Returns an empty object -> EXPEC
       | UserInfo
       | ErrorObject;
 
-    if ('error' in testForNoUserDetails) {
-      const errorObject = testForNoUserDetails;
+    const oldUserDetailObj = {
+      user: [
+        {
+          authUserId: 0,
+          name: nameFirst.concat(' ', nameLast),
+          email: email,
+          numSuccessfulLogins: 1,
+          numFailedPasswordsSinceLastLogin: 0,
+        },
+      ],
+    };
+
+    const newUserDetailObj = {
+      user: {
+        authUserId: 0,
+        name: newNameFirst.concat(' ', newNameLast),
+        email: newEmail,
+        numSuccessfulLogins: 1,
+        numFailedPasswordsSinceLastLogin: 0,
+      },
+    };
+
+    if ('user' in testForNoUserDetails) {
       // test for error object
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+      expect(testForNoUserDetails).toStrictEqual(newUserDetailObj);
+      expect(testForNoUserDetails).not.toStrictEqual(oldUserDetailObj);
     } else {
       // if 'error' not in testForNoUserDetails deliberately throw error
       expect(true).toStrictEqual(false);
@@ -319,38 +343,46 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
       nameLast
     ) as TokenString;
 
+    // await new Promise((res) => setTimeout(res, WAIT_TIME));
+
     // create user 2 - completely different
     const email2 = 'peteremail3@gmail.com';
     const password2 = 'password123456789';
     const nameFirst2 = 'Peter';
     const nameLast2 = 'Archibald';
 
-    adminAuthRegister(email2, password2, nameFirst2, nameLast2) as TokenString;
+    adminAuthRegister(email2, password2, nameFirst2, nameLast2);
 
     // Update user 1 with same email as user 2
 
     // Update user details
     const newEmail = 'peteremail3@gmail.com';
-    const newNameFirst = 'Paul';
-    const newNameLast = 'Reynolds';
 
     const token = testRegisterFn.token;
     const testadminUserDetailUpdateFn = adminUserDetailUpdate(
       token,
       newEmail,
-      newNameFirst,
-      newNameLast
+      nameFirst,
+      nameLast
     );
 
     // test for error object
 
-    if ('error' in testadminUserDetailUpdateFn) {
-      const errorObject = testadminUserDetailUpdateFn.error;
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject = { error: testErrorObject.error };
+        expect(errorObject).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
     } else {
+      // throw an error
       expect(true).toStrictEqual(false);
     }
   });
+
   // Function test 3 - email does not conform with NPM email validator package
   test('Returns error object due email not satisfying NPM Email Validator -> EXPECT ERROR OBJECT', () => {
     requestClear();
@@ -382,14 +414,21 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
     );
 
     // test for error object
-
-    if ('error' in testadminUserDetailUpdateFn) {
-      const errorObject = testadminUserDetailUpdateFn.error;
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject2 = { error: testErrorObject.error };
+        expect(errorObject2).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
     } else {
+      // throw an error
       expect(true).toStrictEqual(false);
     }
   });
+
   // Function test 4 - nameFirst contains characters other than lowercase, uppercase, spaces, hyphens, or apostrophes
   test('Returns error object due NameFirst not satisfying character requirements -> EXPECT ERROR OBJECT', () => {
     requestClear();
@@ -408,7 +447,7 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
     ) as TokenString;
 
     // Update user details
-    const newEmail = 'paulnewemail@gmail';
+    const newEmail = 'paulnewemail@gmail.com';
     const newNameFirst = '$Paul!!';
     const newNameLast = 'Reynolds';
 
@@ -422,10 +461,17 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 
     // test for error object
 
-    if ('error' in testadminUserDetailUpdateFn) {
-      const errorObject = testadminUserDetailUpdateFn.error;
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject2 = { error: testErrorObject.error };
+        expect(errorObject2).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
     } else {
+      // throw an error
       expect(true).toStrictEqual(false);
     }
   });
@@ -448,7 +494,7 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
     ) as TokenString;
 
     // Update user details
-    const newEmail = 'paulnewemail@gmail';
+    const newEmail = 'paulnewemail@gmail.com';
     const newNameFirst = 'P';
     const newNameLast = 'Reynolds';
 
@@ -462,10 +508,17 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 
     // test for error object
 
-    if ('error' in testadminUserDetailUpdateFn) {
-      const errorObject = testadminUserDetailUpdateFn.error;
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject2 = { error: testErrorObject.error };
+        expect(errorObject2).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
     } else {
+      // throw an error
       expect(true).toStrictEqual(false);
     }
   });
@@ -488,7 +541,7 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
     ) as TokenString;
 
     // Update user details
-    const newEmail = 'paulnewemail@gmail';
+    const newEmail = 'paulnewemail@gmail.com';
     const newNameFirst =
       'Ppppppppppppppppaaaaaaaaaaaaaaaaauuuuuuuuuuuuuuuuuuuuuuulllllllllllllllllll';
     const newNameLast = 'Reynolds';
@@ -503,10 +556,17 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 
     // test for error object
 
-    if ('error' in testadminUserDetailUpdateFn) {
-      const errorObject = testadminUserDetailUpdateFn.error;
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject2 = { error: testErrorObject.error };
+        expect(errorObject2).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
     } else {
+      // throw an error
       expect(true).toStrictEqual(false);
     }
   });
@@ -529,7 +589,7 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
     ) as TokenString;
 
     // Update user details
-    const newEmail = 'paulnewemail@gmail';
+    const newEmail = 'paulnewemail@gmail.com';
     const newNameFirst = 'Paul';
     const newNameLast = '!!Reyno^^lds***';
 
@@ -543,10 +603,17 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 
     // test for error object
 
-    if ('error' in testadminUserDetailUpdateFn) {
-      const errorObject = testadminUserDetailUpdateFn.error;
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject2 = { error: testErrorObject.error };
+        expect(errorObject2).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
     } else {
+      // throw an error
       expect(true).toStrictEqual(false);
     }
   });
@@ -569,7 +636,7 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
     ) as TokenString;
 
     // Update user details
-    const newEmail = 'paulnewemail@gmail';
+    const newEmail = 'paulnewemail@gmail.com';
     const newNameFirst = 'Paul';
     const newNameLast = 'R';
 
@@ -583,10 +650,17 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 
     // test for error object
 
-    if ('error' in testadminUserDetailUpdateFn) {
-      const errorObject = testadminUserDetailUpdateFn.error;
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject2 = { error: testErrorObject.error };
+        expect(errorObject2).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
     } else {
+      // throw an error
       expect(true).toStrictEqual(false);
     }
   });
@@ -599,7 +673,7 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
     const email = 'paulemail3@gmail.com';
     const password = 'password123456789';
     const nameFirst = 'Paul';
-    const nameLast = 'R';
+    const nameLast = 'Reynolds';
 
     const testRegisterFn = adminAuthRegister(
       email,
@@ -609,7 +683,7 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
     ) as TokenString;
 
     // Update user details
-    const newEmail = 'paulnewemail@gmail';
+    const newEmail = 'paulnewemail@gmail.com';
     const newNameFirst = 'Paul';
     const newNameLast =
       'Rrrrrrrrrrrrreeeeeeeeeeeeeeeeeyyyyyyyyyyyyyyynnnnnnnnnnnnnnnoooooooooooolllllllllllddddddddddddsssssssssssss';
@@ -624,10 +698,50 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 
     // test for error object
 
-    if ('error' in testadminUserDetailUpdateFn) {
-      const errorObject = testadminUserDetailUpdateFn.error;
-      expect(errorObject).toStrictEqual({ error: expect.any(String) });
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject2 = { error: testErrorObject.error };
+        expect(errorObject2).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
     } else {
+      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+  });
+  // Function test 10 - token is empty or invalid (does not refer to valid logged in user session)
+  test('Returns error object due token is empty or invalid -> EXPECT ERROR OBJECT', () => {
+    requestClear();
+
+    // Update user details
+    const newEmail = 'paulnewemail@gmail.com';
+    const newNameFirst = 'Paul';
+    const newNameLast = 'Reynolds';
+
+    let token;
+    const testadminUserDetailUpdateFn = adminUserDetailUpdate(
+      token,
+      newEmail,
+      newNameFirst,
+      newNameLast
+    );
+
+    // test for error object
+
+    if ('detailsUpdateResponse' in testadminUserDetailUpdateFn) {
+      const testErrorObject = testadminUserDetailUpdateFn.detailsUpdateResponse;
+      if ('error' in testErrorObject) {
+        const errorObject2 = { error: testErrorObject.error };
+        expect(errorObject2).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // throw an error
+        expect(true).toStrictEqual(false);
+      }
+    } else {
+      // throw an error
       expect(true).toStrictEqual(false);
     }
   });
