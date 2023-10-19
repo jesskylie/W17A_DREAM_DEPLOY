@@ -11,6 +11,7 @@ import process from 'process';
 import { adminAuthRegister, adminUserDetails, adminAuthLogin, updatePassword } from './auth';
 import { clear, newClear } from './other';
 import { adminQuizCreate, adminQuizInfo, adminQuizList, adminQuizRemove, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
+import { createQuizQuestion } from './question'
 
 import {
   RESPONSE_OK_200,
@@ -204,6 +205,16 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   }
   res.json(response);
 });
+
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid);
+  const { token, questionBody } = req.body;
+  const response = createQuizQuestion(token, questionBody);
+  if ('error' in response) {
+    return res.status(400).json(response);
+  }
+  res.json(response);
+})
 
 // ***********************************************************************
 

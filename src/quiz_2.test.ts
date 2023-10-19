@@ -33,7 +33,7 @@ function requestAdminRegister(
   return JSON.parse(res.body.toString());
 }
 
-const requestadminAuthLogin = (
+const requestAdminAuthLogin = (
   email: string,
   password: string
 ): RequestAdminAuthLoginReturn => {
@@ -145,7 +145,7 @@ beforeAll(() => {
 
 // // Helper functions:
 
-const requestadminQuizCreate = (
+export const requestAdminQuizCreate = (
   token: string,
   name: string,
   description: string
@@ -156,7 +156,7 @@ const requestadminQuizCreate = (
   return {statusCode: res.statusCode, bodyString: JSON.parse(res.body.toString())};
 };
 
-const requestadminQuizInfo = (token: string, quizid: number): RequestAdminQuizInfoReturn => {
+const requestAdminQuizInfo = (token: string, quizid: number): RequestAdminQuizInfoReturn => {
   const res = request(
     'GET',
     SERVER_URL + `v1/admin/quiz/${quizid}`,
@@ -166,7 +166,7 @@ const requestadminQuizInfo = (token: string, quizid: number): RequestAdminQuizIn
   return {statusCode: res.statusCode, bodyString: bodyString};
 };
 
-const requestadminQuizRemove = (token: string, quizid: number): RequestAdminQuizRemoveReturn => {
+const requestAdminQuizRemove = (token: string, quizid: number): requestAdminQuizRemoveReturn => {
   const res = request(
     'DELETE',
     SERVER_URL + `v1/admin/quiz/${quizid}`,
@@ -187,7 +187,7 @@ const requestadminQuizRemove = (token: string, quizid: number): RequestAdminQuiz
   return bodyObject;
 };
 
-const requestadminQuizList = (token: string): RequestAdminQuizListReturn => {
+const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
   const res = request(
     'GET',
     SERVER_URL + `v1/admin/quiz/list`,
@@ -211,9 +211,9 @@ const requestadminQuizList = (token: string): RequestAdminQuizListReturn => {
 // tests:
 describe('adminQuizInfo testing', () => {
   // the interface above is not working and idk why so i leave these to be any first
-  // let JackUser: RequestAdminAuthRegisterReturn;
-  // let JackAuthUserId: RequestadminAuthLoginReturn;
-  // let QuizOne: RequestadminQuizCreateReturn;
+  // let JackUser: requestAdminAuthRegisterReturn;
+  // let JackAuthUserId: requestAdminAuthLoginReturn;
+  // let QuizOne: requestAdminQuizCreateReturn;
   beforeAll(() => {
     requestAdminRegister(
       'jack@hotmail.com',
@@ -223,13 +223,13 @@ describe('adminQuizInfo testing', () => {
     );
   });
   test('StatusCode 200: Valid input', () => {
-    let returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    let QuizOne = requestadminQuizCreate(
+    let returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    let QuizOne = requestAdminQuizCreate(
       returnToken.token,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
-    const quiz1Info = requestadminQuizInfo(
+    const quiz1Info = requestAdminQuizInfo(
       returnToken.token,
       QuizOne.quizId
     );
@@ -242,12 +242,12 @@ describe('adminQuizInfo testing', () => {
       description: 'this is my first quiz',
     });
 
-    const QuizTwo = requestadminQuizCreate(
+    const QuizTwo = requestAdminQuizCreate(
       returnToken.token,
       'Quiz Two',
       'this is my second quiz'
     ).bodyString as QuizId;
-    const quiz2Info = requestadminQuizInfo(
+    const quiz2Info = requestAdminQuizInfo(
       returnToken.token,
       QuizTwo.quizId
     );
@@ -261,8 +261,8 @@ describe('adminQuizInfo testing', () => {
   });
 
   test('Error 400: empty QuizId and invalid QuizId', () => {
-    let returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const emptyQuizId = requestadminQuizInfo(
+    let returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const emptyQuizId = requestAdminQuizInfo(
       returnToken.token,
       ''
     );
@@ -270,7 +270,7 @@ describe('adminQuizInfo testing', () => {
     expect(emptyQuizId.bodyString).toStrictEqual({
       error: expect.any(String),
     });
-    const invalidQuizId = requestadminQuizInfo(
+    const invalidQuizId = requestAdminQuizInfo(
       returnToken.token,
       'S'
     );
@@ -281,23 +281,23 @@ describe('adminQuizInfo testing', () => {
   });
 
   test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
     requestAdminRegister(
       'tony@hotmail.com',
       'ab123456b',
       'Tony',
       'Stark'
     );
-    const returnToken2 = requestadminAuthLogin(
+    const returnToken2 = requestAdminAuthLogin(
       'tony@hotmail.com',
       'ab123456b'
     ).bodyString as Token;
-    const TonyQuiz = requestadminQuizCreate(
+    const TonyQuiz = requestAdminQuizCreate(
       returnToken2.token,
       'Jack',
       'Tony quiz'
     ).bodyString as QuizId;
-    const quizIdNotReferToUser1 = requestadminQuizInfo(
+    const quizIdNotReferToUser1 = requestAdminQuizInfo(
       returnToken.token,
       TonyQuiz.quizId
     );
@@ -318,17 +318,17 @@ describe('Testing adminQuizRemove', () => {
     );
   })
   test('Status Code 200: Correct input', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const QuizOne = requestadminQuizCreate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const QuizOne = requestAdminQuizCreate(
       returnToken.token,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
-    requestadminQuizRemove(
+    requestAdminQuizRemove(
       returnToken.token, 
       QuizOne.quizId
       );
-    const checkQuizIsRemoved = requestadminQuizCreate(
+    const checkQuizIsRemoved = requestAdminQuizCreate(
       returnToken.token,
       'Quiz Check',
       'this is the only quiz'
@@ -339,8 +339,8 @@ describe('Testing adminQuizRemove', () => {
   });
 
   test('Error 400: Empty input for QuizId', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const emptyQuizId = requestadminQuizRemove(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const emptyQuizId = requestAdminQuizRemove(
       returnToken.token, 
       ''
     );
@@ -351,8 +351,8 @@ describe('Testing adminQuizRemove', () => {
   });
 
   test('Error 400: Invalid QuizId', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const invalidQuizId = requestadminQuizRemove(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const invalidQuizId = requestAdminQuizRemove(
       returnToken.token,
       'abc'
     );
@@ -363,14 +363,14 @@ describe('Testing adminQuizRemove', () => {
   });
 
   test('Error 403: QuizId does not refer to a quiz that this user owns', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const returnToken2 = requestadminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
-    const AdamQuizId = requestadminQuizCreate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const returnToken2 = requestAdminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
+    const AdamQuizId = requestAdminQuizCreate(
       returnToken2.token,
       'Jess',
       'description'
     ).bodyString as QuizId;
-    const quizIdNotReferToUser = requestadminQuizRemove(
+    const quizIdNotReferToUser = requestAdminQuizRemove(
       returnToken.token,
       AdamQuizId.quizId
     );
@@ -389,18 +389,18 @@ describe('adminQuizList testing', () => {
       'Jack',
       'Harlow'
     );
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const QuizOne = requestadminQuizCreate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const QuizOne = requestAdminQuizCreate(
       returnToken.token,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
-    const QuizTwo = requestadminQuizCreate(
+    const QuizTwo = requestAdminQuizCreate(
       returnToken.token,
       'Quiz Two',
       'this is my second quiz'
     ).bodyString as QuizId;
-    const QuizPrint = requestadminQuizList(returnToken.token);
+    const QuizPrint = requestAdminQuizList(returnToken.token);
     expect(QuizPrint.bodyString).toStrictEqual({
       quizzes: [
         {
@@ -421,14 +421,14 @@ describe('adminQuizList testing', () => {
     });
   });
   test('Error 401: invalid token', () => {
-    const invalidToken = requestadminQuizList('invalid');
+    const invalidToken = requestAdminQuizList('invalid');
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
     });
   });
   test('Error 401: empty token', () => {
-    const invalidToken = requestadminQuizList('');
+    const invalidToken = requestAdminQuizList('');
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -863,11 +863,11 @@ describe.only('Testing adminQuizNameUpdate', () => {
     );
   })
   test('Status Code 200: Correct input', () => {
-    let returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab');
+    let returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab');
     returnToken.bodyString = returnToken.bodyString as Token;
     console.log(returnToken);
    console.log(returnToken.bodyString.token);
-    const QuizOne = requestadminQuizCreate(
+    const QuizOne = requestAdminQuizCreate(
       returnToken.bodyString.token,
       'helllllllo',
       'this is my first quiz'
@@ -875,13 +875,13 @@ describe.only('Testing adminQuizNameUpdate', () => {
     console.log(QuizOne)
     console.log(QuizOne.quizId);
 
-    console.log(requestadminQuizNameUpdate(
+    console.log(requestAdminQuizNameUpdate(
       returnToken.bodyString.token, 
       QuizOne.quizId,
       'NewName'
     ));
 
-    const adminQuizUpdatedInfo = requestadminQuizInfo(
+    const adminQuizUpdatedInfo = requestAdminQuizInfo(
       returnToken.bodyString.token, 
       QuizOne.quizId
     ).bodyString as Quizzes;
@@ -893,8 +893,8 @@ describe.only('Testing adminQuizNameUpdate', () => {
 
   test('Error 400: incorrect QuizId', () => {
 
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const IncorrectQuizId = requestadminQuizNameUpdate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const IncorrectQuizId = requestAdminQuizNameUpdate(
       returnToken.token, 
       -999,
       'Updated name'
@@ -908,14 +908,14 @@ describe.only('Testing adminQuizNameUpdate', () => {
 
   
   test('Error 400: Name contains invalid characters.', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const QuizOne = requestadminQuizCreate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const QuizOne = requestAdminQuizCreate(
       returnToken.token,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
 
-    const IncorrectName = requestadminQuizNameUpdate(
+    const IncorrectName = requestAdminQuizNameUpdate(
       returnToken.token, 
       QuizOne.quizId,
       'NewName#$$%3'
@@ -925,14 +925,14 @@ describe.only('Testing adminQuizNameUpdate', () => {
   });
 
   test('Error 400: Name less than 3 characters.', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const QuizOne = requestadminQuizCreate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const QuizOne = requestAdminQuizCreate(
       returnToken.token,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
 
-    const IncorrectName = requestadminQuizNameUpdate(
+    const IncorrectName = requestAdminQuizNameUpdate(
       returnToken.token, 
       QuizOne.quizId,
       'lo'
@@ -942,14 +942,14 @@ describe.only('Testing adminQuizNameUpdate', () => {
     });
 
   test('Error 400: Name more than 30 characters.', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const QuizOne = requestadminQuizCreate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const QuizOne = requestAdminQuizCreate(
       returnToken.token,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
 
-    const IncorrectName = requestadminQuizNameUpdate(
+    const IncorrectName = requestAdminQuizNameUpdate(
       returnToken.token, 
       QuizOne.quizId,
       'lrovkitivnvnvruvrnrunvvnvnfvbyubuuififjeifrvivefvnfeivefvinfvrververve'
@@ -960,8 +960,8 @@ describe.only('Testing adminQuizNameUpdate', () => {
   });
 
   test('Error 400: incorrect QuizId', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const IncorrectQuizId = requestadminQuizNameUpdate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const IncorrectQuizId = requestAdminQuizNameUpdate(
       returnToken.token, 
       -999,
       'Updated name'
@@ -974,13 +974,13 @@ describe.only('Testing adminQuizNameUpdate', () => {
   
 
   test('Error 401: Empty authUserId', () => {
-    const returnToken2 = requestadminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
-    const AdamQuizId = requestadminQuizCreate(
+    const returnToken2 = requestAdminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
+    const AdamQuizId = requestAdminQuizCreate(
       returnToken2.token,
       'Jess',
       'description'
     ).bodyString as QuizId;
-    const quizIdNotReferToUser = requestadminQuizNameUpdate(
+    const quizIdNotReferToUser = requestAdminQuizNameUpdate(
       '',
       AdamQuizId.quizId,
       'updatedName'
@@ -992,13 +992,13 @@ describe.only('Testing adminQuizNameUpdate', () => {
   });
 
   test('Error 401: Invalid authUserId', () => {
-    const returnToken2 = requestadminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
-    const AdamQuizId = requestadminQuizCreate(
+    const returnToken2 = requestAdminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
+    const AdamQuizId = requestAdminQuizCreate(
       returnToken2.token,
       'Jess',
       'description'
     ).bodyString as QuizId;
-    const quizIdNotReferToUser = requestadminQuizNameUpdate(
+    const quizIdNotReferToUser = requestAdminQuizNameUpdate(
       'InvalidAuthUserId$3',
       AdamQuizId.quizId,
       'updatedName'
@@ -1010,14 +1010,14 @@ describe.only('Testing adminQuizNameUpdate', () => {
   });
 
   test('Error 403: QuizId does not refer to a quiz that this user owns', () => {
-    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const returnToken2 = requestadminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
-    const AdamQuizId = requestadminQuizCreate(
+    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const returnToken2 = requestAdminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
+    const AdamQuizId = requestAdminQuizCreate(
       returnToken2.token,
       'Jess',
       'description'
     ).bodyString as QuizId;
-    const quizIdNotReferToUser = requestadminQuizNameUpdate(
+    const quizIdNotReferToUser = requestAdminQuizNameUpdate(
       returnToken.token,
       AdamQuizId.quizId,
       'updatedName'
