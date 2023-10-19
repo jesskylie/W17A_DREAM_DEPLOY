@@ -223,6 +223,7 @@ function adminQuizCreate(
     timeCreated: timeStamp,
     timeLastEdited: timeStamp,
     userId: [authUserId.authUserId],
+    questions: [],
   });
 
   // Add quizId to quizId[] array in data.users

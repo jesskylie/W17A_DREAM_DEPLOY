@@ -68,7 +68,7 @@ describe('HTTP tests using Jest', () => {
   });
 });
 
-function requestAdminRegister(
+export function requestAdminRegister(
   email: string,
   password: string,
   nameFirst: string,
@@ -307,7 +307,7 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 });
 
-function requestDelete() {
+export function requestDelete() {
   const res = request('DELETE', SERVER_URL + '/v1/clear');
   return {
     body: JSON.parse(res.body.toString()),
@@ -406,19 +406,13 @@ describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
       nameFirst,
       nameLast
     );
-
-    console.log('testRegister->', testRegister);
-
     const loginResponse = requestPersonLogin(email, password);
-
-    console.log('loginResponse->', loginResponse);
-
-    if ('token' in loginResponse) {
-      const token = loginResponse.token;
-      console.log(token);
-    } else {
-      console.log(loginResponse.error);
-    }
+    // if ('token' in loginResponse) {
+    //   const token = loginResponse.token;
+    //   console.log(token);
+    // } else {
+    //   console.log(loginResponse.error);
+    // }
     expect(requestPersonLogin(email, password)).toStrictEqual({
       token: expect.any(String),
     });

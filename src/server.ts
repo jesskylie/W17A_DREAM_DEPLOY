@@ -24,7 +24,7 @@ import {
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
 } from './quiz';
-// import { createQuizQuestion } from './question'
+import { createQuizQuestion } from './question'
 
 import {
   RESPONSE_OK_200,
@@ -33,6 +33,7 @@ import {
   RESPONSE_ERROR_403,
 } from './library/constants';
 import { request } from 'http';
+
 
 // Set up web app
 const app = express();
@@ -233,7 +234,7 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   const { token, questionBody } = req.body;
-  const response = createQuizQuestion(token, questionBody);
+  const response = createQuizQuestion(token, questionBody, quizId);
   if ('error' in response) {
     return res.status(400).json(response);
   }

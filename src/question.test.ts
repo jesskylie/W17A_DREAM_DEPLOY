@@ -21,7 +21,6 @@ const SERVER_URL = `${url}:${port}`;
 // interfaces used throughout file - START
 
 interface Question {
-  token: string;
   questionBody: {
     question: string;
     duration: number;
@@ -35,7 +34,7 @@ interface Question {
 }
 
 interface RequestResult {
-	body: string;
+	body: any;
 	status: number;
 }
   
@@ -46,11 +45,11 @@ beforeEach(() => {
     requestDelete();
   });
 
-function requestCreateQuestion(question: Question): RequestResult
+function requestCreateQuestion(token: string, question: Question, quizId: number): RequestResult
 {
-  const res = request('POST', SERVER_URL + '/v1/admin/quiz/:quizid/question', {
+  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/question`, {
     json: {
-      token: question.token,
+      token: token,
       questionBody: {
         question: question.questionBody.question,
         duration: question.questionBody.duration,
@@ -66,7 +65,7 @@ function requestCreateQuestion(question: Question): RequestResult
 	}
 }
 
-describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
+describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 	let token: string;
 	let quizId: number;
 
@@ -101,7 +100,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(validQuestion);
+		const newQuestion = requestCreateQuestion(token, validQuestion, quizId);
 		expect(newQuestion.body).toStrictEqual({ questionId: expect.any(Number) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_OK_200);
 	});
@@ -125,7 +124,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(validQuestion);
+		const newQuestion = requestCreateQuestion(token, validQuestion, quizId);
 		if (!quizId) {
 			expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 			expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
@@ -151,7 +150,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(shortQuizIdQuestion);
+		const newQuestion = requestCreateQuestion(token, shortQuizIdQuestion, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -175,7 +174,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(longQuizIdQuestion);
+		const newQuestion = requestCreateQuestion(token, longQuizIdQuestion, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -199,7 +198,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(negativeLength);
+		const newQuestion = requestCreateQuestion(token, negativeLength, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -219,7 +218,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(oneAnswer);
+		const newQuestion = requestCreateQuestion(token, oneAnswer, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -263,7 +262,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(tooManyAnswers);
+		const newQuestion = requestCreateQuestion(token, tooManyAnswers, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -288,7 +287,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(question);
+		const newQuestion = requestCreateQuestion(token, question, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -331,11 +330,11 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(lessThanOne);
+		const newQuestion = requestCreateQuestion(token, lessThanOne, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 		
-		const newQuestion2 = requestCreateQuestion(moreThanTen);
+		const newQuestion2 = requestCreateQuestion(token, moreThanTen, quizId);
 		expect(newQuestion2.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion2.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -378,11 +377,11 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(lessThanOne);
+		const newQuestion = requestCreateQuestion(token, lessThanOne, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 		
-		const newQuestion2 = requestCreateQuestion(moreThanThirty);
+		const newQuestion2 = requestCreateQuestion(token, moreThanThirty, quizId);
 		expect(newQuestion2.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion2.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -406,7 +405,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(duplicateAnswers);
+		const newQuestion = requestCreateQuestion(token, duplicateAnswers, quizId);
 		expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 		expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 	});
@@ -431,7 +430,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 			}
 		};
 	
-		const newQuestion = requestCreateQuestion(incorrectAnswers);
+		const newQuestion = requestCreateQuestion(token, incorrectAnswers, quizId);
 		expect (newQuestion.status).toStrictEqual(RESPONSE_ERROR_400);
 		expect (newQuestion.body).toStrictEqual({ error: expect.any(String) });
 	});
@@ -455,7 +454,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question', () => {
 				],
 			}
 		};
-		const newQuestion = requestCreateQuestion(validQuestion);
+		const newQuestion = requestCreateQuestion(token, validQuestion, quizId);
 		if (!token) {
 			expect(newQuestion.body).toStrictEqual({ error: expect.any(String) });
 			expect(newQuestion.status).toStrictEqual(RESPONSE_ERROR_401);
