@@ -14,6 +14,7 @@ import {
   adminAuthLogin,
   updatePassword,
   adminAuthLogout,
+  adminUserDetailUpdate,
 } from './auth';
 import { clear, newClear } from './other';
 import {
@@ -24,7 +25,7 @@ import {
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
 } from './quiz';
-import { createQuizQuestion } from './question'
+import { createQuizQuestion } from './question';
 
 import {
   RESPONSE_OK_200,
@@ -33,7 +34,6 @@ import {
   RESPONSE_ERROR_403,
 } from './library/constants';
 import { request } from 'http';
-
 
 // Set up web app
 const app = express();
@@ -142,6 +142,29 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
       return res.status(400).json(response);
     } else if (response.errorCode === 401) {
       return res.status(401).json(response);
+    }
+  }
+  res.json(response);
+});
+
+// POST request to route /v1/admin/user/details
+// From swagger.yaml:
+// Update the details of an admin user (non-password)
+
+app.put('/v1/admin/user/details', (req: Request, res: Response) => {
+  const { token, email, nameFirst, nameLast } = req.body;
+
+  const response = adminUserDetailUpdate(token, email, nameFirst, nameLast);
+
+  if ('detailsUpdateResponse' in response) {
+    const testObj = response.detailsUpdateResponse;
+    if ('error' in testObj) {
+      const testStatusCode = testObj.errorCode;
+      if (testStatusCode === 400) {
+        return res.status(400).json(response);
+      } else if (testStatusCode === 401) {
+        return res.status(401).json(response);
+      }
     }
   }
   res.json(response);

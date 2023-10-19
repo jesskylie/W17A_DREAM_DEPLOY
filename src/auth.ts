@@ -113,7 +113,6 @@ export function adminAuthRegister(
 
   // Iteration 2: New data retrieval system - START
   const data: DataStore = retrieveDataFromFile();
-  // const data = getData();
   // Iteration 2: New data retrieval system - END
 
   //email address is already in use
@@ -155,7 +154,6 @@ export function adminAuthRegister(
 
   // Iteration 2: New data save system - START
   saveDataInFile(data);
-  // setData(data);
   // Iteration 2: New data save system - END
 
   // setData(data);
@@ -370,7 +368,6 @@ function adminUserDetailUpdate(
   nameLast: string
 ): AdminUserDetailUpdateReturn {
   const data = retrieveDataFromFile();
-  // const data = getData();
   // step 1: check for valid token
   const isTokenValidTest = isTokenValid(data, token) as boolean;
 
@@ -387,9 +384,6 @@ function adminUserDetailUpdate(
 
   const authUserIdTest = getAuthUserIdUsingToken(data, token)
     .authUserId as number;
-
-  console.log('auth.ts - got to here 1');
-  console.log(data);
 
   // step 2: check if email is currently used by another user (excluding the current authorised user)
   const userArr = data.users;
@@ -447,7 +441,7 @@ function adminUserDetailUpdate(
   }
 
   saveDataInFile(data);
-  // setData(data);
+
   return { detailsUpdateResponse: {} };
 }
 

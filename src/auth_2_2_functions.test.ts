@@ -23,13 +23,32 @@ interface ErrorObject {
   error: string;
 }
 
+export interface ErrorObjectWithCode {
+  error: string;
+  errorCode: number;
+}
+
 interface RequestGenericReturn {
   statusCode: number;
   bodyString: ErrorObject | Record<string, never>;
 }
 
+interface AdminUserDetailUpdateReturn {
+  detailsUpdateResponse: Record<string, never> | ErrorObjectWithCode;
+}
+
+interface RequestAdminDetailsUpdateServerReturn {
+  bodyString: AdminUserDetailUpdateReturn;
+  statusCode: number;
+}
+
 interface TokenString {
   token: string;
+}
+
+interface RequestUserDetailsReturn {
+  bodyString: UserInfo | ErrorObject;
+  statusCode: number;
 }
 
 // interfaces used throughout file - END
@@ -78,13 +97,25 @@ function requestAdminUserDetailUpdate(
   email: string,
   nameFirst: string,
   nameLast: string
-): RequestGenericReturn {
+): RequestAdminDetailsUpdateServerReturn {
   const res = request('PUT', SERVER_URL + '/v1/admin/user/details', {
     json: {
       token,
       email,
       nameFirst,
       nameLast,
+    },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+
+  return { bodyString, statusCode };
+}
+
+function requestGetAdminUserDetail(token: string): RequestUserDetailsReturn {
+  const res = request('GET', SERVER_URL + '/v1/admin/user/details', {
+    qs: {
+      token,
     },
   });
   const bodyString = JSON.parse(res.body.toString());
@@ -312,15 +343,13 @@ describe('test adminUserDetailUpdate function : Returns an empty object -> EXPEC
       | ErrorObject;
 
     const oldUserDetailObj = {
-      user: [
-        {
-          authUserId: 0,
-          name: nameFirst.concat(' ', nameLast),
-          email: email,
-          numSuccessfulLogins: 1,
-          numFailedPasswordsSinceLastLogin: 0,
-        },
-      ],
+      user: {
+        authUserId: 0,
+        name: nameFirst.concat(' ', nameLast),
+        email: email,
+        numSuccessfulLogins: 1,
+        numFailedPasswordsSinceLastLogin: 0,
+      },
     };
 
     const newUserDetailObj = {
@@ -802,16 +831,58 @@ describe('test /v1/admin/user/details : Returns an empty object -> EXPECT 200 SU
       newEmail,
       newNameFirst,
       newNameLast
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for empty object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
-      const testEmptyObject = testAdminUserDetailUpdateRt.bodyString;
+      const testObject = testAdminUserDetailUpdateRt.bodyString;
+      if ('detailsUpdateResponse' in testObject) {
+        const testEmptyObj = testObject.detailsUpdateResponse;
+        expect(testEmptyObj).toStrictEqual({});
+      }
       const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-      expect(testEmptyObject).toStrictEqual({});
+
       expect(testStatusCode).toStrictEqual(RESPONSE_OK_200);
     } else {
       // throw an error if detailsUpdateResponse not in testAdminUserDetailUpdateRt
+      expect(true).toStrictEqual(false);
+    }
+
+    // now check that original user details no longer exist
+    const testUserDetails = requestGetAdminUserDetail(
+      tokenTest
+    ) as RequestUserDetailsReturn;
+
+    const oldUserDetailObj = {
+      user: {
+        authUserId: 0,
+        name: nameFirst.concat(' ', nameLast),
+        email: email,
+        numSuccessfulLogins: 1,
+        numFailedPasswordsSinceLastLogin: 0,
+      },
+    };
+
+    const newUserDetailObj = {
+      user: {
+        authUserId: 0,
+        name: newNameFirst.concat(' ', newNameLast),
+        email: newEmail,
+        numSuccessfulLogins: 1,
+        numFailedPasswordsSinceLastLogin: 0,
+      },
+    };
+
+    if ('bodyString' in testUserDetails) {
+      const testBodyString = testUserDetails.bodyString;
+      if ('user' in testBodyString) {
+        const user = { user: testBodyString.user };
+        expect(user).toStrictEqual(newUserDetailObj);
+        expect(user).not.toStrictEqual(oldUserDetailObj);
+      } else {
+        expect(true).toStrictEqual(false);
+      }
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
@@ -842,7 +913,7 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     const nameFirst2 = 'Peter';
     const nameLast2 = 'Archibald';
 
-    const testRegisterRt2 = requestAdminRegister(
+    requestAdminRegister(
       email2,
       password2,
       nameFirst2,
@@ -860,22 +931,28 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       newEmail,
       nameFirst,
       nameLast
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
@@ -907,22 +984,28 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       newEmail,
       nameFirst,
       nameLast
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
@@ -954,22 +1037,28 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       email,
       newNameFirst,
       nameLast
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
@@ -1001,22 +1090,28 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       email,
       newNameFirst,
       nameLast
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
@@ -1049,22 +1144,28 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       email,
       newNameFirst,
       nameLast
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
@@ -1096,22 +1197,28 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       email,
       nameFirst,
       newLastFirst
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
@@ -1143,22 +1250,28 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       email,
       nameFirst,
       newLastFirst
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
@@ -1191,27 +1304,33 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       email,
       nameFirst,
       newLastFirst
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
-  // invalid name / email test 10
-  test('Returns error object token is empty or invalid -> EXPECT ERROR CODE 400', () => {
+  // invalid toekn test 10
+  test('Returns error object token is empty or invalid -> EXPECT ERROR CODE 401', () => {
     requestClear();
 
     // Create user main
@@ -1238,22 +1357,28 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
       email,
       nameFirst,
       newLastFirst
-    ) as RequestGenericReturn;
+    ) as RequestAdminDetailsUpdateServerReturn;
 
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('error' in testObject) {
-        const testErrorObject = { error: testObject.error };
-        expect(testErrorObject).toStrictEqual({ error: expect.any(String) });
-        const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
-        expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
+      if ('detailsUpdateResponse' in testObject) {
+        const testObj2 = testObject.detailsUpdateResponse;
+        if ('error' in testObj2) {
+          const testErrorObj = { error: testObj2.error };
+          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
+        }
       } else {
-        // throw an error
         expect(true).toStrictEqual(false);
       }
     } else {
-      // throw an error
+      expect(true).toStrictEqual(false);
+    }
+
+    if ('statusCode' in testAdminUserDetailUpdateRt) {
+      const testStatusCode = testAdminUserDetailUpdateRt.statusCode;
+      expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_401);
+    } else {
       expect(true).toStrictEqual(false);
     }
   });
