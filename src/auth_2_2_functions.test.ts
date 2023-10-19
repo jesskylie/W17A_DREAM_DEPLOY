@@ -109,7 +109,13 @@ describe('test adminLogout : Returns an empty object -> EXPECT SUCCESS', () => {
         const errorObject = testForNoUserDetails;
         // test for error object
         expect(errorObject).toStrictEqual({ error: expect.any(String) });
+      } else {
+        // if 'error' not in testForNoUserDetails deliberately throw error
+        expect(true).toStrictEqual(false);
       }
+    } else {
+      // if 'token' not in testRegisterFn deliberately throw error
+      expect(true).toStrictEqual(false);
     }
   });
 });
@@ -128,6 +134,9 @@ describe('test adminLogout : Token is invalid or empty -> EXPECT ERROR', () => {
 
       // test for error object
       expect(errorObj).toStrictEqual({ error: expect.any(String) });
+    } else {
+      // if 'error' not in testLogoutFn deliberately throw error
+      expect(true).toStrictEqual(false);
     }
   });
 });
@@ -165,12 +174,21 @@ describe('test /v1/admin/auth/logout : Returns an empty object -> EXPECT 200 SUC
       // test for returned empty object
       if ('bodyString' in testLogout) {
         expect(testLogout.bodyString).toStrictEqual({});
+      } else {
+        // if 'bodyString' not in testLogout deliberately throw error
+        expect(true).toStrictEqual(false);
       }
 
       if ('statusCode' in testLogout) {
         const statusCode = testLogout.statusCode;
         expect(statusCode).toStrictEqual(RESPONSE_OK_200);
+      } else {
+        // if 'statusCode' not in testLogout deliberately throw error
+        expect(true).toStrictEqual(false);
       }
+    } else {
+      // if 'token' not in testRegisterRt deliberately throw error
+      expect(true).toStrictEqual(false);
     }
   });
 });
@@ -191,12 +209,21 @@ describe('test /v1/admin/auth/logout : Returns an error object -> EXPECT ERROR C
         expect(testLogout.bodyString).toStrictEqual({
           error: expect.any(String),
         });
+      } else {
+        // if 'error' not in testLogout.bodyString deliberately throw error
+        expect(true).toStrictEqual(false);
       }
+    } else {
+      // if 'bodyString' not in testLogout deliberately throw error
+      expect(true).toStrictEqual(false);
     }
 
     if ('statusCode' in testLogout) {
       const statusCode = testLogout.statusCode;
       expect(statusCode).toStrictEqual(RESPONSE_ERROR_401);
+    } else {
+      // if 'statusCode' not in testLogout deliberately throw error
+      expect(true).toStrictEqual(false);
     }
   });
 });
