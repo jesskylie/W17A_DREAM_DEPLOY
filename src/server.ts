@@ -16,7 +16,6 @@ import {
   adminAuthLogout,
 } from './auth';
 import { clear, newClear } from './other';
-import { createQuizQuestion } from './question'
 import {
   adminQuizCreate,
   adminQuizInfo,
@@ -25,6 +24,7 @@ import {
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
 } from './quiz';
+import { createQuizQuestion } from './question'
 
 import {
   RESPONSE_OK_200,
@@ -66,8 +66,6 @@ app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   const ret = echo(data);
   if ('error' in ret) {
-    
-    
     res.status(400);
   }
   return res.json(ret);

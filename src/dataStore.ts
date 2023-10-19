@@ -53,6 +53,8 @@
 //   ],
 // };
 
+import { QuestionDotToken } from "typescript";
+
 // YOU SHOULDNT NEED TO MODIFY THE FUNCTIONS BELOW IN ITERATION 1
 
 /*
@@ -88,6 +90,7 @@ export interface DataStore {
   quizzes: Quizzes[];
   trash: Quizzes[];
 }
+
 export interface Users {
   authUserId: number;
   nameFirst: string;
@@ -108,6 +111,20 @@ export interface Quizzes {
   timeCreated: number;
   timeLastEdited: number;
   userId: number[];
+  questions: Question[];
+}
+
+interface Question {
+  questionBody: {
+    question: string;
+    duration: number;
+    points: number;
+    answers:
+      {
+        answer: string;
+        correct: boolean;
+      }[];
+  };
 }
 
 export let data: DataStore = {
