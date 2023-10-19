@@ -32,7 +32,7 @@ interface ErrorObject {
   error: string;
 }
 
-interface UserInfo {
+export interface UserInfo {
   user: {
     authUserId: number;
     name: string;
