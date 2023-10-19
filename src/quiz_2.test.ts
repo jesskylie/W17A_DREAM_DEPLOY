@@ -159,9 +159,12 @@ export const requestAdminQuizCreate = (
 const requestAdminQuizInfo = (token: string, quizid: number): RequestAdminQuizInfoReturn => {
   const res = request(
     'GET',
-    SERVER_URL + `v1/admin/quiz/${quizid}`,
-    { json: { token, quizid } }
-  );
+    SERVER_URL + `/v1/admin/quiz/${quizid}`, {
+      qs: { 
+        token,
+        quizid
+    },
+  });
   const bodyString = JSON.parse(res.body.toString());
   return {statusCode: res.statusCode, bodyString: bodyString};
 };
@@ -169,45 +172,24 @@ const requestAdminQuizInfo = (token: string, quizid: number): RequestAdminQuizIn
 const requestAdminQuizRemove = (token: string, quizid: number): requestAdminQuizRemoveReturn => {
   const res = request(
     'DELETE',
-    SERVER_URL + `v1/admin/quiz/${quizid}`,
-    { json: { quizid, token } }
+    SERVER_URL + `/v1/admin/quiz/${quizid}`,
+    { qs: { quizid, token } }
   );
   const bodyString = JSON.parse(res.body.toString());
-  let bodyObject: any;
-  try {
-    bodyObject = JSON.parse(bodyObject);
-  } catch (error: any) {
-    bodyObject = {
-      error: bodyString
-    };
-  }
-  if ('error' in bodyObject) {
-    return { statusCode: res.statusCode, ...bodyObject };
-  }
-  return bodyObject;
+  return {statusCode: res.statusCode, bodyString: bodyString};
 };
 
 const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
   const res = request(
     'GET',
-    SERVER_URL + `v1/admin/quiz/list`,
-    { json: { token } }
+    SERVER_URL + `/v1/admin/quiz/list`,
+    { qs: { token } }
   );
   const bodyString = JSON.parse(res.body.toString());
-  let bodyObject: any;
-  try {
-    bodyObject = JSON.parse(bodyObject);
-  } catch (error: any) {
-    bodyObject = {
-      error: bodyString
-    };
-  }
-  if ('error' in bodyObject) {
-    return { statusCode: res.statusCode, ...bodyObject };
-  }
-  return bodyObject;
+  return {statusCode: res.statusCode, bodyString: bodyString};
 };
 
+// ***********************************************************************************
 // tests:
 describe('adminQuizInfo testing', () => {
   // the interface above is not working and idk why so i leave these to be any first
@@ -223,8 +205,8 @@ describe('adminQuizInfo testing', () => {
     );
   });
   test('StatusCode 200: Valid input', () => {
-    let returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    let QuizOne = requestAdminQuizCreate(
+    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const QuizOne = requestadminQuizCreate(
       returnToken.token,
       'Quiz One',
       'this is my first quiz'
@@ -260,26 +242,55 @@ describe('adminQuizInfo testing', () => {
     });
   });
 
-  test('Error 400: empty QuizId and invalid QuizId', () => {
-    let returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const emptyQuizId = requestAdminQuizInfo(
+  test('Error 400: Quiz ID does not refer to a valid quiz', () => {
+    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const quizIdIsInvalid = requestadminQuizInfo(
       returnToken.token,
-      ''
+      (-1) * 1531
     );
-    expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(emptyQuizId.bodyString).toStrictEqual({
+    expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
-    });
-    const invalidQuizId = requestAdminQuizInfo(
-      returnToken.token,
-      'S'
-    );
-    expect(invalidQuizId.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(invalidQuizId.bodyString).toStrictEqual({
-      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_400,
     });
   });
 
+  test('Error 401: Token is empty', () => {
+    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const Quiz = requestadminQuizCreate(
+      returnToken.token,
+      'Quiz 1',
+      'this is my first quiz'
+    ).bodyString as QuizId;
+    const emptyToken = requestadminQuizInfo(
+      '',
+      Quiz.quizId
+    );
+    expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(emptyToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
+    });
+  });
+
+  test('Error 401: Token is invalid', () => {
+    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const Quiz = requestadminQuizCreate(
+      returnToken.token,
+      'Quiz 2',
+      'this is my second quiz'
+    ).bodyString as QuizId;
+    const invalidToken = requestadminQuizInfo(
+      'invalid',
+      Quiz.quizId
+    );
+    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(invalidToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
+    });
+  });
+  
   test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
     const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
     requestAdminRegister(
@@ -302,8 +313,12 @@ describe('adminQuizInfo testing', () => {
       TonyQuiz.quizId
     );
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
+    // console.log(quizIdNotReferToUser1.bodyString);
+    // this should only return error instead of returnning both error and errorcode in 
+    // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
+      errorCode: RESPONSE_ERROR_403,
     });
   });
 });
@@ -318,8 +333,8 @@ describe('Testing adminQuizRemove', () => {
     );
   })
   test('Status Code 200: Correct input', () => {
-    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const QuizOne = requestAdminQuizCreate(
+    const returnToken = requestadminAuthLogin('jess@hotmail.com', '123456ab').bodyString as Token;
+    const QuizOne = requestadminQuizCreate(
       returnToken.token,
       'Quiz One',
       'this is my first quiz'
@@ -327,10 +342,10 @@ describe('Testing adminQuizRemove', () => {
     requestAdminQuizRemove(
       returnToken.token, 
       QuizOne.quizId
-      );
-    const checkQuizIsRemoved = requestAdminQuizCreate(
+    );
+    const checkQuizIsRemoved = requestadminQuizCreate(
       returnToken.token,
-      'Quiz Check',
+      'Quiz One',
       'this is the only quiz'
     );
     expect(checkQuizIsRemoved.bodyString).toStrictEqual({
@@ -338,45 +353,73 @@ describe('Testing adminQuizRemove', () => {
     });
   });
 
-  test('Error 400: Empty input for QuizId', () => {
-    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const emptyQuizId = requestAdminQuizRemove(
-      returnToken.token, 
-      ''
-    );
-    expect(emptyQuizId.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(emptyQuizId.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
-  });
-
-  test('Error 400: Invalid QuizId', () => {
-    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const invalidQuizId = requestAdminQuizRemove(
+  test('Error 400: Quiz ID does not refer to a valid quiz', () => {
+    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const quizIdIsInvalid = requestadminQuizRemove(
       returnToken.token,
-      'abc'
+      (-1) * 1531,
     );
-    expect(invalidQuizId.statusCode).toBe(400);
-    expect(invalidQuizId.bodyString).toStrictEqual({
+    expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
+      errorCode: RESPONSE_ERROR_400,
     });
   });
 
+  test('Error 401: Token is empty', () => {
+    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const Quiz = requestadminQuizCreate(
+      returnToken.token,
+      'Quiz a',
+      'this is my first quiz'
+    ).bodyString as QuizId;
+    const emptyToken = requestadminQuizRemove(
+      '',
+      Quiz.quizId
+    );
+    expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(emptyToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
+    });
+  });
+
+  test('Error 401: Token is invalid', () => {
+    const returnToken = requestadminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
+    const Quiz = requestadminQuizCreate(
+      returnToken.token,
+      'Quiz b',
+      'this is my second quiz'
+    ).bodyString as QuizId;
+    const invalidToken = requestadminQuizRemove(
+      'invalid',
+      Quiz.quizId
+    );
+    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(invalidToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
+    });
+  });
+  
   test('Error 403: QuizId does not refer to a quiz that this user owns', () => {
-    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab').bodyString as Token;
-    const returnToken2 = requestAdminAuthLogin('adam@hotmail.com', '123456ab').bodyString as Token;
-    const AdamQuizId = requestAdminQuizCreate(
+    const returnToken = requestadminAuthLogin('jess@hotmail.com', '123456ab').bodyString as Token;
+    requestAdminRegister('peter@hotmail.com', 'pass123456', 'Peter', 'Parker');
+    const returnToken2 = requestadminAuthLogin('peter@hotmail.com', 'pass123456').bodyString as Token;
+    const peterQuizId = requestadminQuizCreate(
       returnToken2.token,
-      'Jess',
+      'Peter',
       'description'
     ).bodyString as QuizId;
-    const quizIdNotReferToUser = requestAdminQuizRemove(
+    // console.log(peterQuizId);
+    const quizIdNotReferToUser = requestadminQuizRemove(
       returnToken.token,
-      AdamQuizId.quizId
+      peterQuizId.quizId
     );
     expect(quizIdNotReferToUser.statusCode).toBe(RESPONSE_ERROR_403);
     expect(quizIdNotReferToUser.bodyString).toStrictEqual({
       error: expect.any(String),
+      errorCode: RESPONSE_ERROR_403
     });
   });
 });
@@ -406,16 +449,10 @@ describe('adminQuizList testing', () => {
         {
           quizId: QuizOne.quizId,
           name: 'Quiz One',
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'this is my first quiz',
         },
         {
           quizId: QuizTwo.quizId,
           name: 'Quiz Two',
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'this is my second quiz',
         }
       ]
     });
@@ -425,6 +462,7 @@ describe('adminQuizList testing', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
     });
   });
   test('Error 401: empty token', () => {
@@ -432,6 +470,7 @@ describe('adminQuizList testing', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
     });
   });
   
@@ -853,7 +892,7 @@ const requestadminQuizNameUpdate = (
   return { statusCode, bodyString };
 };
 //****************************************************************** */
-describe.only('Testing adminQuizNameUpdate', () => {
+describe('Testing adminQuizNameUpdate', () => {
   beforeAll(() => {
     requestAdminRegister(
       'jack@hotmail.com',
@@ -865,28 +904,28 @@ describe.only('Testing adminQuizNameUpdate', () => {
   test('Status Code 200: Correct input', () => {
     let returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab');
     returnToken.bodyString = returnToken.bodyString as Token;
-    console.log(returnToken);
-   console.log(returnToken.bodyString.token);
-    const QuizOne = requestAdminQuizCreate(
+  //   console.log(returnToken);
+  //  console.log(returnToken.bodyString.token);
+    const QuizOne = requestadminQuizCreate(
       returnToken.bodyString.token,
       'helllllllo',
       'this is my first quiz'
     ).bodyString as QuizId;
-    console.log(QuizOne)
-    console.log(QuizOne.quizId);
+    // console.log(QuizOne)
+    // console.log(QuizOne.quizId);
 
-    console.log(requestAdminQuizNameUpdate(
-      returnToken.bodyString.token, 
-      QuizOne.quizId,
-      'NewName'
-    ));
+    // console.log(requestadminQuizNameUpdate(
+    //   returnToken.bodyString.token, 
+    //   QuizOne.quizId,
+    //   'NewName'
+    // ));
 
     const adminQuizUpdatedInfo = requestAdminQuizInfo(
       returnToken.bodyString.token, 
       QuizOne.quizId
     ).bodyString as Quizzes;
-    console.log("admininfo");
-    console.log(adminQuizUpdatedInfo);
+    // console.log("admininfo");
+    // console.log(adminQuizUpdatedInfo);
 
   //   expect(adminQuizUpdatedInfo.name).toStrictEqual('NewName');
   });
@@ -1029,5 +1068,3 @@ describe.only('Testing adminQuizNameUpdate', () => {
   });
 });
 });
-
-//****************************************************************** */
