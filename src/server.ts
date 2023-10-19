@@ -8,7 +8,13 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { adminAuthRegister, adminUserDetails, adminAuthLogin, updatePassword } from './auth';
+import {
+  adminAuthRegister,
+  adminUserDetails,
+  adminAuthLogin,
+  updatePassword,
+  adminAuthLogout,
+} from './auth';
 import { clear, newClear } from './other';
 import { adminQuizCreate, adminQuizInfo, adminQuizList, adminQuizRemove, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
 import { createQuizQuestion } from './question'
@@ -89,6 +95,20 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   res.json(response);
 });
 
+app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  const response = adminAuthLogout(token);
+
+  console.log('from server.ts /v1/admin/auth/logout : response ->', response);
+
+  if ('error' in response) {
+    return res.status(401).json(response);
+  }
+
+  res.json(response);
+});
+
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const result = adminUserDetails(token);
@@ -124,7 +144,7 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   const { token, newPassword, oldPassword } = req.body;
   const response = updatePassword(token, newPassword, oldPassword);
-  
+
   if ('error' in response) {
     console.log('error in response');
     if (response.errorCode === 400) {
@@ -134,7 +154,7 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
     }
   }
   res.json(response);
-})
+});
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
   const response = newClear();
@@ -148,44 +168,43 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const result = adminQuizList(token);
   if ('error' in result) {
-    return res.status(401).json(result);
+    return res.status(RESPONSE_ERROR_401).json(result);
   }
-  res.json(result);
+  res.status(RESPONSE_OK_200).json(result);
 });
 
-app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
-  const token = req.params.token as string;
+app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
   const quizId = parseInt(req.params.quizid);
   const result = adminQuizInfo(token, quizId);
   if ('error' in result) {
     console.log('error in response');
-    if (result.errorCode === 400) {
-      return res.status(400).json(result);
-    } else if (result.errorCode === 401) {
-      return res.status(401).json(result);
-    } else if (result.errorCode === 403) {
-      return res.status(403).json(result);
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json(result);
     }
-    res.json(result);
   }
-  res.json(result);
+  res.status(RESPONSE_OK_200).json(result);
 });
 
-app.delete('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
-  const token = req.params.token as string;
+app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
   const quizId = parseInt(req.params.quizid);
   const result = adminQuizRemove(token, quizId);
   if ('error' in result) {
     console.log('error in response');
-    if (result.errorCode === 400) {
-      return res.status(400).json(result);
-    } else if (result.errorCode === 401) {
-      return res.status(401).json(result);
-    } else if (result.errorCode === 403) {
-      return res.status(403).json(result);
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json(result);
     }
-    res.json(result);
   }
+  res.status(RESPONSE_OK_200).json(result);
 });
 
 app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
@@ -218,23 +237,26 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 
 // ***********************************************************************
 
-app.put('/v1/admin/quiz/{quizid}/description', (req: Request, res: Response) => {
-  const { token, quizid, description } = req.body;
+app.put(
+  '/v1/admin/quiz/{quizid}/description',
+  (req: Request, res: Response) => {
+    const { token, quizid, description } = req.body;
 
-  const response = adminQuizDescriptionUpdate(token, quizid, description);
+    const response = adminQuizDescriptionUpdate(token, quizid, description);
 
-  if ('error' in response) {
-    console.log('error in response');
-    if (response.errorCode === 400) {
-      return res.status(400).json(response);
-    } else if (response.errorCode === 401) {
-      return res.status(401).json(response);
-    } else if (response.errorCode === 401) {
-      return res.status(403).json(response);
+    if ('error' in response) {
+      console.log('error in response');
+      if (response.errorCode === 400) {
+        return res.status(400).json(response);
+      } else if (response.errorCode === 401) {
+        return res.status(401).json(response);
+      } else if (response.errorCode === 401) {
+        return res.status(403).json(response);
+      }
     }
+    res.json(response);
   }
-  res.json(response);
-});
+);
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
