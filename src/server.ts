@@ -16,14 +16,8 @@ import {
   adminAuthLogout,
 } from './auth';
 import { clear, newClear } from './other';
-import {
-  adminQuizCreate,
-  adminQuizInfo,
-  adminQuizList,
-  adminQuizRemove,
-  adminQuizNameUpdate,
-  adminQuizDescriptionUpdate,
-} from './quiz';
+import { adminQuizCreate, adminQuizInfo, adminQuizList, adminQuizRemove, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
+import { createQuizQuestion } from './question'
 
 import {
   RESPONSE_OK_200,
@@ -64,6 +58,8 @@ app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   const ret = echo(data);
   if ('error' in ret) {
+    
+    
     res.status(400);
   }
   return res.json(ret);
@@ -228,6 +224,16 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   }
   res.json(response);
 });
+
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizid);
+  const { token, questionBody } = req.body;
+  const response = createQuizQuestion(token, questionBody);
+  if ('error' in response) {
+    return res.status(400).json(response);
+  }
+  res.json(response);
+})
 
 // ***********************************************************************
 
