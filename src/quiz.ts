@@ -202,7 +202,7 @@ function adminQuizCreate(
     return {
       error:
         'Description is more than 100 characters in length (note: empty strings are OK)',
-      errorCode: 400,
+      errorCode: RESPONSE_ERROR_400,
     };
   }
 
@@ -495,7 +495,7 @@ function adminTrashQuizRestore(token: string, quizId: number): Record<string, ne
 
 export { adminTrashQuizRestore };
 
-function adminTrashQuizEmpty(token: string, quizId: number): Record<string, never> | ErrorObjectWithCode {
+function adminTrashQuizEmpty(token: string, quizIds: number[]): Record<string, never> | ErrorObjectWithCode {
   return {};
 }
 

@@ -647,7 +647,7 @@ describe('adminTrashQuizRestore testing', () => {
       'Quiz a',
       'this is my first quiz'
     ).bodyString as QuizId;
-    const emptyToken = requestAdminQuizInfo('', Quiz.quizId);
+    const emptyToken = requestAdminTrashQuizRestore('', Quiz.quizId);
     expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(emptyToken.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -663,7 +663,7 @@ describe('adminTrashQuizRestore testing', () => {
       'Quiz b',
       'this is my second quiz'
     ).bodyString as QuizId;
-    const invalidToken = requestAdminQuizInfo('invalid', Quiz.quizId);
+    const invalidToken = requestAdminTrashQuizRestore('invalid', Quiz.quizId);
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -696,6 +696,144 @@ describe('adminTrashQuizRestore testing', () => {
     });
   });
 });
+
+// adminTrashQuizEmpty
+
+const requestAdminTrashQuizEmpty = (
+  token: string,
+  quizids: number[]
+): requestAdminQuizRemoveReturn => {
+  const res = request('DELETE', SERVER_URL + `/v1/admin/quiz/trash/empty`, {
+    qs: { quizids, token },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  return { statusCode: res.statusCode, bodyString: bodyString };
+};
+
+
+describe('adminTrashQuizEmpty testing', () => {
+  beforeAll(() => {
+    requestAdminRegister('emma1@hotmail.com', '123456ab', 'Emma', 'Homes');
+  });
+  test('StatusCode 200: Valid input', () => {
+    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
+      .bodyString as Token;
+    const QuizOne = requestAdminQuizCreate(
+      returnToken.token,
+      'Quiz One',
+      'this is my first quiz'
+    ).bodyString as QuizId;
+    const QuizTwo = requestAdminQuizCreate(
+      returnToken.token,
+      'Quiz Two',
+      'this is my second quiz'
+    ).bodyString as QuizId;
+    requestAdminQuizRemove(returnToken.token, QuizOne.quizId);
+    requestAdminQuizRemove(returnToken.token, QuizTwo.quizId);
+    requestAdminTrashQuizEmpty(returnToken.token, [QuizOne.quizId]);
+    const quizOneRestoredfail = requestAdminQuizList(returnToken.token);
+    expect(quizOneRestoredfail.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(quizOneRestoredfail.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_400,
+    });
+    requestAdminTrashQuizRestore(returnToken.token, QuizTwo.quizId);
+    const quizTwoRestored = requestAdminQuizList(returnToken.token);
+    expect(quizTwoRestored.bodyString).toStrictEqual({
+      quizzes: [
+        {
+          quizId: QuizTwo.quizId,
+          name: 'Quiz Two',
+        },
+      ],
+    });
+  });
+
+  test('Error 400: Quiz ID does not refer to a valid quiz', () => {
+    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
+      .bodyString as Token;
+    const quizIdIsInvalid = requestAdminTrashQuizEmpty(returnToken.token, [-1 * 1531]);
+    expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(quizIdIsInvalid.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_400,
+    });
+  });
+
+  test('Error 400: Quiz ID refers to a quiz that is not currently in the trash', () => {
+    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
+    .bodyString as Token;
+    const quiz1 = requestAdminQuizCreate(
+      returnToken.token,
+      'Quiz 1',
+      'this is my first quiz'
+    ).bodyString as QuizId;
+    const quizIdNotInTrash = requestAdminTrashQuizEmpty(returnToken.token, [quiz1.quizId]);
+    expect(quizIdNotInTrash.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(quizIdNotInTrash.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_400,
+    });
+  });
+
+  test('Error 401: Token is empty', () => {
+    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
+      .bodyString as Token;
+    const Quiz = requestAdminQuizCreate(
+      returnToken.token,
+      'Quiz a',
+      'this is my first quiz'
+    ).bodyString as QuizId;
+    const emptyToken = requestAdminTrashQuizEmpty('', [Quiz.quizId]);
+    expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(emptyToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
+    });
+  });
+
+  test('Error 401: Token is invalid', () => {
+    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
+      .bodyString as Token;
+    const Quiz = requestAdminQuizCreate(
+      returnToken.token,
+      'Quiz b',
+      'this is my second quiz'
+    ).bodyString as QuizId;
+    const invalidToken = requestAdminTrashQuizEmpty('invalid', [Quiz.quizId]);
+    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
+    expect(invalidToken.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
+    });
+  });
+
+  test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
+    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
+      .bodyString as Token;
+    requestAdminRegister('ricky1@hotmail.com', 'ab123456b', 'Tony', 'Stark');
+    const returnToken2 = requestAdminAuthLogin('ricky1@hotmail.com', 'ab123456b')
+      .bodyString as Token;
+    const TonyQuiz = requestAdminQuizCreate(
+      returnToken2.token,
+      'Jack',
+      'Tony quiz'
+    ).bodyString as QuizId;
+    const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(
+      returnToken.token,
+      [TonyQuiz.quizId]
+    );
+    expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
+    // console.log(quizIdNotReferToUser1.bodyString);
+    // this should only return error instead of returnning both error and errorcode in
+    // bodystring
+    expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_403,
+    });
+  });
+});
+
 
 // Iteration 2 Part 2 test for trashlist, trashrestore and trashempty - END 
 
