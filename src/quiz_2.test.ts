@@ -218,6 +218,11 @@ describe('adminQuizInfo testing', () => {
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'this is my first quiz',
+      /*
+      numQuestion:
+      question:
+      duration:
+      */
     });
 
     const QuizTwo = requestAdminQuizCreate(
@@ -232,6 +237,11 @@ describe('adminQuizInfo testing', () => {
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'this is my second quiz',
+      /*
+      numQuestion:
+      question:
+      duration:
+      */
     });
   });
 
@@ -374,6 +384,7 @@ describe('Testing adminQuizRemove', () => {
   });
 
   test('Error 403: QuizId does not refer to a quiz that this user owns', () => {
+    // requestClear();
     const returnToken = requestAdminAuthLogin('jess@hotmail.com', '123456ab')
       .bodyString as Token;
     requestAdminRegister('peter@hotmail.com', 'pass123456', 'Peter', 'Parker');

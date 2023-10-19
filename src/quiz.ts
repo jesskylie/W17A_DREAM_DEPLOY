@@ -82,7 +82,7 @@ const MAX_NAME_LENGTH = 30;
 /**
  * Printing out the the quiz information
  *
- * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
+ * @param {string} token - the token of the person want to print quiz - must exist / be valid / be unique
  * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
  * ...
  *
@@ -142,7 +142,7 @@ export { adminQuizInfo };
  * Creates a new quiz for the logged in user, returning an object containing
  * a unique quizId
  *
- * @param {string} token - the id of the person creating the quiz - must exist / be valid / be unique
+ * @param {string} token - the token of the person creating the quiz - must exist / be valid / be unique
  * @param {string} name - name of the quiz being created
  * @param {string} description - description of the quiz being created
  * ...
@@ -432,7 +432,7 @@ function doesQuizIdRefer(quizId: number, authUserId: number) {
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
  *
- * @param {string} token - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {string} token - the token of the person want to print quizzes - must exist / be valid / be unique
  * ...
  *
  * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
@@ -466,7 +466,7 @@ export { adminQuizList };
 /**
  * Given a particular quiz, permanently remove the quiz.
  *
- * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
+ * @param {string} token - the token of the person want to print quizzes - must exist / be valid / be unique
  * @param {number} quizId - the id of the quiz want to be delete - must exist / be valid / be unique
  * ...
  *
@@ -524,6 +524,33 @@ function adminQuizRemove(
 }
 
 export { adminQuizRemove };
+
+// ************************************************************************************
+// New functions for Iteration 2 Part 2:
+function adminTrashQuizList(token: string): QuizListReturn | ErrorObjectWithCode {
+  return { quizzes:[
+    {
+      quizId: 5566,
+      name: "My Quiz Name"
+    }
+  ]};
+}
+
+export { adminTrashQuizList };
+
+function adminTrashQuizRestore(token: string, quizId: number): Record<string, never> | ErrorObjectWithCode {
+  return {};
+}
+
+export { adminTrashQuizRestore };
+
+function adminTrashQuizEmpty(token: string, quizId: number): Record<string, never> | ErrorObjectWithCode {
+  return {};
+}
+
+export { adminTrashQuizEmpty };
+
+
 
 /**
  * Update the description of the relevant quiz.

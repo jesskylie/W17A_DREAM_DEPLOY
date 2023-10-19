@@ -23,6 +23,9 @@ import {
   adminQuizRemove,
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
+  adminTrashQuizList,
+  adminTrashQuizRestore,
+  adminTrashQuizEmpty,
 } from './quiz';
 import { createQuizQuestion } from './question'
 
@@ -240,6 +243,49 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   }
   res.json(response);
 });
+
+app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const result = adminTrashQuizList(token);
+  if ('error' in result) {
+    return res.status(RESPONSE_ERROR_401).json(result);
+  }
+  res.status(RESPONSE_OK_200).json(result);
+});
+
+app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
+  const token = req.body.token;
+  const quizId = parseInt(req.params.quizid);
+  const result = adminTrashQuizRestore(token, quizId);
+  if ('error' in result) {
+    console.log('error in response');
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json(result);
+    }
+  }
+  res.status(RESPONSE_OK_200).json(result);
+});
+
+app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizIds = parseInt(req.params.quizId);
+  const result = adminTrashQuizEmpty(token, quizIds)
+  if ('error' in result) {
+    console.log('error in response');
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json(result);
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json(result);
+    }
+  }
+  res.status(RESPONSE_OK_200).json(result);
+})
 
 // ***********************************************************************
 
