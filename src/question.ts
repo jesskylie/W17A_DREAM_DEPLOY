@@ -6,6 +6,8 @@ import {
   getAuthUserIdUsingToken,
 } from './functions';
 
+import { RANDOM_COLOURS_ARRAY } from './library/constants';
+
 import { adminAuthRegister } from './auth';
 import { adminQuizCreate } from './quiz';
 
@@ -13,32 +15,59 @@ interface TokenString {
   token: string;
 }
 
+interface AuthUserId {
+  authUserId: number;
+}
+
 interface Question {
   questionBody: {
     question: string;
     duration: number;
     points: number;
-    answers:
-      {
-        answer: string;
-        correct: boolean;
-      }[];
+    answers: {
+      answer: string;
+      correct: boolean;
+    }[];
   };
 }
 
 export interface QuestionId {
-    questionId: number;
+  questionId: number;
 }
-  
 
-export function createQuizQuestion(token: string, question: Question, quizId: number) {
+/**
+ * Function to generate random number
+ * from 0 to max - 1
+ * eg:
+ *   console.log(getRandomInt(3));
+ * Expected output: 0, 1 or 2
+ * Used in:
+ * createQuizQuestion()
+ * From:
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+ *
+ * @param {number} max - the max number
+ * ...
+ *
+ * @returns {number} - the random number generated
+ * between 0 and up to but not including max
+ */
+function getRandomInt(max: number): number {
+  return Math.floor(Math.random() * max);
+}
+
+export function createQuizQuestion(
+  token: string,
+  question: Question,
+  quizId: number
+) {
   const data: DataStore = retrieveDataFromFile();
-  
-  //gets authUserId number 
-  const authUserIdString = getAuthUserIdUsingToken(data, token);
-  const authUserId = authUserIdString.authUserId
-  
-  //checks if it exists before accessing 
+
+  //gets authUserId number
+  const authUserIdString = getAuthUserIdUsingToken(data, token) as AuthUserId;
+  const authUserId = authUserIdString.authUserId;
+
+  //checks if it exists before accessing
   let newQuestion;
   if (question && question.questionBody && question.questionBody.question) {
     newQuestion = {
@@ -47,10 +76,10 @@ export function createQuizQuestion(token: string, question: Question, quizId: nu
         duration: question.questionBody.duration,
         points: question.questionBody.points,
         answers: question.questionBody.answers,
-    }
+      },
     };
-}
-  
+  }
+
   let questionIdNumber;
   //loop through to find the correct authUserId
   for (const users of data.users) {
@@ -59,25 +88,23 @@ export function createQuizQuestion(token: string, question: Question, quizId: nu
         //found correct quiz
         const quiz = data.quizzes.find((q) => q.quizId === quizId);
         if (quiz != undefined) {
-          //push new question to quizzes 
+          //push new question to quizzes
           quiz.questions.push(newQuestion);
           questionIdNumber = quiz.questions.length;
-          return {questionId: questionIdNumber};
+          return { questionId: questionIdNumber };
         }
       }
     }
   }
- 
+
   saveDataInFile(data);
-  return {error: "Error"};
+  return { error: 'Error' };
 }
 
-
-
-//debugging code 
+//debugging code
 // const admin = adminAuthRegister('jess@hotmail.com', '123456abcdefg', 'Jess', 'Tran');
 // if ('token' in admin) {
-//   const newQuiz= adminQuizCreate(admin.token, 'New Quiz', 'This is my first quiz');  
+//   const newQuiz= adminQuizCreate(admin.token, 'New Quiz', 'This is my first quiz');
 //   if ('quizId' in newQuiz) {
 //     const validQuestion = {
 // 			questionBody: {
@@ -117,4 +144,3 @@ export function createQuizQuestion(token: string, question: Question, quizId: nu
 //     console.log(createQuizQuestion(admin.token, validQuestion2, newQuiz.quizId));
 //   }
 // }
-
