@@ -694,7 +694,7 @@ const requestAdminTrashQuizEmpty = (
 };
 
 
-describe.only('adminTrashQuizEmpty testing', () => {
+describe('adminTrashQuizEmpty testing', () => {
   beforeAll(() => {
     requestClear();
     requestAdminRegister('emma1@hotmail.com', '123456ab', 'Emma', 'Homes');
