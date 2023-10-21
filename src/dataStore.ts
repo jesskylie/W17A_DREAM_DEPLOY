@@ -53,7 +53,7 @@
 //   ],
 // };
 
-import { QuestionDotToken } from "typescript";
+import { QuestionDotToken } from 'typescript';
 
 // YOU SHOULDNT NEED TO MODIFY THE FUNCTIONS BELOW IN ITERATION 1
 
@@ -111,20 +111,21 @@ export interface Quizzes {
   timeCreated: number;
   timeLastEdited: number;
   userId: number[];
+  numQuestions: number;
   questions: Question[];
 }
 
 interface Question {
-  questionBody: {
-    question: string;
-    duration: number;
-    points: number;
-    answers:
-      {
-        answer: string;
-        correct: boolean;
-      }[];
-  };
+  questionId: number;
+  question: string;
+  duration: number;
+  points: number;
+  answers: {
+    answerId: number;
+    answer: string;
+    colour: string;
+    correct: boolean;
+  }[];
 }
 
 export let data: DataStore = {

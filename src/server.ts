@@ -38,6 +38,8 @@ import {
 } from './library/constants';
 import { request } from 'http';
 
+import { CreateQuizQuestionServerReturn } from './question_pr.test';
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -260,9 +262,25 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   const { token, questionBody } = req.body;
+
+  console.log('server.ts: quizId ->', quizId);
+  console.log('server.ts: token ->', token);
+  console.log('server.ts: questionBody ->', questionBody);
   const response = createQuizQuestion(token, questionBody, quizId);
-  if ('error' in response) {
-    return res.status(400).json(response);
+  console.log('From server.ts line 264 ->', response);
+  if ('createQuizQuestionResponse' in response) {
+    const testObj = response.createQuizQuestionResponse;
+    console.log('testObj ->', testObj);
+    if ('error' in testObj) {
+      const testErrorCode = testObj.errorCode;
+      if (testErrorCode === RESPONSE_ERROR_400) {
+        return res.status(RESPONSE_ERROR_400).json(response);
+      } else if (testErrorCode === RESPONSE_ERROR_401) {
+        return res.status(RESPONSE_ERROR_401).json(response);
+      } else if (testErrorCode === RESPONSE_ERROR_403) {
+        return res.status(RESPONSE_ERROR_403).json(response);
+      }
+    }
   }
   res.json(response);
 });
@@ -297,7 +315,7 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const quizids = req.query.quizIds as string;
   const quizIds = quizids.split(',').map(Number);
-  const result = adminTrashQuizEmpty(token, quizIds)
+  const result = adminTrashQuizEmpty(token, quizIds);
   if ('error' in result) {
     console.log('error in response');
     if (result.errorCode === RESPONSE_ERROR_400) {
@@ -309,7 +327,7 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
     }
   }
   res.status(RESPONSE_OK_200).json(result);
-})
+});
 
 // ***********************************************************************
 
