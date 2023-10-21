@@ -228,6 +228,7 @@ function adminQuizCreate(
     timeLastEdited: timeStamp,
     userId: [authUserId.authUserId],
     questions: [],
+    numQuestions: 0,
   });
 
   // Add quizId to quizId[] array in data.users
@@ -478,30 +479,38 @@ export { adminQuizRemove };
 
 // ************************************************************************************
 // New functions for Iteration 2 Part 2:
-function adminTrashQuizList(token: string): QuizListReturn | ErrorObjectWithCode {
-  return { quizzes:[
-    {
-      quizId: 5566,
-      name: "My Quiz Name"
-    }
-  ]};
+function adminTrashQuizList(
+  token: string
+): QuizListReturn | ErrorObjectWithCode {
+  return {
+    quizzes: [
+      {
+        quizId: 5566,
+        name: 'My Quiz Name',
+      },
+    ],
+  };
 }
 
 export { adminTrashQuizList };
 
-function adminTrashQuizRestore(token: string, quizId: number): Record<string, never> | ErrorObjectWithCode {
+function adminTrashQuizRestore(
+  token: string,
+  quizId: number
+): Record<string, never> | ErrorObjectWithCode {
   return {};
 }
 
 export { adminTrashQuizRestore };
 
-function adminTrashQuizEmpty(token: string, quizIds: number[]): Record<string, never> | ErrorObjectWithCode {
+function adminTrashQuizEmpty(
+  token: string,
+  quizIds: number[]
+): Record<string, never> | ErrorObjectWithCode {
   return {};
 }
 
 export { adminTrashQuizEmpty };
-
-
 
 /**
  * Update the description of the relevant quiz.

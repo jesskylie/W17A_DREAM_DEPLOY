@@ -7,7 +7,6 @@ import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  WAIT_TIME,
   RESPONSE_ERROR_403,
 } from './library/constants';
 
@@ -21,35 +20,12 @@ const SERVER_URL = `${url}:${port}`;
 
 // interfaces used throughout file - START
 
-// interface RequestResult {
-//   body: any;
-//   status: number;
-// }
-
-// export interface QuestionId {
-//   questionId: number;
-// }
-
-// export interface ErrorObjectWithCode {
-//   error: string;
-//   errorCode: number;
-// }
-
-// export interface CreateQuizQuestionReturn {
-//   createQuizQuestionResponse: QuestionId | ErrorObjectWithCode;
-// }
-
 export interface CreateQuizQuestionServerReturn {
   bodyString: CreateQuizQuestionReturn;
   statusCode: number;
 }
 
 // interfaces used throughout file - END
-
-// Functions to execute before each test is run - START
-// beforeEach(() => {
-//   requestDelete();
-// });
 
 function requestCreateQuestion(
   token: string,
@@ -81,14 +57,11 @@ function requestCreateQuestion(
   };
 }
 
-describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
+describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   let token: string;
   let quizId: number;
 
-  test.only('Testing successful creating a quiz question', () => {
-    // Passed 21Oct23 12:52
-    // Result
-    // newQuestion -> { body: { questionId: 1 }, status: 200 }
+  test('Testing successful creating a quiz question', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -127,11 +100,6 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       validQuestion,
       quizId
     ) as CreateQuizQuestionServerReturn;
-    console.log('First question ----------------------');
-    console.log('token ->', token);
-    console.log('validQuestion ->', validQuestion);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
@@ -151,11 +119,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Testing QuizId does not refer to valid quiz - error code 400', () => {
-    // Passed 21Oct23 12:56
-    // Response
-    // Response: newQuestion -> { body: { error: 'Error' }, status: 400 }
-
+  test('Testing QuizId does not refer to valid quiz - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -190,11 +154,6 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     } as QuestionBody;
 
     const newQuestion = requestCreateQuestion(token, validQuestion, quizId);
-    console.log('Second question ----------------------');
-    console.log('token ->', token);
-    console.log('validQuestion ->', validQuestion);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
@@ -214,7 +173,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Question string is less than 5 characters - error code 400', () => {
+  test('Question string is less than 5 characters - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -252,11 +211,6 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       shortQuizIdQuestion,
       quizId
     );
-    console.log('Third question ----------------------');
-    console.log('token ->', token);
-    console.log('shortQuizIdQuestion ->', shortQuizIdQuestion);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
@@ -276,7 +230,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Question string is more than 50 characters - error code 400', () => {
+  test('Question string is more than 50 characters - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -314,11 +268,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       longQuizIdQuestion,
       quizId
     );
-    console.log('Fourth question ----------------------');
-    console.log('token ->', token);
-    console.log('longQuizIdQuestion ->', longQuizIdQuestion);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -337,7 +287,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Question duration is not a positive number - error code 400', () => {
+  test('Question duration is not a positive number - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -371,11 +321,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       ],
     } as QuestionBody;
     const newQuestion = requestCreateQuestion(token, negativeLength, quizId);
-    console.log('Fifth question ----------------------');
-    console.log('token ->', token);
-    console.log('negativeLength ->', negativeLength);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -394,7 +340,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Question has less than 2 answers - error code 400', () => {
+  test('Question has less than 2 answers - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -424,11 +370,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       ],
     } as QuestionBody;
     const newQuestion = requestCreateQuestion(token, oneAnswer, quizId);
-    console.log('Sixth question ----------------------');
-    console.log('token ->', token);
-    console.log('oneAnswer ->', oneAnswer);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -447,7 +389,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Question has more than 6 answers - error code 400', () => {
+  test('Question has more than 6 answers - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -501,11 +443,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       ],
     } as QuestionBody;
     const newQuestion = requestCreateQuestion(token, tooManyAnswers, quizId);
-    console.log('Seventh question ----------------------');
-    console.log('token ->', token);
-    console.log('tooManyAnswers ->', tooManyAnswers);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -524,7 +462,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Question duration exceeds 3 minutes - error code 400', () => {
+  test('Question duration exceeds 3 minutes - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -558,11 +496,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       ],
     } as QuestionBody;
     const newQuestion = requestCreateQuestion(token, question, quizId);
-    console.log('Eigth question ----------------------');
-    console.log('token ->', token);
-    console.log('question ->', question);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -581,7 +515,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Points awarded for question is not between 1 and 10 - error code 400', () => {
+  test('Points awarded for question is not between 1 and 10 - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -632,11 +566,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     } as QuestionBody;
 
     const newQuestion = requestCreateQuestion(token, lessThanOne, quizId);
-    console.log('Ninth question ----------------------');
-    console.log('token ->', token);
-    console.log('lessThanOne ->', lessThanOne);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -655,11 +585,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
 
     const newQuestion2 = requestCreateQuestion(token, moreThanTen, quizId);
-    console.log('Tenth question ----------------------');
-    console.log('token ->', token);
-    console.log('moreThanTen ->', moreThanTen);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion2 ->', newQuestion2);
+
     if ('bodyString' in newQuestion2) {
       const newQuestionResponse = newQuestion2.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -678,7 +604,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('The length of the answers must be between 1 and 30 characters - error code 400', () => {
+  test('The length of the answers must be between 1 and 30 characters - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -730,11 +656,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     } as QuestionBody;
 
     const newQuestion = requestCreateQuestion(token, lessThanOne, quizId);
-    console.log('Eleventh question ----------------------');
-    console.log('token ->', token);
-    console.log('lessThanOne ->', lessThanOne);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -753,11 +675,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
 
     const newQuestion2 = requestCreateQuestion(token, moreThanThirty, quizId);
-    console.log('Twelveth question ----------------------');
-    console.log('token ->', token);
-    console.log('moreThanThirty ->', moreThanThirty);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion2 ->', newQuestion2);
+
     if ('bodyString' in newQuestion2) {
       const newQuestionResponse = newQuestion2.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -776,7 +694,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Answer strings are duplicates of one another - error code 400', () => {
+  test('Answer strings are duplicates of one another - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -811,11 +729,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     } as QuestionBody;
 
     const newQuestion = requestCreateQuestion(token, duplicateAnswers, quizId);
-    console.log('Fourteenth question ----------------------');
-    console.log('token ->', token);
-    console.log('duplicateAnswers ->', duplicateAnswers);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -834,7 +748,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('There are no correct answers - error code 400', () => {
+  test('There are no correct answers - error code 400', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -869,11 +783,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     } as QuestionBody;
 
     const newQuestion = requestCreateQuestion(token, incorrectAnswers, quizId);
-    console.log('Fifteenth question ----------------------');
-    console.log('token ->', token);
-    console.log('incorrectAnswers ->', incorrectAnswers);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -892,7 +802,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Testing Token is empty or invalid - error code 401', () => {
+  test('Testing Token is empty or invalid - error code 401', () => {
     requestDelete();
     const response = requestAdminRegister(
       'abc@hotmail.com',
@@ -929,11 +839,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     token = 1;
     const newQuestion = requestCreateQuestion(token, validQuestion, quizId);
-    console.log('Sixteenth question ----------------------');
-    console.log('token ->', token);
-    console.log('validQuestion ->', validQuestion);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {
@@ -952,7 +858,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 
-  test.only('Valid token is provided, but user is not an owner of this quiz - error code 403', () => {
+  test('Valid token is provided, but user is not an owner of this quiz - error code 403', () => {
     requestDelete();
     // user1 created and user1's token creates quiz
     const user1 = requestAdminRegister(
@@ -998,11 +904,7 @@ describe.only('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     // question is created on quizId of user1, but with user2's token
     const newQuestion = requestCreateQuestion(token2, validQuestion, quizId);
-    console.log('Sixteenth question ----------------------');
-    console.log('token ->', token2);
-    console.log('validQuestion ->', validQuestion);
-    console.log('quizId ->', quizId);
-    console.log('Response: newQuestion ->', newQuestion);
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
       if ('createQuizQuestionResponse' in newQuestionResponse) {

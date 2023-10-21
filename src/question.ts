@@ -1,9 +1,13 @@
-import { DataStore } from './dataStore';
+import { DataStore, Quizzes } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
   isTokenValid,
   getAuthUserIdUsingToken,
+  createCurrentTimeStamp,
+  countAllQuestions,
+  countAllAnswers,
+  returnRandomColour,
 } from './functions';
 
 import {
@@ -24,19 +28,6 @@ interface AuthUserId {
   authUserId: number;
 }
 
-// export interface QuestionId {
-//   questionId: number;
-// }
-
-// export interface ErrorObjectWithCode {
-//   error: string;
-//   errorCode: number;
-// }
-
-// export interface CreateQuizQuestionReturn {
-//   createQuizQuestionResponse: QuestionId | ErrorObjectWithCode;
-// }
-
 // CONSTANTS - START
 
 const MIN_QUESTION_STRING_LENGTH = 5;
@@ -51,27 +42,6 @@ const MIN_ANSWER_LENGTH = 1;
 const MAX_ANSWER_LENGTH = 30;
 
 // CONSTANTS - END
-
-/**
- * Function to generate random number
- * from 0 to max - 1
- * eg:
- *   console.log(getRandomInt(3));
- * Expected output: 0, 1 or 2
- * Used in:
- * createQuizQuestion()
- * From:
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
- *
- * @param {number} max - the max number
- * ...
- *
- * @returns {number} - the random number generated
- * between 0 and up to but not including max
- */
-function getRandomInt(max: number): number {
-  return Math.floor(Math.random() * max);
-}
 
 // From swagger.yaml
 // Create a new stub question for a particular quiz.
@@ -104,7 +74,7 @@ export function createQuizQuestion(
 
   console.log('question.ts - GOT TO HERE 1');
   console.log('question.ts - GOT TO HERE 1: token ->', token);
-  console.log('question.ts - GOT TO HERE 1: question ->', question.question);
+  console.log('question.ts - GOT TO HERE 1: question ->', question);
   console.log('question.ts - GOT TO HERE 1: quizId ->', quizId);
 
   // Step 1: Check for 400 errors - START
@@ -306,18 +276,54 @@ export function createQuizQuestion(
 
   // Step 3: Check for 403 errors - END
 
+  // Step 4: all error conditions have passed
+  // now, add the new question to the quiz
+
   //checks if it exists before accessing
+
+  // Need to add:
+
+  // To data.quizzes relevant object:
+  // 1. change 'timeLastEdited' to time of creation of question [now] - done
+  // 2. add numQuestions: the number of questions in this quiz (count) - done
+
+  // To questions array:
+  // 3. questionId: count all other questions across entire data.quizzes and add 1 - done
+  const numQuestionsNow = (countAllQuestions(data) + 1) as number;
+
+  // To specific answers:
+  // 4. answerId: count all other answers across entire data.quizzes and add 1
+  const newAnswerId = countAllAnswers(data);
+  // 5. colour: pick random colour from constant array
+  // function returnRandomColour()
+
+  // ######################
+  // Do you also need to return {duration: number} in quiz[]?
+  // (sum of all quiz durations in that question?)
+  // ######################
+
+  let tempAnswerArray = question.answers;
+  let tempCounter = 0;
+
+  for (const ansArr of tempAnswerArray) {
+    console.log('ansArr ->', ansArr);
+    console.log('newAnswerId ->', newAnswerId);
+    ansArr.answerId = newAnswerId + tempCounter;
+    tempCounter++;
+    ansArr.colour = returnRandomColour();
+  }
+
   let newQuestion;
-  if (question && question.questionBody && question.questionBody.question) {
+  if (question && question.question) {
     newQuestion = {
-      questionBody: {
-        question: question.questionBody.question,
-        duration: question.questionBody.duration,
-        points: question.questionBody.points,
-        answers: question.questionBody.answers,
-      },
+      question: question.question,
+      duration: question.duration,
+      points: question.points,
+      answers: question.answers,
+      questionId: numQuestionsNow,
     };
   }
+  console.log('before mutation ->', data);
 
   let questionIdNumber;
   //loop through to find the correct authUserId
@@ -327,19 +333,26 @@ export function createQuizQuestion(
         //found correct quiz
         const quiz = data.quizzes.find((q) => q.quizId === quizId);
         if (quiz != undefined) {
+          // update timeLastEdited
+          quiz.timeLastEdited = createCurrentTimeStamp() as number;
+          // update numQuestions
+          const currentQuestions = quiz.numQuestions;
+          quiz.numQuestions = currentQuestions + 1;
+
           //push new question to quizzes
           quiz.questions.push(newQuestion);
           questionIdNumber = quiz.questions.length;
-          return {
-            createQuizQuestionResponse: { questionId: questionIdNumber },
-          };
         }
       }
     }
   }
 
+  console.log('after mutation ->', data);
+
   saveDataInFile(data);
-  return { createQuizQuestionResponse: { questionId: 1 } };
+  return {
+    createQuizQuestionResponse: { questionId: questionIdNumber },
+  };
 }
 
 //debugging code

@@ -5,6 +5,8 @@ export interface QuestionBody {
   answers: {
     answer: string;
     correct: boolean;
+    colour: string;
+    answerId: number;
   }[];
 }
 
