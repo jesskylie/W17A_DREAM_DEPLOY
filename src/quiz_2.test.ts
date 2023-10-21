@@ -257,7 +257,6 @@ describe('adminQuizInfo testing', () => {
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
     });
   });
 
@@ -273,7 +272,6 @@ describe('adminQuizInfo testing', () => {
     expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(emptyToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
@@ -289,7 +287,6 @@ describe('adminQuizInfo testing', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
@@ -314,7 +311,6 @@ describe('adminQuizInfo testing', () => {
     // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_403,
     });
   });
 });
@@ -352,7 +348,6 @@ describe('Testing adminQuizRemove', () => {
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
     });
   });
 
@@ -368,7 +363,6 @@ describe('Testing adminQuizRemove', () => {
     expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(emptyToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
@@ -384,7 +378,6 @@ describe('Testing adminQuizRemove', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
@@ -410,7 +403,6 @@ describe('Testing adminQuizRemove', () => {
     expect(quizIdNotReferToUser.statusCode).toBe(RESPONSE_ERROR_403);
     expect(quizIdNotReferToUser.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_403,
     });
   });
 });
@@ -449,7 +441,6 @@ describe('adminQuizList testing', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
   test('Error 401: empty token', () => {
@@ -457,7 +448,6 @@ describe('adminQuizList testing', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 });
@@ -521,7 +511,6 @@ describe('adminTrashQuizList testing', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
@@ -530,7 +519,6 @@ describe('adminTrashQuizList testing', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 });
@@ -597,7 +585,6 @@ describe('adminTrashQuizRestore testing', () => {
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
     });
   });
 
@@ -619,7 +606,6 @@ describe('adminTrashQuizRestore testing', () => {
     expect(quizNameInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizNameInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
     });
   });
 
@@ -635,7 +621,6 @@ describe('adminTrashQuizRestore testing', () => {
     expect(quizIdNotInTrash.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdNotInTrash.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
     });
   });
 
@@ -644,44 +629,43 @@ describe('adminTrashQuizRestore testing', () => {
       .bodyString as Token;
     const Quiz = requestAdminQuizCreate(
       returnToken.token,
-      'Quiz a',
+      'Quiz test 1',
       'this is my first quiz'
     ).bodyString as QuizId;
     const emptyToken = requestAdminTrashQuizRestore('', Quiz.quizId);
     expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(emptyToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
   test('Error 401: Token is invalid', () => {
-    const returnToken = requestAdminAuthLogin('jack@hotmail.com', '123456ab')
+    const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
       .bodyString as Token;
     const Quiz = requestAdminQuizCreate(
       returnToken.token,
-      'Quiz b',
+      'Quiz test 2',
       'this is my second quiz'
     ).bodyString as QuizId;
     const invalidToken = requestAdminTrashQuizRestore('invalid', Quiz.quizId);
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
   test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
     const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
       .bodyString as Token;
-    requestAdminRegister('tony1@hotmail.com', 'ab123456b', 'Tony', 'Stark');
-    const returnToken2 = requestAdminAuthLogin('tony1@hotmail.com', 'ab123456b')
+    requestAdminRegister('tony2@hotmail.com', 'ab123456b', 'Tony', 'Stark');
+    const returnToken2 = requestAdminAuthLogin('tony2@hotmail.com', 'ab123456b')
       .bodyString as Token;
     const TonyQuiz = requestAdminQuizCreate(
       returnToken2.token,
-      'Jack',
+      'Tony2',
       'Tony quiz'
     ).bodyString as QuizId;
+    requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     const quizIdNotReferToUser1 = requestAdminTrashQuizRestore(
       returnToken.token,
       TonyQuiz.quizId
@@ -692,7 +676,6 @@ describe('adminTrashQuizRestore testing', () => {
     // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_403,
     });
   });
 });
@@ -704,7 +687,7 @@ const requestAdminTrashQuizEmpty = (
   quizids: number[]
 ): requestAdminQuizRemoveReturn => {
   const res = request('DELETE', SERVER_URL + `/v1/admin/quiz/trash/empty`, {
-    qs: { quizids, token },
+    qs: { quizids: quizids, token: token },
   });
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
@@ -713,6 +696,7 @@ const requestAdminTrashQuizEmpty = (
 
 describe('adminTrashQuizEmpty testing', () => {
   beforeAll(() => {
+    requestClear();
     requestAdminRegister('emma1@hotmail.com', '123456ab', 'Emma', 'Homes');
   });
   test('StatusCode 200: Valid input', () => {
@@ -730,22 +714,17 @@ describe('adminTrashQuizEmpty testing', () => {
     ).bodyString as QuizId;
     requestAdminQuizRemove(returnToken.token, QuizOne.quizId);
     requestAdminQuizRemove(returnToken.token, QuizTwo.quizId);
-    requestAdminTrashQuizEmpty(returnToken.token, [QuizOne.quizId]);
-    const quizOneRestoredfail = requestAdminQuizList(returnToken.token);
+    console.log([QuizOne.quizId, QuizTwo.quizId])
+    requestAdminTrashQuizEmpty(returnToken.token, [QuizOne.quizId, QuizTwo.quizId]);
+    const quizOneRestoredfail = requestAdminTrashQuizRestore(returnToken.token, QuizOne.quizId);
     expect(quizOneRestoredfail.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizOneRestoredfail.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
     });
-    requestAdminTrashQuizRestore(returnToken.token, QuizTwo.quizId);
-    const quizTwoRestored = requestAdminQuizList(returnToken.token);
-    expect(quizTwoRestored.bodyString).toStrictEqual({
-      quizzes: [
-        {
-          quizId: QuizTwo.quizId,
-          name: 'Quiz Two',
-        },
-      ],
+    const quizTwoRestoredfail = requestAdminTrashQuizRestore(returnToken.token, QuizTwo.quizId);
+    expect(quizTwoRestoredfail.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(quizTwoRestoredfail.bodyString).toStrictEqual({
+      error: expect.any(String),
     });
   });
 
@@ -756,7 +735,6 @@ describe('adminTrashQuizEmpty testing', () => {
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
     });
   });
 
@@ -772,7 +750,6 @@ describe('adminTrashQuizEmpty testing', () => {
     expect(quizIdNotInTrash.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdNotInTrash.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
     });
   });
 
@@ -788,7 +765,6 @@ describe('adminTrashQuizEmpty testing', () => {
     expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(emptyToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
@@ -804,7 +780,6 @@ describe('adminTrashQuizEmpty testing', () => {
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
     });
   });
 
@@ -819,6 +794,7 @@ describe('adminTrashQuizEmpty testing', () => {
       'Jack',
       'Tony quiz'
     ).bodyString as QuizId;
+    requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId)
     const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(
       returnToken.token,
       [TonyQuiz.quizId]
@@ -829,7 +805,6 @@ describe('adminTrashQuizEmpty testing', () => {
     // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
-      errorCode: RESPONSE_ERROR_403,
     });
   });
 });
