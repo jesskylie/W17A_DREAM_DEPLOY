@@ -514,6 +514,59 @@ function adminTrashQuizRestore(
   token: string,
   quizId: number
 ): Record<string, never> | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isTokenValidTest = isTokenValid(data, token);
+  if (!token) {
+    return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
+  }
+  if (!isTokenValidTest) {
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
+  }
+  if (typeof quizId !== "number") {
+    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
+  }
+  if (!isQuizIdInTrash(data, quizId)) {
+    return { error: 'QuizId is not in trash', errorCode: RESPONSE_ERROR_400 }
+  }
+  if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {
+    return {
+      error: 'QuizId does not match authUserId',
+      errorCode: RESPONSE_ERROR_403,
+    };
+  }
+
+  const newdata = data;
+  const userToUpdata = data.users.find(
+    (user) => user.authUserId === authUserId.authUserId
+  );
+  let quizToRestore = data.trash.filter((quiz) => quiz.quizId === quizId);
+  console.log(quizToRestore)
+  const isQuizNameValidTest = isQuizNameValid(data, quizToRestore[0].name, authUserId.authUserId);
+  if (!isQuizNameValidTest.result) {
+    return { error: isQuizNameValidTest.error, errorCode: RESPONSE_ERROR_400 };
+  }
+  quizToRestore[0].timeLastEdited = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
+  newdata.trash = newdata.trash.filter((quiz) => quiz.quizId !== quizId);
+  userToUpdata.quizId.push(quizId);
+
+
+  // data.trash = data.trash.filter((quiz) => quiz.quizId !== quizId);
+  // if (userToUpdata) {
+  //   // const indexToRemove = userToUpdata.quizId.indexOf(quizId);
+  //   // if (indexToRemove !== -1) {
+  //   //   userToUpdata.quizId.splice(indexToRemove, 1);
+  //   // }
+  //   userToUpdata.quizId.push(quizId);
+  // }
+  for (let check of newdata.users) {
+    if (check.authUserId === authUserId.authUserId) {
+      check = userToUpdata;
+    }
+  }
+  // quizToRestore[0].timeLastEdited = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
+  newdata.quizzes.push(quizToRestore[0]);
+  saveDataInFile(newdata);
   return {};
 }
 
@@ -523,6 +576,30 @@ function adminTrashQuizEmpty(
   token: string,
   quizIds: number[]
 ): Record<string, never> | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isTokenValidTest = isTokenValid(data, token);
+  if (!token) {
+    return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
+  }
+  if (!isTokenValidTest) {
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
+  }
+  for (const quizId of quizIds) {
+    if (typeof quizId !== "number") {
+      return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
+    }
+    if (!isQuizIdInTrash(data, quizId)) {
+      return { error: 'QuizId is not in trash', errorCode: RESPONSE_ERROR_400 }
+    }
+    if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {
+      return {
+        error: 'QuizId does not match authUserId',
+        errorCode: RESPONSE_ERROR_403,
+      };
+    }
+  }
+  
   return {};
 }
 
@@ -754,6 +831,47 @@ function isAuthUserIdMatchQuizId(
     }
   }
   if (userQuizIdArr.length === 1) {
+    return true;
+  }
+  return false;
+}
+
+function isQuizIdInTrash(data: DataStore, quizId: number): boolean {
+  if (!Number.isInteger(quizId) || quizId < 0) {
+    return false;
+  }
+
+  // 2. test that quizId exists in dataStore
+  const quizzesArr = data.trash;
+  const userIdArr = [];
+  for (const arr of quizzesArr) {
+    if (arr.quizId === quizId) {
+      userIdArr.push(quizId);
+    }
+  }
+  if (userIdArr.length === 1) {
+    return true;
+  }
+
+  return false;
+}
+
+function isAuthUserIdMatchTrashQuizId(
+  data: DataStore,
+  authUserId: number,
+  quizId: number
+): boolean {
+  const quizArray = [];
+  for (const quiz of data.trash) {
+    if (quiz.quizId === quizId) {
+      for (const check of quiz.userId) {
+        if (check === authUserId) {
+          quizArray.push(quiz);
+        }
+      }
+    }
+  }
+  if (quizArray.length === 1) {
     return true;
   }
   return false;
