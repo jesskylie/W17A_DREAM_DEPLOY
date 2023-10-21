@@ -35,6 +35,15 @@ export interface QuestionId {
   questionId: number;
 }
 
+export interface ErrorObjectWithCode {
+  error: string;
+  errorCode: number;
+}
+
+export interface CreateQuizQuestionReturn {
+  createQuizQuestionResponse: number | ErrorObjectWithCode;
+}
+
 /**
  * Function to generate random number
  * from 0 to max - 1
@@ -56,12 +65,39 @@ function getRandomInt(max: number): number {
   return Math.floor(Math.random() * max);
 }
 
+// From swagger.yaml
+// Create a new stub question for a particular quiz.
+// When this route is called, and a question is created,
+// the timeLastEdited is set as the same as the created time,
+// and the colours of all answers of that question are randomly generated.
+
+/**
+ * Printing out the the quiz information
+ * From swagger.yaml
+ * Create a new stub question for a particular quiz.
+ * When this route is called, and a question is created,
+ * the timeLastEdited is set as the same as the created time,
+ * and the colours of all answers of that question are randomly generated.
+ *
+ * @param {string} token - the token of the person want to print quiz - must exist / be valid / be unique
+ * @param {Question} question - the new question: new type Question
+ * @param {quizId} number
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{questionId}} - an object of the questionId, a unique number
+ */
 export function createQuizQuestion(
   token: string,
   question: Question,
   quizId: number
-) {
+): CreateQuizQuestionReturn {
   const data: DataStore = retrieveDataFromFile();
+
+  // Step 1: Check for 400 errors
+  // Step 1a: Quiz ID does not refer to a valid quiz
+
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
 
   //gets authUserId number
   const authUserIdString = getAuthUserIdUsingToken(data, token) as AuthUserId;
@@ -91,14 +127,14 @@ export function createQuizQuestion(
           //push new question to quizzes
           quiz.questions.push(newQuestion);
           questionIdNumber = quiz.questions.length;
-          return { questionId: questionIdNumber };
+          return { createQuizQuestionResponse: questionIdNumber };
         }
       }
     }
   }
 
   saveDataInFile(data);
-  return { error: 'Error' };
+  return { createQuizQuestionResponse: 1 };
 }
 
 //debugging code
@@ -144,3 +180,40 @@ export function createQuizQuestion(
 //     console.log(createQuizQuestion(admin.token, validQuestion2, newQuiz.quizId));
 //   }
 // }
+
+// HELPER FUNCTIONS - START
+
+/**
+ * Function to test whether quizId is valid
+ * Used in:
+ * adminQuizInfo()
+ * adminQuizRemove()
+ *
+ * @param {object} data - the dataStore object
+ * @param {number} quizId - the id of the quiz
+ * ...
+ *
+ * @returns {boolean} - true if authId is valid / false if authId is not valid
+ */
+function isQuizIdValid(data: DataStore, quizId: number): boolean {
+  // 1. test for quizId is integer or less than 0
+  if (!Number.isInteger(quizId) || quizId < 0) {
+    return false;
+  }
+
+  // 2. test that quizId exists in dataStore
+  const quizzesArr = data.quizzes;
+  const userIdArr = [];
+  for (const arr of quizzesArr) {
+    if (arr.quizId === quizId) {
+      userIdArr.push(quizId);
+    }
+  }
+  if (userIdArr.length === 1) {
+    return true;
+  }
+
+  return false;
+}
+
+// HELPER FUNCTIONS - END
