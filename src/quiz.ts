@@ -482,14 +482,30 @@ export { adminQuizRemove };
 function adminTrashQuizList(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
-  return {
-    quizzes: [
-      {
-        quizId: 5566,
-        name: 'My Quiz Name',
-      },
-    ],
-  };
+  const data = retrieveDataFromFile();
+  const isTokenValidTest = isTokenValid(data, token);
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  if (!token) {
+    return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
+  }
+  if (!isTokenValidTest) {
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
+  }
+  let trashArray = [];
+  let quizIdArray = [];
+  for (const checkId of data.users) {
+    if (checkId.authUserId === authUserId.authUserId) {
+      quizIdArray.push(...checkId.quizId)
+    }
+  }
+  for (const checkQuizzes of data.trash) {
+    for (const checkUserId of checkQuizzes.userId) {
+      if (checkUserId === authUserId.authUserId) {
+        trashArray.push(checkQuizzes);
+      }
+    }
+  }
+  return { quizzes: trashArray };
 }
 
 export { adminTrashQuizList };
