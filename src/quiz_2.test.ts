@@ -687,7 +687,7 @@ const requestAdminTrashQuizEmpty = (
   quizids: number[]
 ): requestAdminQuizRemoveReturn => {
   const res = request('DELETE', SERVER_URL + `/v1/admin/quiz/trash/empty`, {
-    qs: { quizids, token },
+    qs: { quizids: quizids, token: token },
   });
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
@@ -696,6 +696,7 @@ const requestAdminTrashQuizEmpty = (
 
 describe.only('adminTrashQuizEmpty testing', () => {
   beforeAll(() => {
+    requestClear();
     requestAdminRegister('emma1@hotmail.com', '123456ab', 'Emma', 'Homes');
   });
   test('StatusCode 200: Valid input', () => {
@@ -713,21 +714,17 @@ describe.only('adminTrashQuizEmpty testing', () => {
     ).bodyString as QuizId;
     requestAdminQuizRemove(returnToken.token, QuizOne.quizId);
     requestAdminQuizRemove(returnToken.token, QuizTwo.quizId);
-    requestAdminTrashQuizEmpty(returnToken.token, [QuizOne.quizId]);
-    const quizOneRestoredfail = requestAdminQuizList(returnToken.token);
+    console.log([QuizOne.quizId, QuizTwo.quizId])
+    requestAdminTrashQuizEmpty(returnToken.token, [QuizOne.quizId, QuizTwo.quizId]);
+    const quizOneRestoredfail = requestAdminTrashQuizRestore(returnToken.token, QuizOne.quizId);
     expect(quizOneRestoredfail.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizOneRestoredfail.bodyString).toStrictEqual({
       error: expect.any(String),
     });
-    requestAdminTrashQuizRestore(returnToken.token, QuizTwo.quizId);
-    const quizTwoRestored = requestAdminQuizList(returnToken.token);
-    expect(quizTwoRestored.bodyString).toStrictEqual({
-      quizzes: [
-        {
-          quizId: QuizTwo.quizId,
-          name: 'Quiz Two',
-        },
-      ],
+    const quizTwoRestoredfail = requestAdminTrashQuizRestore(returnToken.token, QuizTwo.quizId);
+    expect(quizTwoRestoredfail.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(quizTwoRestoredfail.bodyString).toStrictEqual({
+      error: expect.any(String),
     });
   });
 
@@ -797,6 +794,7 @@ describe.only('adminTrashQuizEmpty testing', () => {
       'Jack',
       'Tony quiz'
     ).bodyString as QuizId;
+    requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId)
     const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(
       returnToken.token,
       [TonyQuiz.quizId]

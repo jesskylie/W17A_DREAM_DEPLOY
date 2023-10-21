@@ -541,7 +541,6 @@ function adminTrashQuizRestore(
     (user) => user.authUserId === authUserId.authUserId
   );
   let quizToRestore = data.trash.filter((quiz) => quiz.quizId === quizId);
-  console.log(quizToRestore)
   const isQuizNameValidTest = isQuizNameValid(data, quizToRestore[0].name, authUserId.authUserId);
   if (!isQuizNameValidTest.result) {
     return { error: isQuizNameValidTest.error, errorCode: RESPONSE_ERROR_400 };
@@ -579,6 +578,7 @@ function adminTrashQuizEmpty(
   const data = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isTokenValidTest = isTokenValid(data, token);
+  console.log(data.trash)
   if (!token) {
     return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
   }
@@ -599,7 +599,18 @@ function adminTrashQuizEmpty(
       };
     }
   }
-  
+  let newdata = data;
+  for (const quizId of quizIds) {
+    newdata.trash = data.trash.filter((quiz) => quiz.quizId === quizId);
+  }
+  // for (const checkQuiz of newdata.trash) {
+  //   const indexToRemove = quizIds.indexOf(checkQuiz.quizId);
+  //   if (indexToRemove !== -1) {
+  //     newdata.trash.splice(indexToRemove, 1);
+  //   }
+  // }
+  saveDataInFile(newdata);
+  console.log(newdata.trash)
   return {};
 }
 

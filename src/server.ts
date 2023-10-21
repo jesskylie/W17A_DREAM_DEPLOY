@@ -313,9 +313,8 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
 
 app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  const quizids = req.query.quizIds as string;
-  console.log(quizids);
-  const quizIds = quizids.split(',').map(Number);
+  const quizids = req.query.quizids as string[];
+  const quizIds = quizids.map(Number);
   const result = adminTrashQuizEmpty(token, quizIds);
   if ('error' in result) {
     console.log('error in response');
