@@ -1,4 +1,5 @@
 // Do not delete this file _
+// All tests passing
 import request from 'sync-request-curl';
 import config from './config.json';
 
