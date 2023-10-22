@@ -1,5 +1,6 @@
 // Do not delete this file _
 // All tests passing
+// All lint checks passing
 import request from 'sync-request-curl';
 import config from './config.json';
 
@@ -11,46 +12,11 @@ import {
   WAIT_TIME,
 } from './library/constants';
 
-import {
-  AuthUserId,
-  TokenString,
-  ErrorObjectWithCode,
-} from './library/interfaces';
+import { TokenString, ErrorObjectWithCode } from './library/interfaces';
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
-import { adminAuthRegister, adminAuthLogin } from './auth';
+
 import { Quizzes } from './dataStore';
-import { clear } from 'console';
-import { TIMEOUT } from 'dns';
-
-function requestAdminRegister(
-  email: string,
-  password: string,
-  nameFirst: string,
-  nameLast: string
-) {
-  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-    json: {
-      email: email,
-      password: password,
-      nameFirst: nameFirst,
-      nameLast: nameLast,
-    },
-  });
-  return JSON.parse(res.body.toString());
-}
-
-const requestAdminAuthLogin = (
-  email: string,
-  password: string
-): requestAdminAuthLoginReturn => {
-  const res = request('POST', SERVER_URL + '/v1/admin/auth/login', {
-    json: { email, password },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
 
 // interfaces used throughout file - START
 
@@ -92,11 +58,6 @@ interface requestAdminTrashQuizRestoreReturn {
   bodyString: Record<string, never> | ErrorObject;
 }
 
-interface requestAdminQuizCreateReturn {
-  statusCode?: number;
-  bodyString: QuizId | ErrorObject;
-}
-
 // interfaces used throughout file - END
 
 // constants used throughout file - START
@@ -108,12 +69,41 @@ const SERVER_URL = `${url}:${port}`;
 // constants used throughout file - END
 
 const requestClear = () => {
-  const res = request('DELETE', SERVER_URL + `/v1/clear`, {
+  const res = request('DELETE', SERVER_URL + '/v1/clear', {
     timeout: WAIT_TIME,
   });
   const bodyString = JSON.parse(res.body.toString());
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
+};
+
+function requestAdminRegister(
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+) {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+    json: {
+      email: email,
+      password: password,
+      nameFirst: nameFirst,
+      nameLast: nameLast,
+    },
+  });
+  return JSON.parse(res.body.toString());
+}
+
+const requestAdminAuthLogin = (
+  email: string,
+  password: string
+): requestAdminAuthLoginReturn => {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/login', {
+    json: { email, password },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+
+  return { statusCode: res.statusCode, bodyString: bodyString };
 };
 
 // beforeAll(() => {
@@ -153,7 +143,7 @@ export const requestAdminQuizCreate = (
   name: string,
   description: string
 ): requestAdminQuizCreateReturn => {
-  const res = request('POST', SERVER_URL + `/v1/admin/quiz`, {
+  const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
     json: { token, name, description },
     timeout: WAIT_TIME,
   });
@@ -189,7 +179,7 @@ const requestAdminQuizRemove = (
 };
 
 const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
-  const res = request('GET', SERVER_URL + `/v1/admin/quiz/list`, {
+  const res = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
     qs: { token },
   });
   const bodyString = JSON.parse(res.body.toString());
@@ -784,7 +774,7 @@ const requestAdminTrashQuizEmpty = (
   token: string,
   quizids: number[]
 ): requestAdminQuizRemoveReturn => {
-  const res = request('DELETE', SERVER_URL + `/v1/admin/quiz/trash/empty`, {
+  const res = request('DELETE', SERVER_URL + '/v1/admin/quiz/trash/empty', {
     qs: { quizids: quizids, token: token },
   });
   const bodyString = JSON.parse(res.body.toString());
@@ -1063,12 +1053,12 @@ describe('test 2: /v1/admin/quiz : Name contains invalid characters -> EXPECT ER
     const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
 
     const INVALID_NAME = 'InvalidQuizName!!!!';
-    const description_1 = 'This is the first quiz';
+    const descriptionOne = 'This is the first quiz';
 
     const test1Obj = requestQuizCreateCombined(
       tokenObj.token,
       INVALID_NAME,
-      description_1
+      descriptionOne
     );
 
     // need to test for error in test1Obj as TS

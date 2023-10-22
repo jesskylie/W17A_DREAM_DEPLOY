@@ -128,11 +128,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       'Pie'
     );
     token = response.body.token;
-    const quizCreateResponse = requestAdminQuizCreate(
-      token,
-      'New Quiz',
-      'Description of quiz'
-    );
+    requestAdminQuizCreate(token, 'New Quiz', 'Description of quiz');
     // create invalid quizIdcheck quizId was returned
 
     const quizId = -1;
@@ -867,7 +863,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       'Ann',
       'Pie'
     );
-    let token = user1.body.token;
+    const token = user1.body.token;
     const quizCreateResponse = requestAdminQuizCreate(
       token,
       'New Quiz',
@@ -880,7 +876,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       'Paul',
       'Rather'
     );
-    let token2 = user2.body.token;
+    const token2 = user2.body.token;
     // check quizId was returned
     if ('quizId' in quizCreateResponse.bodyString) {
       quizId = quizCreateResponse.bodyString.quizId;

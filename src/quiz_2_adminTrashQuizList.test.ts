@@ -2,25 +2,12 @@
 import request from 'sync-request-curl';
 import config from './config.json';
 
-import {
-  RESPONSE_OK_200,
-  RESPONSE_ERROR_400,
-  RESPONSE_ERROR_401,
-  RESPONSE_ERROR_403,
-  WAIT_TIME,
-} from './library/constants';
+import { RESPONSE_ERROR_401, WAIT_TIME } from './library/constants';
 
-import {
-  AuthUserId,
-  TokenString,
-  ErrorObjectWithCode,
-} from './library/interfaces';
+import { TokenString } from './library/interfaces';
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
-import { adminAuthRegister, adminAuthLogin } from './auth';
 import { Quizzes } from './dataStore';
-import { clear } from 'console';
-import { TIMEOUT } from 'dns';
 
 function requestAdminRegister(
   email: string,
@@ -69,11 +56,6 @@ interface requestAdminQuizRemoveReturn {
   bodyString: Record<string, never> | ErrorObject;
 }
 
-interface requestAdminQuizCreateReturn {
-  statusCode?: number;
-  bodyString: QuizId | ErrorObject;
-}
-
 // interfaces used throughout file - END
 
 // constants used throughout file - START
@@ -85,7 +67,7 @@ const SERVER_URL = `${url}:${port}`;
 // constants used throughout file - END
 
 const requestClear = () => {
-  const res = request('DELETE', SERVER_URL + `/v1/clear`, {
+  const res = request('DELETE', SERVER_URL + '/v1/clear', {
     timeout: WAIT_TIME,
   });
   const bodyString = JSON.parse(res.body.toString());
@@ -98,7 +80,7 @@ export const requestAdminQuizCreate = (
   name: string,
   description: string
 ): requestAdminQuizCreateReturn => {
-  const res = request('POST', SERVER_URL + `/v1/admin/quiz`, {
+  const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
     json: { token, name, description },
   });
   return {
@@ -133,14 +115,6 @@ const requestAdminQuizRemove = (
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
 
-const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
-  const res = request('GET', SERVER_URL + `/v1/admin/quiz/list`, {
-    qs: { token },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
-
 // ***********************************************************************************
 
 // adminTrashQuizList - testing start
@@ -148,7 +122,7 @@ const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
 const requestAdminTrashQuizList = (
   token: string
 ): requestAdminQuizListReturn => {
-  const res = request('GET', SERVER_URL + `/v1/admin/quiz/trash`, {
+  const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
     qs: { token },
   });
   const bodyString = JSON.parse(res.body.toString());
@@ -184,7 +158,7 @@ describe('adminTrashQuizList testing', () => {
 
     // should wait here
     // Send QuizOne to trash
-    const testSendToTrash = requestAdminQuizRemove(testToken, QuizOne.quizId);
+    requestAdminQuizRemove(testToken, QuizOne.quizId);
 
     // print out quiz in trash
     const TrashQuizPrint = requestAdminTrashQuizList(testToken);

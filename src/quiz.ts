@@ -1,4 +1,4 @@
-import { DataStore, Quizzes } from './dataStore';
+import { DataStore } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -8,16 +8,16 @@ import {
 } from './functions';
 
 import {
-  RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
+  MIN_QUIZ_NAME_LENGTH,
+  MAX_QUIZ_NAME_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
+  CONVERT_MSECS_TO_SECS,
 } from './library/constants';
 
 import { AuthUserId } from './library/interfaces';
-
-const MIN_QUIZ_NAME_LENGTH = 3;
-const MAX_QUIZ_NAME_LENGTH = 30;
 
 // TypeScript interfacts - START
 
@@ -62,17 +62,6 @@ interface QuizListReturn {
 }
 
 // TypeScript interfacts - END
-
-// CONSTANTS - START
-
-const CONVERT_MSECS_TO_SECS = 1000;
-
-// used in adminQuizCreate
-const MAX_DESCRIPTION_LENGTH = 100;
-const MIN_NAME_LENGTH = 3;
-const MAX_NAME_LENGTH = 30;
-
-// CONSTANTS - END
 
 /**
  * Printing out the the quiz information
@@ -169,11 +158,11 @@ function getQuizzesInTrashForLoggedInUser(
 
   const trashQuizArray = data.trash;
 
-  let quizzesArray = [];
+  const quizzesArray = [];
 
   for (const quiz of trashQuizArray) {
     if (quiz.userId.includes(authUserId)) {
-      let tempArray = {
+      const tempArray = {
         quizId: quiz.quizId,
         name: quiz.name,
       };
@@ -264,16 +253,12 @@ function adminQuizCreate(
     newQuizId = data.quizzes[length - 1].quizId + 1;
   }
 
-  // Inspiration taken from
-  // https://stackoverflow.com/questions/3830244/how-to-get-the-current-date-or-and-time-in-seconds
-  const timeStamp = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
-
   data.quizzes.push({
     quizId: newQuizId,
     name,
     description,
-    timeCreated: timeStamp,
-    timeLastEdited: timeStamp,
+    timeCreated: createCurrentTimeStamp(),
+    timeLastEdited: createCurrentTimeStamp(),
     userId: [authUserId.authUserId],
     questions: [],
     numQuestions: 0,
@@ -528,29 +513,6 @@ function adminQuizNameUpdate(
 }
 export { adminQuizNameUpdate };
 
-// Helper function to determine
-// whether the user is an owner of this quiz
-// returns boolean:
-// true: if the user is an owner of the quiz
-// false: if the user is not an owner of the quiz
-// check whether this actually works
-function doesQuizIdRefer(
-  data: DataStore,
-  quizId: number,
-  authUserId: number
-): boolean {
-  for (const quiz of data.quizzes) {
-    if (quiz.quizId === quizId) {
-      for (const userId of quiz.userId) {
-        if (userId === authUserId) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
  *
@@ -664,8 +626,8 @@ function adminTrashQuizList(
   if (!isTokenValidTest) {
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
-  let trashArray = [];
-  let quizIdArray = [];
+  const trashArray = [];
+  const quizIdArray = [];
   for (const checkId of data.users) {
     if (checkId.authUserId === authUserId.authUserId) {
       quizIdArray.push(...checkId.quizId);
@@ -713,7 +675,7 @@ function adminTrashQuizRestore(
   const userToUpdata = data.users.find(
     (user) => user.authUserId === authUserId.authUserId
   );
-  let quizToRestore = data.trash.filter((quiz) => quiz.quizId === quizId);
+  const quizToRestore = data.trash.filter((quiz) => quiz.quizId === quizId);
   const isQuizNameValidTest = isQuizNameValid(
     data,
     quizToRestore[0].name,
@@ -777,7 +739,7 @@ function adminTrashQuizEmpty(
       };
     }
   }
-  let newdata = data;
+  const newdata = data;
   for (const quizId of quizIds) {
     newdata.trash = data.trash.filter((quiz) => quiz.quizId === quizId);
   }
@@ -807,57 +769,6 @@ export { adminTrashQuizEmpty };
  */
 
 // HELPER FUNCTIONS - START ------------------------------------------------------------------------
-
-/**
- * Function to test whether authUserId is valid
- * Used in:
- * adminQuizCreate()
- * adminQuizInfo()
- * adminQuizRemove()
- *
- * @param {object} data - the dataStore object
- * @param {number} authId - the id of the person creating the quiz
- * ...
- *
- * @returns {boolean} - true if authId is valid / false if authId is not valid
- */
-function isAuthUserIdValid(data: DataStore, authId: number): boolean {
-  // 1. test for authId is integer or less than 0
-  if (!Number.isInteger(authId) || authId < 0) {
-    return false;
-  }
-
-  // 2. test that authId exists in dataStore
-  // if the authId is found while iterating
-  // over the array, the authId is pushed
-  // to userIdArr[]
-  // If at the end of the iteration, the
-  // length of userIdArr[] is exactly 1
-  // then: the authId exists and only
-  // one copy of authId exists and the boolean
-  // true is returned
-  // If userIdArr[].length is not exactly 1
-  // then either it does not exist, or more than
-  // one copy exists, and the boolean false is returned
-
-  const usersArr = data.users;
-  const userIdArr = [];
-
-  for (const arr of usersArr) {
-    if (arr.authUserId === authId) {
-      userIdArr.push(authId);
-    }
-  }
-
-  // not testing for type equality here
-  // as during testing userIdArr.length does not return true
-  // for type number
-  if (userIdArr.length == 1) {
-    return true;
-  }
-
-  return false;
-}
 
 /**
  * Function to test whether quiz name is valid
@@ -897,7 +808,10 @@ function isQuizNameValid(
   // 2. test for name either less than 3 characters or
   // more than 30 characters long
 
-  if (name.length < MIN_NAME_LENGTH || name.length > MAX_NAME_LENGTH) {
+  if (
+    name.length < MIN_QUIZ_NAME_LENGTH ||
+    name.length > MAX_QUIZ_NAME_LENGTH
+  ) {
     return {
       result: false,
       error:

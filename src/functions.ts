@@ -15,7 +15,6 @@ const DATASTORE_FILENAME = 'database.json';
 // import types from src/dataStore
 
 import { DataStore } from './dataStore';
-import { randomInt } from 'crypto';
 
 interface getDataReturnObject {
   result: boolean;
@@ -141,7 +140,7 @@ export function isTokenValid(data: DataStore, token: string): boolean {
   // not testing for type equality here
   // as during testing tokenArray.length does not return true
   // for type number
-  if (tokenArr.length == 1) {
+  if (tokenArr.length === 1) {
     return true;
   }
 
@@ -181,7 +180,6 @@ export function getAuthUserIdUsingToken(
 /**
  * Function that returns current datetime stamp
  * expressed in seconds
- 
  *
  * @param  - nil
  * ...
@@ -266,6 +264,6 @@ function getRandomInt(max: number): number {
  * @returns {string} - the randomly selected colour
  */
 export function returnRandomColour(): string {
-  const randomNumber = randomInt(RANDOM_COLOURS_ARRAY.length);
+  const randomNumber = getRandomInt(RANDOM_COLOURS_ARRAY.length);
   return RANDOM_COLOURS_ARRAY[randomNumber];
 }

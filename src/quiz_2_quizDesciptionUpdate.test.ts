@@ -35,14 +35,6 @@ function requestAdminRegister(
 
 // interfaces used throughout file - START
 
-interface BodyString {
-  quizId: number;
-  name: string;
-  timeCreated: number;
-  timeLastEdited: number;
-  descriptions: string;
-}
-
 interface ErrorObject {
   error: string;
 }
@@ -67,7 +59,7 @@ const SERVER_URL = `${url}:${port}`;
 // constants used throughout file - END
 
 const requestClear = () => {
-  const res = request('DELETE', SERVER_URL + `/v1/clear`, {
+  const res = request('DELETE', SERVER_URL + '/v1/clear', {
     timeout: WAIT_TIME,
   });
   const bodyString = JSON.parse(res.body.toString());

@@ -53,8 +53,6 @@
 //   ],
 // };
 
-import { QuestionDotToken } from 'typescript';
-
 // YOU SHOULDNT NEED TO MODIFY THE FUNCTIONS BELOW IN ITERATION 1
 
 /*
@@ -71,25 +69,7 @@ Example usage
     setData(store)
 */
 
-// Use get() to access the data
-function getData() {
-  return data;
-}
-
-// Use set(newData) to pass in the entire data object, with modifications made
-function setData(newData: DataStore) {
-  data = newData;
-}
-
-export { getData, setData };
-
 // TypeScript interfaces for Iteration 2 - START
-
-export interface DataStore {
-  users: Users[];
-  quizzes: Quizzes[];
-  trash: Quizzes[];
-}
 
 export interface Users {
   authUserId: number;
@@ -102,17 +82,6 @@ export interface Users {
   numFailedPasswordsSinceLastLogin: number;
   quizId: number[];
   token: string[];
-}
-
-export interface Quizzes {
-  quizId: number;
-  name: string;
-  description: string;
-  timeCreated: number;
-  timeLastEdited: number;
-  userId: number[];
-  numQuestions: number;
-  questions: Question[];
 }
 
 interface Question {
@@ -128,10 +97,39 @@ interface Question {
   }[];
 }
 
+export interface Quizzes {
+  quizId: number;
+  name: string;
+  description: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  userId: number[];
+  numQuestions: number;
+  questions: Question[];
+}
+
+export interface DataStore {
+  users: Users[];
+  quizzes: Quizzes[];
+  trash: Quizzes[];
+}
+
 export let data: DataStore = {
   users: [],
   quizzes: [],
   trash: [],
 };
+
+// Use get() to access the data
+function getData() {
+  return data;
+}
+
+// Use set(newData) to pass in the entire data object, with modifications made
+function setData(newData: DataStore) {
+  data = newData;
+}
+
+export { getData, setData };
 
 // TypeScript interfaces for Iteration 2 - END

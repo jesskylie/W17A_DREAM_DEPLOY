@@ -16,7 +16,7 @@ import {
   adminAuthLogout,
   adminUserDetailUpdate,
 } from './auth';
-import { clear, newClear } from './other';
+import { newClear } from './other';
 import {
   adminQuizCreate,
   adminQuizInfo,
@@ -24,7 +24,6 @@ import {
   adminQuizRemove,
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
-  adminTrashQuizList,
   adminTrashQuizRestore,
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
@@ -37,9 +36,6 @@ import {
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
 } from './library/constants';
-import { request } from 'http';
-
-import { CreateQuizQuestionServerReturn } from './question.test';
 
 // Set up web app
 const app = express();
