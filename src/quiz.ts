@@ -268,19 +268,21 @@ export { adminQuizCreate };
  * @returns {} - return nothing
  */
 function adminQuizDescriptionUpdate(
-  authUserId: number,
+  token: string,
   quizId: number,
   description: string
-): Record<string, never> | { error: string; errorCode: number } {
-  const data = getData();
-  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId);
+): Record<string, never> | ErrorObjectWithCode {
+  // const data = getData();
+  const data: DataStore = retrieveDataFromFile();
 
-  if (!isAuthUserIdValidTest) {
-    return {
-      error: 'AuthUserId is not a valid user',
-      errorCode: RESPONSE_ERROR_401,
-    };
-  }
+  // get authUserId from Token
+  const authUserIdObj = getAuthUserIdUsingToken(data, token) as AuthUserId;
+  const authUserId = authUserIdObj.authUserId;
+
+  // Step 1: Error checks - START
+  // Step 1a: Error checks - 400 Errors - START
+
+  // Step 1a 1 Quiz ID does not refer to a valid quiz - 400 - START
 
   if (!isQuizIdValid(data, quizId)) {
     return {
@@ -289,12 +291,9 @@ function adminQuizDescriptionUpdate(
     };
   }
 
-  if (!doesQuizIdRefer(quizId, authUserId)) {
-    return {
-      error: 'Quiz ID does not refer to a quiz that this user owns',
-      errorCode: RESPONSE_ERROR_403,
-    };
-  }
+  // Step 1a 1 Quiz ID does not refer to a valid quiz - 400 - END
+
+  // Step 1a 2 Description is more than 100 characters in length (note: empty strings are OK) - 400 - START
 
   if (description.length > MAX_DESCRIPTION_LENGTH) {
     return {
@@ -304,14 +303,69 @@ function adminQuizDescriptionUpdate(
     };
   }
 
-  const timeStamp = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
+  // Step 1a 2 Description is more than 100 characters in length (note: empty strings are OK) - 400 - END
+  // Step 1a: Error checks - 400 Errors - END
 
-  for (const quiz of data.quizzes) {
-    if (quiz.quizId === quizId) {
-      quiz.description = description;
-      quiz.timeLastEdited = timeStamp;
+  // Step 1b: Error checks - 401 Errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session) - START
+
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+
+  if (!isTokenValidTest) {
+    return {
+      error:
+        'Token is empty or invalid (does not refer to valid logged in user session)',
+      errorCode: RESPONSE_ERROR_401,
+    };
+  }
+
+  // Token is empty or invalid (does not refer to valid logged in user session) - END
+  // Step 1b: Error checks - 401 Errors - END
+
+  // Step 1c: Error checks - 403 Errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+  // Need:
+  // a. authUserId
+  // b. quizId
+  // Then:
+  // x. iterate over data.users
+  // y. find user array that corresponds with authUserId
+  // z. check in that user's quizid array to test whether quizId is included
+
+  // x
+  const userArr = data.users;
+
+  let userOwnsQuizBool = false;
+
+  for (const user of userArr) {
+    if (user.authUserId === authUserId && user.quizId.includes(quizId)) {
+      userOwnsQuizBool = true;
     }
   }
+
+  if (!userOwnsQuizBool) {
+    return {
+      error: 'Valid token is provided, but user is not an owner of this quiz',
+      errorCode: RESPONSE_ERROR_403,
+    };
+  }
+
+  // Step 1c: Error checks - 403 Errors - END
+  // Step 1: Error checks - END
+
+  // All error cases have been dealt with
+  // now mutate the dataStore by updating
+  // the description and the timeLastEdited
+
+  const quizArr = data.quizzes;
+  for (const quiz of quizArr) {
+    if (quiz.quizId === quizId) {
+      quiz.description = description;
+      quiz.timeLastEdited = createCurrentTimeStamp();
+    }
+  }
+
+  saveDataInFile(data);
 
   return {};
 }
@@ -422,13 +476,8 @@ function adminQuizNameUpdate(
   // now mutate the dataStore
   // by updating the quiz name
 
-  console.log('from quiz.ts: name ->', name);
-
   for (const quiz of data.quizzes) {
-    console.log('quiz ->', quiz);
-    console.log('quiz.quizId ->', quiz.quizId);
     if (quiz.quizId === quizId) {
-      console.log('Match made !!@');
       quiz.name = name;
       quiz.timeLastEdited = createCurrentTimeStamp();
     }
@@ -438,8 +487,17 @@ function adminQuizNameUpdate(
 }
 export { adminQuizNameUpdate };
 
-function doesQuizIdRefer(quizId: number, authUserId: number) {
-  const data = getData();
+// Helper function to determine
+// whether the user is an owner of this quiz
+// returns boolean:
+// true: if the user is an owner of the quiz
+// false: if the user is not an owner of the quiz
+// check whether this actually works
+function doesQuizIdRefer(
+  data: DataStore,
+  quizId: number,
+  authUserId: number
+): boolean {
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
       for (const userId of quiz.userId) {

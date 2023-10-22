@@ -98,8 +98,6 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 
   const response = adminAuthLogin(email, password);
 
-  console.log('from server.ts /v1/admin/auth/login : response ->', response);
-
   if ('error' in response) {
     return res.status(400).json(response);
   }
@@ -110,8 +108,6 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   const { token } = req.body;
 
   const response = adminAuthLogout(token);
-
-  console.log('from server.ts /v1/admin/auth/logout : response ->', response);
 
   if ('error' in response) {
     return res.status(401).json(response);
@@ -138,8 +134,6 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { token, name, description } = req.body;
 
   const response = adminQuizCreate(token, name, description);
-
-  console.log('from server.ts /v1/admin/quiz : response ->', response);
 
   if ('error' in response) {
     console.log('error in response');
@@ -261,14 +255,11 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   const { token, questionBody } = req.body;
 
-  console.log('server.ts: quizId ->', quizId);
-  console.log('server.ts: token ->', token);
-  console.log('server.ts: questionBody ->', questionBody);
   const response = createQuizQuestion(token, questionBody, quizId);
-  console.log('From server.ts line 264 ->', response);
+
   if ('createQuizQuestionResponse' in response) {
     const testObj = response.createQuizQuestionResponse;
-    console.log('testObj ->', testObj);
+
     if ('error' in testObj) {
       const testErrorCode = testObj.errorCode;
       if (testErrorCode === RESPONSE_ERROR_400) {
@@ -329,26 +320,24 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
 
 // ***********************************************************************
 
-app.put(
-  '/v1/admin/quiz/{quizid}/description',
-  (req: Request, res: Response) => {
-    const { token, quizid, description } = req.body;
+app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
+  const { token, quizid, description } = req.body;
 
-    const response = adminQuizDescriptionUpdate(token, quizid, description);
+  const response = adminQuizDescriptionUpdate(token, quizid, description);
 
-    if ('error' in response) {
-      console.log('error in response');
-      if (response.errorCode === 400) {
-        return res.status(400).json(response);
-      } else if (response.errorCode === 401) {
-        return res.status(401).json(response);
-      } else if (response.errorCode === 401) {
-        return res.status(403).json(response);
-      }
+  console.log('from server.ts: response ->', response);
+
+  if ('error' in response) {
+    if (response.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json({ error: response.error });
+    } else if (response.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json({ error: response.error });
+    } else if (response.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json({ error: response.error });
     }
-    res.json(response);
   }
-);
+  res.status(RESPONSE_OK_200).json(response);
+});
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================

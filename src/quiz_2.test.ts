@@ -1222,21 +1222,3 @@ describe('test /v1/admin/quiz : Token is empty or invalid -> EXPECT ERROR 401', 
 });
 
 // Test suite for /v1/admin/quiz route adminQuizCreate() - END
-
-//****************************************************************** */
-const requestAdminQuizDescriptionUpdate = (
-  token: string,
-  quizid: number,
-  description: string
-) => {
-  const res = request(
-    'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizid}/description`,
-    {
-      json: { token, quizid, description },
-    }
-  );
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-  return { statusCode, bodyString };
-};

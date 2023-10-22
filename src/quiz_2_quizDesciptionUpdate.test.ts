@@ -35,6 +35,14 @@ function requestAdminRegister(
 
 // interfaces used throughout file - START
 
+interface BodyString {
+  quizId: number;
+  name: string;
+  timeCreated: number;
+  timeLastEdited: number;
+  descriptions: string;
+}
+
 interface ErrorObject {
   error: string;
 }
@@ -43,7 +51,7 @@ interface QuizId {
   quizId: number;
 }
 
-interface RequestAdminQuizNameUpdateReturn {
+interface RequestAdminQuizDescriptionUpdateReturn {
   statusCode?: number;
   bodyString: Record<string, never> | ErrorObject;
 }
@@ -67,20 +75,24 @@ const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-const requestAdminQuizNameUpdate = (
+const requestAdminQuizDescriptionUpdate = (
   token: string,
   quizid: number,
-  name: string
-): RequestAdminQuizNameUpdateReturn => {
-  const res = request('PUT', SERVER_URL + `/v1/admin/quiz/${quizid}/name`, {
-    json: { token, quizid, name },
-  });
+  description: string
+): RequestAdminQuizDescriptionUpdateReturn => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/admin/quiz/${quizid}/description`,
+    {
+      json: { token, quizid, description },
+    }
+  );
   const bodyString = JSON.parse(res.body.toString());
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
 
-describe('Testing adminQuizNameUpdate', () => {
+describe('Testing adminQuizDescriptionUpdate', () => {
   test('Status Code 200: Correct input - Expect Response 200', () => {
     requestClear();
     const returnTokenObj = requestAdminRegister(
@@ -95,29 +107,32 @@ describe('Testing adminQuizNameUpdate', () => {
     const QuizOne = requestAdminQuizCreate(
       testToken,
       'Quiz 1',
-      'A quiz about the UNSW course COMP1531'
+      'A quiz about the UNSW course COMP1511'
     ).bodyString as QuizId;
 
     const quizIdTest = QuizOne.quizId;
 
-    const newName = 'Quiz 1531';
+    const newDescription = 'A quiz about the UNSW course COMP1531';
 
-    const testNameUpdate = requestAdminQuizNameUpdate(
+    const testDescriptionUpdate = requestAdminQuizDescriptionUpdate(
       testToken,
       quizIdTest,
-      newName
+      newDescription
     );
     // test for normal response: status code 200 and empty object
-    expect(testNameUpdate.statusCode).toStrictEqual(RESPONSE_OK_200);
-    expect(testNameUpdate.bodyString).toStrictEqual({});
+    expect(testDescriptionUpdate.statusCode).toStrictEqual(RESPONSE_OK_200);
+    expect(testDescriptionUpdate.bodyString).toStrictEqual({});
 
     // test for new quiz name
-    const testNewNameChangedObj = requestAdminQuizInfo(testToken, quizIdTest);
+    const testNewDescriptionChangedObj = requestAdminQuizInfo(
+      testToken,
+      quizIdTest
+    );
 
-    if ('bodyString' in testNewNameChangedObj) {
-      const testBodyString = testNewNameChangedObj.bodyString as Quizzes;
-      const testName = testBodyString.name;
-      expect(testName).toStrictEqual(newName);
+    if ('bodyString' in testNewDescriptionChangedObj) {
+      const testBodyString = testNewDescriptionChangedObj.bodyString as Quizzes;
+      const testDescription = testBodyString.description;
+      expect(testDescription).toStrictEqual(newDescription);
     }
   });
 
@@ -146,21 +161,21 @@ describe('Testing adminQuizNameUpdate', () => {
 
     const newName = 'Quiz 1531';
 
-    const testNameUpdate = requestAdminQuizNameUpdate(
+    const testDescriptionUpdate = requestAdminQuizDescriptionUpdate(
       testToken,
       quizIdTest,
       newName
     );
 
-    const errorStringObject = { error: testNameUpdate.bodyString.error };
+    const errorStringObject = { error: testDescriptionUpdate.bodyString.error };
     // test error object repsonse 400
-    expect(testNameUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+    expect(testDescriptionUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_400);
     expect(errorStringObject).toStrictEqual({
       error: expect.any(String),
     });
   });
 
-  test('Quiz Name contains invalid characters - Expect Error - Response Code 400', () => {
+  test('Description name greater than 100 characters - Expect Error - Response Code 400', () => {
     requestClear();
     // register user
     const returnTokenObj = requestAdminRegister(
@@ -179,141 +194,22 @@ describe('Testing adminQuizNameUpdate', () => {
       'A quiz about the UNSW course COMP1531'
     ).bodyString as QuizId;
 
-    // change existing quiz name
-    // invalid quiz name
+    // change existing quiz description
+    // invalid desciption - too long, greater than 100 characterrs
     const quizIdTest = QuizOne.quizId;
 
-    const newName = '$$Quiz 1531&&&';
+    const newDescription =
+      'A quiz about TypeScript. Typescript is a superset that provides additional features to the Javascript programming language.';
 
-    const testNameUpdate = requestAdminQuizNameUpdate(
+    const testDescriptionUpdate = requestAdminQuizDescriptionUpdate(
       testToken,
       quizIdTest,
-      newName
+      newDescription
     );
 
-    const errorStringObject = { error: testNameUpdate.bodyString.error };
+    const errorStringObject = { error: testDescriptionUpdate.bodyString.error };
     // test error object repsonse 400
-    expect(testNameUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_400);
-    expect(errorStringObject).toStrictEqual({
-      error: expect.any(String),
-    });
-  });
-
-  test('Quiz Name already in used by the current logged in user for another quiz - Expect Error - Response Code 400', () => {
-    requestClear();
-    // register user
-    const returnTokenObj = requestAdminRegister(
-      'jack@hotmail.com',
-      '123456ab',
-      'Jack',
-      'Harlow'
-    ) as TokenString;
-
-    const testToken = returnTokenObj.token;
-
-    // create quiz
-    const QuizOne = requestAdminQuizCreate(
-      testToken,
-      'Quiz 1',
-      'A quiz about the UNSW course COMP1531'
-    ).bodyString as QuizId;
-
-    // change existing quiz name
-    // invalid quiz name - same name as existing quizy
-    // by currently logged in user
-    const quizIdTest = QuizOne.quizId;
-
-    const newName = 'Quiz 1';
-
-    const testNameUpdate = requestAdminQuizNameUpdate(
-      testToken,
-      quizIdTest,
-      newName
-    );
-
-    const errorStringObject = { error: testNameUpdate.bodyString.error };
-    // test error object repsonse 400
-    expect(testNameUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_400);
-    expect(errorStringObject).toStrictEqual({
-      error: expect.any(String),
-    });
-  });
-
-  test('Quiz Name less than 3 characters - Expect Error - Response Code 400', () => {
-    requestClear();
-    // register user
-    const returnTokenObj = requestAdminRegister(
-      'jack@hotmail.com',
-      '123456ab',
-      'Jack',
-      'Harlow'
-    ) as TokenString;
-
-    const testToken = returnTokenObj.token;
-
-    // create quiz
-    const QuizOne = requestAdminQuizCreate(
-      testToken,
-      'Quiz 1',
-      'A quiz about the UNSW course COMP1531'
-    ).bodyString as QuizId;
-
-    // change existing quiz name
-    // invalid quiz name - same name as existing quizy
-    // by currently logged in user
-    const quizIdTest = QuizOne.quizId;
-
-    const newName = 'Qu';
-
-    const testNameUpdate = requestAdminQuizNameUpdate(
-      testToken,
-      quizIdTest,
-      newName
-    );
-
-    const errorStringObject = { error: testNameUpdate.bodyString.error };
-    // test error object repsonse 400
-    expect(testNameUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_400);
-    expect(errorStringObject).toStrictEqual({
-      error: expect.any(String),
-    });
-  });
-
-  test('Quiz Name greater than 30 characters - Expect Error - Response Code 400', () => {
-    requestClear();
-    // register user
-    const returnTokenObj = requestAdminRegister(
-      'jack@hotmail.com',
-      '123456ab',
-      'Jack',
-      'Harlow'
-    ) as TokenString;
-
-    const testToken = returnTokenObj.token;
-
-    // create quiz
-    const QuizOne = requestAdminQuizCreate(
-      testToken,
-      'Quiz 1',
-      'A quiz about the UNSW course COMP1531'
-    ).bodyString as QuizId;
-
-    // change existing quiz name
-    // invalid quiz name - same name as existing quizy
-    // by currently logged in user
-    const quizIdTest = QuizOne.quizId;
-
-    const newName = 'This new quiz name is too long to be used';
-
-    const testNameUpdate = requestAdminQuizNameUpdate(
-      testToken,
-      quizIdTest,
-      newName
-    );
-
-    const errorStringObject = { error: testNameUpdate.bodyString.error };
-    // test error object repsonse 401
-    expect(testNameUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+    expect(testDescriptionUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_400);
     expect(errorStringObject).toStrictEqual({
       error: expect.any(String),
     });
@@ -335,26 +231,26 @@ describe('Testing adminQuizNameUpdate', () => {
     const QuizOne = requestAdminQuizCreate(
       testToken,
       'Quiz 1',
-      'A quiz about the UNSW course COMP1531'
+      'A quiz about the UNSW course COMP1511'
     ).bodyString as QuizId;
 
     // change existing quiz name
     // invalid token
     const quizIdTest = QuizOne.quizId;
 
-    const newName = 'Quiz COMP1531';
+    const newDescription = 'A quiz about the UNSW course COMP1531';
 
     let invalidToken;
 
-    const testNameUpdate = requestAdminQuizNameUpdate(
+    const testDescriptionUpdate = requestAdminQuizDescriptionUpdate(
       invalidToken,
       quizIdTest,
-      newName
+      newDescription
     );
 
-    const errorStringObject = { error: testNameUpdate.bodyString.error };
+    const errorStringObject = { error: testDescriptionUpdate.bodyString.error };
     // test error object repsonse 401
-    expect(testNameUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_401);
+    expect(testDescriptionUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_401);
     expect(errorStringObject).toStrictEqual({
       error: expect.any(String),
     });
@@ -395,17 +291,17 @@ describe('Testing adminQuizNameUpdate', () => {
     // who is not an owner of the quiz
     const quizIdTest = QuizOne.quizId;
 
-    const newName = 'Quiz COMP1531';
+    const newDescription = 'A quiz about the UNSW course COMP1531';
 
-    const testNameUpdate = requestAdminQuizNameUpdate(
+    const testDescriptionUpdate = requestAdminQuizDescriptionUpdate(
       testToken2,
       quizIdTest,
-      newName
+      newDescription
     );
 
-    const errorStringObject = { error: testNameUpdate.bodyString.error };
+    const errorStringObject = { error: testDescriptionUpdate.bodyString.error };
     // test error object repsonse 403
-    expect(testNameUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_403);
+    expect(testDescriptionUpdate.statusCode).toStrictEqual(RESPONSE_ERROR_403);
     expect(errorStringObject).toStrictEqual({
       error: expect.any(String),
     });
