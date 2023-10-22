@@ -202,7 +202,35 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   res.status(RESPONSE_OK_200).json(result);
 });
 
-app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
+app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizids = req.query.quizids as string[];
+  const quizIds = quizids.map(Number);
+  const result = adminTrashQuizEmpty(token, quizIds);
+  if ('error' in result) {
+    console.log('error in response 5');
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json({ error: result.error });
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json({ error: result.error });
+    }
+  }
+  res.status(RESPONSE_OK_200).json(result);
+});
+
+app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+
+  const result = getQuizzesInTrashForLoggedInUser(token);
+  if ('error' in result) {
+    return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+  }
+  res.status(RESPONSE_OK_200).json(result);
+});
+
+app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const quizId = parseInt(req.params.quizid);
   const result = adminQuizInfo(token, quizId);
@@ -277,40 +305,12 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   res.json(response);
 });
 
-app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-
-  const result = getQuizzesInTrashForLoggedInUser(token);
-  if ('error' in result) {
-    return res.status(RESPONSE_ERROR_401).json({ error: result.error });
-  }
-  res.status(RESPONSE_OK_200).json(result);
-});
-
 app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const token = req.body.token;
   const quizId = parseInt(req.params.quizid);
   const result = adminTrashQuizRestore(token, quizId);
   if ('error' in result) {
     console.log('error in response 4');
-    if (result.errorCode === RESPONSE_ERROR_400) {
-      return res.status(RESPONSE_ERROR_400).json({ error: result.error });
-    } else if (result.errorCode === RESPONSE_ERROR_401) {
-      return res.status(RESPONSE_ERROR_401).json({ error: result.error });
-    } else if (result.errorCode === RESPONSE_ERROR_403) {
-      return res.status(RESPONSE_ERROR_403).json({ error: result.error });
-    }
-  }
-  res.status(RESPONSE_OK_200).json(result);
-});
-
-app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
-  const token = req.query.token as string;
-  const quizids = req.query.quizids as string[];
-  const quizIds = quizids.map(Number);
-  const result = adminTrashQuizEmpty(token, quizIds);
-  if ('error' in result) {
-    console.log('error in response 5');
     if (result.errorCode === RESPONSE_ERROR_400) {
       return res.status(RESPONSE_ERROR_400).json({ error: result.error });
     } else if (result.errorCode === RESPONSE_ERROR_401) {
