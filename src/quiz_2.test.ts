@@ -496,22 +496,32 @@ describe('Testing adminQuizRemove', () => {
 
 // testing of adminQuizRemove - END
 
+// testing of adminQuizList - START
+
 describe('adminQuizList testing', () => {
   test('Status Code 200: valid input', () => {
-    requestAdminRegister('jack1@hotmail.com', '123456ab', 'Jack', 'Harlow');
-    const returnToken = requestAdminAuthLogin('jack1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'jack@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
+
     const QuizOne = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
     const QuizTwo = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz Two',
       'this is my second quiz'
     ).bodyString as QuizId;
-    const QuizPrint = requestAdminQuizList(returnToken.token);
+    const QuizPrint = requestAdminQuizList(testToken);
     expect(QuizPrint.bodyString).toStrictEqual({
       quizzes: [
         {
@@ -526,6 +536,8 @@ describe('adminQuizList testing', () => {
     });
   });
   test('Error 401: invalid token', () => {
+    requestClear();
+
     const invalidToken = requestAdminQuizList('invalid');
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
@@ -533,6 +545,7 @@ describe('adminQuizList testing', () => {
     });
   });
   test('Error 401: empty token', () => {
+    requestClear();
     const invalidToken = requestAdminQuizList('');
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
@@ -541,7 +554,8 @@ describe('adminQuizList testing', () => {
   });
 });
 
-// ***********************************************************************************
+// testing of adminQuizList - END
+
 // tests (Iteration Part 2):
 
 // adminTrashQuizList:
