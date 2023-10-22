@@ -691,10 +691,19 @@ function adminTrashQuizRestore(
   if (!isTokenValidTest) {
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
-  if (typeof quizId !== 'number') {
+  if (!Number.isInteger(quizId) || quizId < 0) {
     return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
   if (!isQuizIdInTrash(data, quizId)) {
+    if (!isQuizIdValid(data, quizId)) {
+      return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
+    }
+    if (!isAuthUserIdMatchQuizId(data, authUserId.authUserId, quizId)) {
+      return {
+        error: 'QuizId does not match authUserId',
+        errorCode: RESPONSE_ERROR_403,
+      };
+    }
     return { error: 'QuizId is not in trash', errorCode: RESPONSE_ERROR_400 };
   }
   if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {
@@ -758,10 +767,19 @@ function adminTrashQuizEmpty(
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
   for (const quizId of quizIds) {
-    if (typeof quizId !== 'number') {
+    if (!Number.isInteger(quizId) || quizId < 0) {
       return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
     }
     if (!isQuizIdInTrash(data, quizId)) {
+      if (!isQuizIdValid(data, quizId)) {
+        return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
+      }
+      if (!isAuthUserIdMatchQuizId(data, authUserId.authUserId, quizId)) {
+        return {
+          error: 'QuizId does not match authUserId',
+          errorCode: RESPONSE_ERROR_403,
+        };
+      }
       return { error: 'QuizId is not in trash', errorCode: RESPONSE_ERROR_400 };
     }
     if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {

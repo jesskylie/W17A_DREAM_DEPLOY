@@ -192,7 +192,7 @@ const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
 
 // ***********************************************************************************
 // tests:
-// testing of adminQuizInfo - END
+// testing of adminQuizInfo - START
 describe('adminQuizInfo testing', () => {
   // the interface above is not working and idk why so i leave these to be any first
   // let JackUser: requestAdminAuthRegisterReturn;
@@ -349,9 +349,6 @@ describe('adminQuizInfo testing', () => {
       JackQuiz.quizId
     );
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
-    // console.log(quizIdNotReferToUser1.bodyString);
-    // this should only return error instead of returnning both error and errorcode in
-    // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -753,15 +750,17 @@ describe('adminTrashQuizRestore testing', () => {
       'Tony2',
       'Tony quiz'
     ).bodyString as QuizId;
+    // priority Error test: 403 > 400
+    expect(requestAdminTrashQuizRestore(
+      testToken,
+      TonyQuiz.quizId
+    ).statusCode).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     const quizIdNotReferToUser1 = requestAdminTrashQuizRestore(
       testToken,
       TonyQuiz.quizId
     );
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
-    // console.log(quizIdNotReferToUser1.bodyString);
-    // this should only return error instead of returnning both error and errorcode in
-    // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
     });
