@@ -1,4 +1,4 @@
-import { getData, setData, DataStore, Quizzes } from './dataStore';
+import { DataStore, Quizzes } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -41,26 +41,15 @@ interface QuizInfoReturn {
   timeCreated: number;
   timeLastEdited: number;
   description: string;
+}
 
-  /*
-  (Part 2)
-  numQuestions: number;
-  questions: QuestionsArray[];
-  duration: number;
+interface QuizInfoInTrashObject {
+  quizId: number;
+  name: string;
 }
-interface QuestionsArray {
-  questionId: number;
-  question: string;
-  duration: number;
-  points: number;
-  answer: AnswerArray[];
-}
-interface AnswerArray {
-  answerId: number;
-  answer: string;
-  colour: string;
-  correct: boolean;
-*/
+
+interface QuizInfoInTrashReturn {
+  quizzes: QuizInfoInTrashObject[];
 }
 
 interface ListArray {
@@ -144,6 +133,58 @@ function adminQuizInfo(
 }
 
 export { adminQuizInfo };
+
+/**
+ * Printing out the the quiz information in trash
+ * for the currently logged in user
+ *
+ * @param {string} token - the token of the person want to print quiz - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{quizInfo}} - an array with all the quiz informations
+ */
+function getQuizzesInTrashForLoggedInUser(
+  token: string
+): QuizInfoInTrashReturn | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+
+  // Step 1 test for 401 error - START
+
+  const isTokenValidTest = isTokenValid(data, token);
+
+  if (!isTokenValidTest) {
+    return {
+      error:
+        'Token is empty or invalid (does not refer to valid logged in user session)',
+      errorCode: RESPONSE_ERROR_401,
+    };
+  }
+  // Step 1 test for 401 error - END
+
+  // all error cases have been dealt with,
+  // now return the quizzes array
+  const authUserIdObj = getAuthUserIdUsingToken(data, token) as AuthUserId;
+  const authUserId = authUserIdObj.authUserId;
+
+  const trashQuizArray = data.trash;
+
+  let quizzesArray = [];
+
+  for (const quiz of trashQuizArray) {
+    if (quiz.userId.includes(authUserId)) {
+      let tempArray = {
+        quizId: quiz.quizId,
+        name: quiz.name,
+      };
+      quizzesArray.push(tempArray);
+    }
+  }
+
+  return { quizzes: quizzesArray };
+}
+
+export { getQuizzesInTrashForLoggedInUser };
 
 /**
  * Refactored for Iteration 2
@@ -609,12 +650,13 @@ function adminQuizRemove(
 
 export { adminQuizRemove };
 
-// ************************************************************************************
 // New functions for Iteration 2 Part 2:
 function adminTrashQuizList(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
-  const data = retrieveDataFromFile();
+  const data: DataStore = retrieveDataFromFile();
+
+  console.log('from quiz.ts: data ->', data);
   const isTokenValidTest = isTokenValid(data, token);
   const authUserId = getAuthUserIdUsingToken(data, token);
   if (!token) {

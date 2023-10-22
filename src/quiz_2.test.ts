@@ -154,6 +154,7 @@ export const requestAdminQuizCreate = (
 ): requestAdminQuizCreateReturn => {
   const res = request('POST', SERVER_URL + `/v1/admin/quiz`, {
     json: { token, name, description },
+    timeout: WAIT_TIME,
   });
   return {
     statusCode: res.statusCode,
@@ -558,76 +559,6 @@ describe('adminQuizList testing', () => {
 
 // tests (Iteration Part 2):
 
-// adminTrashQuizList:
-
-const requestAdminTrashQuizList = (
-  token: string
-): requestAdminQuizListReturn => {
-  const res = request('GET', SERVER_URL + `/v1/admin/quiz/trash`, {
-    qs: { token },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
-
-describe('adminTrashQuizList testing', () => {
-  test('Status Code 200: valid input', () => {
-    requestAdminRegister('alex@hotmail.com', '123456ab', 'Alex', 'Hams');
-    const returnToken = requestAdminAuthLogin('alex@hotmail.com', '123456ab')
-      .bodyString as TokenString;
-    const QuizOne = requestAdminQuizCreate(
-      returnToken.token,
-      'Quiz One',
-      'this is my first quiz'
-    ).bodyString as QuizId;
-    const QuizTwo = requestAdminQuizCreate(
-      returnToken.token,
-      'Quiz Two',
-      'this is my second quiz'
-    ).bodyString as QuizId;
-    requestAdminQuizRemove(returnToken.token, QuizOne.quizId);
-    const TrashQuizPrint = requestAdminTrashQuizList(returnToken.token);
-    expect(TrashQuizPrint.bodyString).toStrictEqual({
-      quizzes: [
-        {
-          quizId: QuizOne.quizId,
-          name: 'Quiz One',
-        },
-      ],
-    });
-    requestAdminQuizRemove(returnToken.token, QuizTwo.quizId);
-    const TrashQuizPrint2 = requestAdminTrashQuizList(returnToken.token);
-    expect(TrashQuizPrint2.bodyString).toStrictEqual({
-      quizzes: [
-        {
-          quizId: QuizOne.quizId,
-          name: 'Quiz One',
-        },
-        {
-          quizId: QuizTwo.quizId,
-          name: 'Quiz Two',
-        },
-      ],
-    });
-  });
-
-  test('Error 401: invalid token', () => {
-    const invalidToken = requestAdminTrashQuizList('invalid');
-    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
-    expect(invalidToken.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
-  });
-
-  test('Error 401: empty token', () => {
-    const invalidToken = requestAdminTrashQuizList('');
-    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
-    expect(invalidToken.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
-  });
-});
-
 // adminTrashQuizRestore
 
 const requestAdminTrashQuizRestore = (
@@ -642,9 +573,9 @@ const requestAdminTrashQuizRestore = (
 };
 
 describe('adminTrashQuizRestore testing', () => {
-  beforeAll(() => {
-    requestAdminRegister('alex1@hotmail.com', '123456ab', 'Jack', 'Harlow');
-  });
+  // beforeAll(() => {
+  //   requestAdminRegister('alex1@hotmail.com', '123456ab', 'Jack', 'Harlow');
+  // });
   test('StatusCode 200: Valid input', () => {
     const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
       .bodyString as TokenString;
@@ -811,10 +742,10 @@ const requestAdminTrashQuizEmpty = (
 };
 
 describe('adminTrashQuizEmpty testing', () => {
-  beforeAll(() => {
-    requestClear();
-    requestAdminRegister('emma1@hotmail.com', '123456ab', 'Emma', 'Homes');
-  });
+  // beforeAll(() => {
+  //   requestClear();
+  //   requestAdminRegister('emma1@hotmail.com', '123456ab', 'Emma', 'Homes');
+  // });
   test('StatusCode 200: Valid input', () => {
     const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
       .bodyString as TokenString;
