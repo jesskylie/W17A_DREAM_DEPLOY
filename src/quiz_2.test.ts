@@ -938,6 +938,10 @@ describe('adminTrashQuizEmpty testing', () => {
       'Jack',
       'Tony quiz'
     ).bodyString as QuizId;
+    expect(requestAdminTrashQuizRestore(
+      testToken,
+      TonyQuiz.quizId
+    ).statusCode).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(testToken, [
       TonyQuiz.quizId,
