@@ -28,6 +28,10 @@ interface QuizId {
   quizId: number;
 }
 
+interface requestAdminRegisterReturn {
+  token: string;
+}
+
 interface requestAdminAuthLoginReturn {
   statusCode?: number;
   bodyString: TokenString | ErrorObject;
@@ -68,7 +72,7 @@ const SERVER_URL = `${url}:${port}`;
 
 // constants used throughout file - END
 
-const requestClear = () => {
+export const requestClear = () => {
   const res = request('DELETE', SERVER_URL + '/v1/clear', {
     timeout: WAIT_TIME,
   });
@@ -82,7 +86,7 @@ function requestAdminRegister(
   password: string,
   nameFirst: string,
   nameLast: string
-) {
+): requestAdminRegisterReturn {
   const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: email,
@@ -188,7 +192,7 @@ const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
 
 // ***********************************************************************************
 // tests:
-// testing of adminQuizInfo - END
+// testing of adminQuizInfo - START
 describe('adminQuizInfo testing', () => {
   // the interface above is not working and idk why so i leave these to be any first
   // let JackUser: requestAdminAuthRegisterReturn;
@@ -205,7 +209,7 @@ describe('adminQuizInfo testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
     const testToken = returnTokenObj.token;
 
@@ -223,11 +227,9 @@ describe('adminQuizInfo testing', () => {
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'this is my first quiz',
-      /*
-      numQuestion:
-      question:
-      duration:
-      */
+      numQuestions: 0,
+      questions: [],
+      duration: 0,
     });
 
     const QuizTwo = requestAdminQuizCreate(
@@ -242,11 +244,9 @@ describe('adminQuizInfo testing', () => {
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'this is my second quiz',
-      /*
-      numQuestion:
-      question:
-      duration:
-      */
+      numQuestions: 0,
+      questions: [],
+      duration: 0,
     });
   });
 
@@ -349,9 +349,6 @@ describe('adminQuizInfo testing', () => {
       JackQuiz.quizId
     );
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
-    // console.log(quizIdNotReferToUser1.bodyString);
-    // this should only return error instead of returnning both error and errorcode in
-    // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -753,15 +750,17 @@ describe('adminTrashQuizRestore testing', () => {
       'Tony2',
       'Tony quiz'
     ).bodyString as QuizId;
+    // priority Error test: 403 > 400
+    expect(requestAdminTrashQuizRestore(
+      testToken,
+      TonyQuiz.quizId
+    ).statusCode).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     const quizIdNotReferToUser1 = requestAdminTrashQuizRestore(
       testToken,
       TonyQuiz.quizId
     );
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
-    // console.log(quizIdNotReferToUser1.bodyString);
-    // this should only return error instead of returnning both error and errorcode in
-    // bodystring
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
     });
@@ -939,6 +938,10 @@ describe('adminTrashQuizEmpty testing', () => {
       'Jack',
       'Tony quiz'
     ).bodyString as QuizId;
+    expect(requestAdminTrashQuizRestore(
+      testToken,
+      TonyQuiz.quizId
+    ).statusCode).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(testToken, [
       TonyQuiz.quizId,
