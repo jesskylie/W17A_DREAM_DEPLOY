@@ -28,6 +28,10 @@ interface QuizId {
   quizId: number;
 }
 
+interface requestAdminRegisterReturn {
+  token: string;
+}
+
 interface requestAdminAuthLoginReturn {
   statusCode?: number;
   bodyString: TokenString | ErrorObject;
@@ -82,7 +86,7 @@ function requestAdminRegister(
   password: string,
   nameFirst: string,
   nameLast: string
-) {
+): requestAdminRegisterReturn {
   const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
     json: {
       email: email,
@@ -205,7 +209,7 @@ describe('adminQuizInfo testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
     const testToken = returnTokenObj.token;
 
