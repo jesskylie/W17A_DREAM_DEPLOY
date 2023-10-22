@@ -231,8 +231,9 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   res.json(response);
 });
 
-app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizid);
+app.post('/v1/admin/quiz/:quizId/question', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId);
+  console.log(quizId);
   const { token, questionBody } = req.body;
   const response = createQuizQuestion(token, questionBody, quizId);
   if ('error' in response) {

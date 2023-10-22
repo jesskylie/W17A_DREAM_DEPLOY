@@ -91,6 +91,7 @@ export interface DataStore {
   trash: Quizzes[];
 }
 
+
 export interface Users {
   authUserId: number;
   nameFirst: string;
@@ -114,17 +115,16 @@ export interface Quizzes {
   questions: Question[];
 }
 
-interface Question {
-  questionBody: {
-    question: string;
-    duration: number;
-    points: number;
-    answers:
-      {
-        answer: string;
-        correct: boolean;
-      }[];
-  };
+export interface Question {
+question: string;
+duration: number;
+points: number;
+answers:
+  {
+    answer: string;
+    correct: boolean;
+  }[];
+
 }
 
 export let data: DataStore = {
@@ -134,3 +134,4 @@ export let data: DataStore = {
 };
 
 // TypeScript interfaces for Iteration 2 - END
+
