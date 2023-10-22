@@ -656,7 +656,6 @@ function adminTrashQuizList(
 ): QuizListReturn | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
 
-  console.log('from quiz.ts: data ->', data);
   const isTokenValidTest = isTokenValid(data, token);
   const authUserId = getAuthUserIdUsingToken(data, token);
   if (!token) {

@@ -148,6 +148,8 @@ const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
 const requestAdminTrashQuizList = (
   token: string
 ): requestAdminQuizListReturn => {
+  const SERVER_URL_complete = SERVER_URL + `/v1/admin/quiz/trash`;
+  console.log('SERVER_URL_complete ->', SERVER_URL_complete);
   const res = request('GET', SERVER_URL + `/v1/admin/quiz/trash`, {
     qs: { token },
   });
@@ -155,7 +157,7 @@ const requestAdminTrashQuizList = (
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
 
-describe.only('adminTrashQuizList testing', () => {
+describe('adminTrashQuizList testing', () => {
   test('Status Code 200: valid input', () => {
     requestClear();
     // create user

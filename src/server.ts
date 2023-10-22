@@ -202,11 +202,10 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   res.status(RESPONSE_OK_200).json(result);
 });
 
-app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+app.get('/v1/admin/quiz/{quizid}', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  // const quizId = parseInt(req.params.quizid);
-  // DOES NOT PASS THE quizId as a parameter, just token
-  const result = getQuizzesInTrashForLoggedInUser(token);
+  const quizId = parseInt(req.params.quizid);
+  const result = adminQuizInfo(token, quizId);
 
   if ('error' in result) {
     console.log('error in response 3');
@@ -281,7 +280,7 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   const token = req.query.token as string;
 
-  const result = adminTrashQuizList(token);
+  const result = getQuizzesInTrashForLoggedInUser(token);
   if ('error' in result) {
     return res.status(RESPONSE_ERROR_401).json({ error: result.error });
   }
