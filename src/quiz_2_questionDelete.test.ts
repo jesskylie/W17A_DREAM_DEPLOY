@@ -18,17 +18,17 @@ interface QuizId {
   quizId: number;
 }
 
-interface CreateQuizQuestionReturn {
-  createQuizQuestionResponse: QuestionId;
-}
-
 interface QuestionId {
   questionId: number;
 }
 
+interface CreateQuizQuestionReturn {
+  createQuizQuestionResponse: QuestionId;
+}
+
 interface RequestDeleteQuizQuestionReturn {
   statusCode?: number;
-  bodyString: Record<string,never> | ErrorObject;
+  bodyString: Record<string, never> | ErrorObject;
 }
 
 interface requestCreateQuestionReturn {
@@ -243,7 +243,7 @@ describe('deleteQuizQuestion testing', () => {
       validQuestion,
       QuizOne.quizId
     ).bodyString as CreateQuizQuestionReturn;
-    const invalidToken = requestDeleteQuizQuestion("invalid", QuizOne.quizId, questionOne.createQuizQuestionResponse.questionId);
+    const invalidToken = requestDeleteQuizQuestion('invalid', QuizOne.quizId, questionOne.createQuizQuestionResponse.questionId);
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -301,7 +301,7 @@ describe('deleteQuizQuestion testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-      ).body as TokenString;
+    ).body as TokenString;
 
     const testToken = returnTokenObj.token;
     // create user 2
@@ -310,7 +310,7 @@ describe('deleteQuizQuestion testing', () => {
       'ab123456b',
       'Tony',
       'Stark'
-      ).body as TokenString;
+    ).body as TokenString;
 
     const testToken2 = returnTokenObj2.token;
 

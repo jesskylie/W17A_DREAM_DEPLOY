@@ -318,7 +318,6 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   res.status(RESPONSE_OK_200).json(result);
 });
 
-
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
   const token = req.query.token as string;
   const quizId = parseInt(req.params.quizid);
@@ -335,8 +334,6 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
   }
   res.status(RESPONSE_OK_200).json(result);
 });
- 
-
 
 // ***********************************************************************
 

@@ -1,4 +1,4 @@
-import { DataStore , Question} from './dataStore';
+import { DataStore, Question } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -733,7 +733,6 @@ function adminTrashQuizRestore(
 }
 
 export { adminTrashQuizRestore };
-
 
 /**
  * Delete the quizzes in trash with the provided quizId array
