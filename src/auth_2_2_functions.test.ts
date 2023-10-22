@@ -9,6 +9,8 @@ import {
   WAIT_TIME,
 } from './library/constants';
 
+import { TokenString } from './library/interfaces';
+
 import {
   adminAuthRegister,
   adminUserDetails,
@@ -40,10 +42,6 @@ interface AdminUserDetailUpdateReturn {
 interface RequestAdminDetailsUpdateServerReturn {
   bodyString: AdminUserDetailUpdateReturn;
   statusCode: number;
-}
-
-interface TokenString {
-  token: string;
 }
 
 interface RequestUserDetailsReturn {
@@ -125,7 +123,7 @@ function requestGetAdminUserDetail(token: string): RequestUserDetailsReturn {
 }
 
 const requestClear = () => {
-  const res = request('DELETE', SERVER_URL + `/v1/clear`, {
+  const res = request('DELETE', SERVER_URL + '/v1/clear', {
     timeout: WAIT_TIME,
   });
   const bodyString = JSON.parse(res.body.toString());
@@ -1339,12 +1337,7 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     const nameFirst = 'Paul';
     const nameLast = 'Reynolds';
 
-    const testRegisterRt = requestAdminRegister(
-      email,
-      password,
-      nameFirst,
-      nameLast
-    ) as TokenString;
+    requestAdminRegister(email, password, nameFirst, nameLast) as TokenString;
 
     // update user main's details with invalid email
 

@@ -13,3 +13,9 @@ export const RANDOM_COLOURS_ARRAY = [
   'brown',
   'orange',
 ];
+export const MIN_QUIZ_NAME_LENGTH = 3;
+export const MAX_QUIZ_NAME_LENGTH = 30;
+export const MAX_DESCRIPTION_LENGTH = 100;
+export const MAX_NAME_LENGTH = 20;
+export const MIN_NAME_LENGTH = 2;
+export const MIN_PASSWORD_LENGTH = 8;

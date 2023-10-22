@@ -29,10 +29,6 @@ interface ErrorObject {
   error: string;
 }
 
-interface TokenString {
-  token: string;
-}
-
 // interfaces used throughout file - END
 
 // Functions to execute before each test is run - START
@@ -252,12 +248,7 @@ describe('Testing PUT /v1/admin/user/password', () => {
   });
 
   test('Testing unsuccessful password change with error code 400', () => {
-    const response = requestAdminRegister(
-      'abc@hotmail.com',
-      'abcde4284',
-      'Ann',
-      'Pie'
-    );
+    requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
     const result = requestUpdatePassword('a', 'HelloWorld1234', 'abcde4284');
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
@@ -267,7 +258,7 @@ describe('Testing PUT /v1/admin/user/password', () => {
   });
 });
 
-function requestUserDetails(token: String) {
+function requestUserDetails(token: string) {
   const res = request('GET', SERVER_URL + '/v1/admin/user/details', {
     qs: {
       token: token,
@@ -400,19 +391,9 @@ describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
     const nameFirst = 'Paul';
     const nameLast = 'Reynolds';
 
-    const testRegister = requestAdminRegister(
-      email,
-      password,
-      nameFirst,
-      nameLast
-    );
-    const loginResponse = requestPersonLogin(email, password);
-    // if ('token' in loginResponse) {
-    //   const token = loginResponse.token;
-    //   console.log(token);
-    // } else {
-    //   console.log(loginResponse.error);
-    // }
+    requestAdminRegister(email, password, nameFirst, nameLast);
+    requestPersonLogin(email, password);
+
     expect(requestPersonLogin(email, password)).toStrictEqual({
       token: expect.any(String),
     });
@@ -423,12 +404,7 @@ describe('test /v1/admin/auth/login -> EXPECT SUCCESS', () => {
     const nameFirst = 'Paul';
     const nameLast = 'Reynolds';
 
-    const testRegister = requestAdminRegister(
-      email,
-      password,
-      nameFirst,
-      nameLast
-    );
+    requestAdminRegister(email, password, nameFirst, nameLast);
 
     const res = request('POST', SERVER_URL + '/v1/admin/auth/login', {
       json: { email, password },
@@ -458,16 +434,16 @@ describe('test /v1/admin/auth/login -> EXPECT ERROR', () => {
   });
 
   // Password is not correct for the given email
-  const email_2 = 'paulsemail@gmail.com';
-  const password_2 = '';
+  const emailTwo = 'paulsemail@gmail.com';
+  const passwordTwo = '';
   test('/v1/admin/auth/login : Password is not correct for the given email -> EXPECT ERROR', () => {
-    expect(requestPersonLogin(email_2, password_2)).toStrictEqual({
+    expect(requestPersonLogin(emailTwo, passwordTwo)).toStrictEqual({
       error: expect.any(String),
     });
   });
   test('Test unsuccessfully logging in person return status code 400', () => {
     const responsePOST = request('POST', SERVER_URL + '/v1/admin/auth/login', {
-      json: { email_2, password_2 },
+      json: { emailTwo, passwordTwo },
     });
     expect(responsePOST.statusCode).toStrictEqual(RESPONSE_ERROR_400);
   });

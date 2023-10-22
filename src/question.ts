@@ -1,4 +1,4 @@
-import { DataStore, Quizzes } from './dataStore';
+import { DataStore } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -11,22 +11,16 @@ import {
 } from './functions';
 
 import {
-  RANDOM_COLOURS_ARRAY,
-  RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
 } from './library/constants';
 
-import { adminAuthRegister } from './auth';
-import { adminQuizCreate } from './quiz';
-
-import { QuestionBody, CreateQuizQuestionReturn } from './library/interfaces';
-import { isTokenKind } from 'typescript';
-
-interface AuthUserId {
-  authUserId: number;
-}
+import {
+  QuestionBody,
+  CreateQuizQuestionReturn,
+  AuthUserId,
+} from './library/interfaces';
 
 // CONSTANTS - START
 
@@ -279,7 +273,7 @@ export function createQuizQuestion(
   // Step 4: all error conditions have passed
   // now, add the new question to the quiz
 
-  //checks if it exists before accessing
+  // checks if it exists before accessing
 
   // Need to add:
 
@@ -302,7 +296,7 @@ export function createQuizQuestion(
   // (sum of all quiz durations in that question?)
   // ######################
 
-  let tempAnswerArray = question.answers;
+  const tempAnswerArray = question.answers;
   let tempCounter = 0;
 
   for (const ansArr of tempAnswerArray) {
@@ -323,23 +317,22 @@ export function createQuizQuestion(
       questionId: numQuestionsNow,
     };
   }
-  console.log('before mutation ->', data);
 
   let questionIdNumber;
-  //loop through to find the correct authUserId
+  // loop through to find the correct authUserId
   for (const users of data.users) {
     if (users.authUserId === authUserId) {
       if (users.quizId.includes(quizId)) {
-        //found correct quiz
+        // found correct quiz
         const quiz = data.quizzes.find((q) => q.quizId === quizId);
-        if (quiz != undefined) {
+        if (quiz !== undefined) {
           // update timeLastEdited
           quiz.timeLastEdited = createCurrentTimeStamp() as number;
           // update numQuestions
           const currentQuestions = quiz.numQuestions;
           quiz.numQuestions = currentQuestions + 1;
 
-          //push new question to quizzes
+          // push new question to quizzes
           quiz.questions.push(newQuestion);
           questionIdNumber = quiz.questions.length;
         }
@@ -354,50 +347,6 @@ export function createQuizQuestion(
     createQuizQuestionResponse: { questionId: questionIdNumber },
   };
 }
-
-//debugging code
-// const admin = adminAuthRegister('jess@hotmail.com', '123456abcdefg', 'Jess', 'Tran');
-// if ('token' in admin) {
-//   const newQuiz= adminQuizCreate(admin.token, 'New Quiz', 'This is my first quiz');
-//   if ('quizId' in newQuiz) {
-//     const validQuestion = {
-// 			questionBody: {
-// 				question: 'What color is the sky?',
-// 				duration: 2,
-// 				points: 10,
-// 				answers: [
-// 					{
-// 						answer: 'Blue',
-// 						correct: true,
-// 					},
-// 					{
-// 						answer: 'Green',
-// 						correct: false,
-// 					},
-// 				],
-// 			}
-// 		};
-//     const validQuestion2 = {
-// 			questionBody: {
-// 				question: 'What color is the sky?',
-// 				duration: 2,
-// 				points: 10,
-// 				answers: [
-// 					{
-// 						answer: 'Blue',
-// 						correct: true,
-// 					},
-// 					{
-// 						answer: 'Green',
-// 						correct: false,
-// 					},
-// 				],
-// 			}
-// 		};
-//    console.log(createQuizQuestion(admin.token, validQuestion, newQuiz.quizId));
-//     console.log(createQuizQuestion(admin.token, validQuestion2, newQuiz.quizId));
-//   }
-// }
 
 // HELPER FUNCTIONS - START
 

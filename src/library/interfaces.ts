@@ -10,6 +10,14 @@ export interface QuestionBody {
   }[];
 }
 
+export interface AuthUserId {
+  authUserId: number;
+}
+
+export interface TokenString {
+  token: string;
+}
+
 export interface ErrorObjectWithCode {
   error: string;
   errorCode: number;

@@ -1,5 +1,4 @@
-import { TokenClass } from 'typescript';
-import { getData, setData, DataStore } from './dataStore';
+import { DataStore } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
 import {
   retrieveDataFromFile,
@@ -11,17 +10,12 @@ import { uid } from 'uid';
 import { ErrorObjectWithCode } from './quiz';
 
 import {
-  RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  RESPONSE_ERROR_403,
+  MAX_NAME_LENGTH,
+  MIN_NAME_LENGTH,
+  MIN_PASSWORD_LENGTH,
 } from './library/constants';
-
-const MAX_NAME_LENGTH = 20;
-const MIN_NAME_LENGTH = 2;
-const MIN_PASSWORD_LENGTH = 8;
-const MAX = 1000;
-const MIN = 10000;
 
 // TypeScript interfaces - START
 interface TokenString {
@@ -115,7 +109,7 @@ export function adminAuthRegister(
   const data: DataStore = retrieveDataFromFile();
   // Iteration 2: New data retrieval system - END
 
-  //email address is already in use
+  // email address is already in use
   if (data.users.length >= 1) {
     for (const pass of data.users) {
       if (pass.email === email) {
@@ -252,37 +246,37 @@ export function updatePassword(
   newPassword: string,
   oldPassword: string
 ): Record<string, never> | ErrorObjectWithCode {
-  //new password must be more than 8 characters, and have letters and numbers
+  // new password must be more than 8 characters, and have letters and numbers
   if (!isValidPassword(newPassword)) {
     return { error: 'Invalid password', errorCode: 401 };
   }
 
-  //loop through datastore to find the token
+  // loop through datastore to find the token
   const data: DataStore = retrieveDataFromFile();
   for (const user of data.users) {
     if (user.token.includes(token)) {
-      //token is found
+      // token is found
       if (newPassword === user.password || newPassword === oldPassword) {
-        //check if new password is equal to old password
+        // check if new password is equal to old password
         return {
           error: 'New password can not be the same as old password',
           errorCode: 401,
         };
-      } else if (oldPassword != user.password) {
-        //old password does not match old password
+      } else if (oldPassword !== user.password) {
+        // old password does not match old password
         return {
           error: 'Old password does not match old password',
           errorCode: 401,
         };
       } else if (user.oldPasswords.includes(newPassword)) {
-        //check if old password exists in old password array
+        // check if old password exists in old password array
         return {
           error: 'New password has already been used by this user',
           errorCode: 401,
         };
       } else {
-        //move current password to old passwords array
-        //update new password
+        // move current password to old passwords array
+        // update new password
         const password = user.password;
         user.oldPasswords.push(password);
         user.password = newPassword;
@@ -388,7 +382,7 @@ function adminUserDetailUpdate(
   // step 2: check if email is currently used by another user (excluding the current authorised user)
   const userArr = data.users;
   for (const user of userArr) {
-    if (user.authUserId != authUserIdTest && user.email === email) {
+    if (user.authUserId !== authUserIdTest && user.email === email) {
       return {
         detailsUpdateResponse: {
           error:
@@ -434,9 +428,9 @@ function adminUserDetailUpdate(
 
   for (const user of userArr) {
     if (user.token.includes(token)) {
-      (user.email = email),
-        (user.nameFirst = nameFirst),
-        (user.nameLast = nameLast);
+      user.email = email;
+      user.nameFirst = nameFirst;
+      user.nameLast = nameLast;
     }
   }
 
