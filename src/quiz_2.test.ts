@@ -572,27 +572,36 @@ const requestAdminTrashQuizRestore = (
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
 
-describe('adminTrashQuizRestore testing', () => {
+describe.only('adminTrashQuizRestore testing', () => {
   // beforeAll(() => {
   //   requestAdminRegister('alex1@hotmail.com', '123456ab', 'Jack', 'Harlow');
   // });
   test('StatusCode 200: Valid input', () => {
-    const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'alex1@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
+
     const QuizOne = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
     const QuizTwo = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz Two',
       'this is my second quiz'
     ).bodyString as QuizId;
-    requestAdminQuizRemove(returnToken.token, QuizOne.quizId);
-    requestAdminQuizRemove(returnToken.token, QuizTwo.quizId);
-    requestAdminTrashQuizRestore(returnToken.token, QuizOne.quizId);
-    const quizOneRestored = requestAdminQuizList(returnToken.token);
+    requestAdminQuizRemove(testToken, QuizOne.quizId);
+    requestAdminQuizRemove(testToken, QuizTwo.quizId);
+    requestAdminTrashQuizRestore(testToken, QuizOne.quizId);
+    const quizOneRestored = requestAdminQuizList(testToken);
     expect(quizOneRestored.bodyString).toStrictEqual({
       quizzes: [
         {
@@ -601,8 +610,8 @@ describe('adminTrashQuizRestore testing', () => {
         },
       ],
     });
-    requestAdminTrashQuizRestore(returnToken.token, QuizTwo.quizId);
-    const quizTwoRestored = requestAdminQuizList(returnToken.token);
+    requestAdminTrashQuizRestore(testToken, QuizTwo.quizId);
+    const quizTwoRestored = requestAdminQuizList(testToken);
     expect(quizTwoRestored.bodyString).toStrictEqual({
       quizzes: [
         {
@@ -618,12 +627,18 @@ describe('adminTrashQuizRestore testing', () => {
   });
 
   test('Error 400: Quiz ID does not refer to a valid quiz', () => {
-    const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
-    const quizIdIsInvalid = requestAdminTrashQuizRestore(
-      returnToken.token,
-      -1 * 1531
-    );
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'alex1@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
+
+    const quizIdIsInvalid = requestAdminTrashQuizRestore(testToken, -1 * 1531);
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -631,21 +646,25 @@ describe('adminTrashQuizRestore testing', () => {
   });
 
   test('Error 400: Quiz name of the restored quiz is already used by another active quiz', () => {
-    const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'alex1@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
     const quiz1 = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz 1',
       'this is my first quiz'
     ).bodyString as QuizId;
-    requestAdminQuizRemove(returnToken.token, quiz1.quizId);
-    requestAdminQuizCreate(
-      returnToken.token,
-      'Quiz 1',
-      'this is my second quiz'
-    );
+    requestAdminQuizRemove(testToken, quiz1.quizId);
+    requestAdminQuizCreate(testToken, 'Quiz 1', 'this is my second quiz');
     const quizNameInvalid = requestAdminTrashQuizRestore(
-      returnToken.token,
+      testToken,
       quiz1.quizId
     );
     expect(quizNameInvalid.statusCode).toBe(RESPONSE_ERROR_400);
@@ -655,15 +674,23 @@ describe('adminTrashQuizRestore testing', () => {
   });
 
   test('Error 400: Quiz ID refers to a quiz that is not currently in the trash', () => {
-    const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'alex1@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
     const quiz1 = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz 1',
       'this is my first quiz'
     ).bodyString as QuizId;
     const quizIdNotInTrash = requestAdminTrashQuizRestore(
-      returnToken.token,
+      testToken,
       quiz1.quizId
     );
     expect(quizIdNotInTrash.statusCode).toBe(RESPONSE_ERROR_400);
@@ -673,10 +700,18 @@ describe('adminTrashQuizRestore testing', () => {
   });
 
   test('Error 401: Token is empty', () => {
-    const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'alex1@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
     const Quiz = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz test 1',
       'this is my first quiz'
     ).bodyString as QuizId;
@@ -688,10 +723,18 @@ describe('adminTrashQuizRestore testing', () => {
   });
 
   test('Error 401: Token is invalid', () => {
-    const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'alex1@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
     const Quiz = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz test 2',
       'this is my second quiz'
     ).bodyString as QuizId;
@@ -703,8 +746,17 @@ describe('adminTrashQuizRestore testing', () => {
   });
 
   test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
-    const returnToken = requestAdminAuthLogin('alex1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'alex1@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
+
     requestAdminRegister('tony2@hotmail.com', 'ab123456b', 'Tony', 'Stark');
     const returnToken2 = requestAdminAuthLogin('tony2@hotmail.com', 'ab123456b')
       .bodyString as TokenString;
@@ -715,7 +767,7 @@ describe('adminTrashQuizRestore testing', () => {
     ).bodyString as QuizId;
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     const quizIdNotReferToUser1 = requestAdminTrashQuizRestore(
-      returnToken.token,
+      testToken,
       TonyQuiz.quizId
     );
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
