@@ -572,10 +572,7 @@ const requestAdminTrashQuizRestore = (
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
 
-describe.only('adminTrashQuizRestore testing', () => {
-  // beforeAll(() => {
-  //   requestAdminRegister('alex1@hotmail.com', '123456ab', 'Jack', 'Harlow');
-  // });
+describe('adminTrashQuizRestore testing', () => {
   test('StatusCode 200: Valid input', () => {
     requestClear();
     // create user
@@ -799,26 +796,32 @@ describe('adminTrashQuizEmpty testing', () => {
   //   requestAdminRegister('emma1@hotmail.com', '123456ab', 'Emma', 'Homes');
   // });
   test('StatusCode 200: Valid input', () => {
-    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'emma1@hotmail.com',
+      '123456ab',
+      'Emma',
+      'Homes'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
+
     const QuizOne = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz One',
       'this is my first quiz'
     ).bodyString as QuizId;
     const QuizTwo = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz Two',
       'this is my second quiz'
     ).bodyString as QuizId;
-    requestAdminQuizRemove(returnToken.token, QuizOne.quizId);
-    requestAdminQuizRemove(returnToken.token, QuizTwo.quizId);
-    requestAdminTrashQuizEmpty(returnToken.token, [
-      QuizOne.quizId,
-      QuizTwo.quizId,
-    ]);
+    requestAdminQuizRemove(testToken, QuizOne.quizId);
+    requestAdminQuizRemove(testToken, QuizTwo.quizId);
+    requestAdminTrashQuizEmpty(testToken, [QuizOne.quizId, QuizTwo.quizId]);
     const quizOneRestoredfail = requestAdminTrashQuizRestore(
-      returnToken.token,
+      testToken,
       QuizOne.quizId
     );
     expect(quizOneRestoredfail.statusCode).toBe(RESPONSE_ERROR_400);
@@ -826,7 +829,7 @@ describe('adminTrashQuizEmpty testing', () => {
       error: expect.any(String),
     });
     const quizTwoRestoredfail = requestAdminTrashQuizRestore(
-      returnToken.token,
+      testToken,
       QuizTwo.quizId
     );
     expect(quizTwoRestoredfail.statusCode).toBe(RESPONSE_ERROR_400);
@@ -836,11 +839,17 @@ describe('adminTrashQuizEmpty testing', () => {
   });
 
   test('Error 400: Quiz ID does not refer to a valid quiz', () => {
-    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
-    const quizIdIsInvalid = requestAdminTrashQuizEmpty(returnToken.token, [
-      -1 * 1531,
-    ]);
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'emma1@hotmail.com',
+      '123456ab',
+      'Emma',
+      'Homes'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
+    const quizIdIsInvalid = requestAdminTrashQuizEmpty(testToken, [-1 * 1531]);
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -848,14 +857,22 @@ describe('adminTrashQuizEmpty testing', () => {
   });
 
   test('Error 400: Quiz ID refers to a quiz that is not currently in the trash', () => {
-    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'emma1@hotmail.com',
+      '123456ab',
+      'Emma',
+      'Homes'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
     const quiz1 = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz 1',
       'this is my first quiz'
     ).bodyString as QuizId;
-    const quizIdNotInTrash = requestAdminTrashQuizEmpty(returnToken.token, [
+    const quizIdNotInTrash = requestAdminTrashQuizEmpty(testToken, [
       quiz1.quizId,
     ]);
     expect(quizIdNotInTrash.statusCode).toBe(RESPONSE_ERROR_400);
@@ -865,10 +882,18 @@ describe('adminTrashQuizEmpty testing', () => {
   });
 
   test('Error 401: Token is empty', () => {
-    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'emma1@hotmail.com',
+      '123456ab',
+      'Emma',
+      'Homes'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
     const Quiz = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz a',
       'this is my first quiz'
     ).bodyString as QuizId;
@@ -880,10 +905,18 @@ describe('adminTrashQuizEmpty testing', () => {
   });
 
   test('Error 401: Token is invalid', () => {
-    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'emma1@hotmail.com',
+      '123456ab',
+      'Emma',
+      'Homes'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
     const Quiz = requestAdminQuizCreate(
-      returnToken.token,
+      testToken,
       'Quiz b',
       'this is my second quiz'
     ).bodyString as QuizId;
@@ -895,8 +928,16 @@ describe('adminTrashQuizEmpty testing', () => {
   });
 
   test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
-    const returnToken = requestAdminAuthLogin('emma1@hotmail.com', '123456ab')
-      .bodyString as TokenString;
+    requestClear();
+    // create user
+    const returnTokenObj = requestAdminRegister(
+      'emma1@hotmail.com',
+      '123456ab',
+      'Emma',
+      'Homes'
+    ) as TokenString;
+
+    const testToken = returnTokenObj.token;
     requestAdminRegister('ricky1@hotmail.com', 'ab123456b', 'Tony', 'Stark');
     const returnToken2 = requestAdminAuthLogin(
       'ricky1@hotmail.com',
@@ -908,10 +949,9 @@ describe('adminTrashQuizEmpty testing', () => {
       'Tony quiz'
     ).bodyString as QuizId;
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
-    const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(
-      returnToken.token,
-      [TonyQuiz.quizId]
-    );
+    const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(testToken, [
+      TonyQuiz.quizId,
+    ]);
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
     // console.log(quizIdNotReferToUser1.bodyString);
     // this should only return error instead of returnning both error and errorcode in
