@@ -68,7 +68,7 @@ const SERVER_URL = `${url}:${port}`;
 
 // constants used throughout file - END
 
-const requestClear = () => {
+export const requestClear = () => {
   const res = request('DELETE', SERVER_URL + '/v1/clear', {
     timeout: WAIT_TIME,
   });
@@ -223,11 +223,9 @@ describe('adminQuizInfo testing', () => {
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'this is my first quiz',
-      /*
-      numQuestion:
-      question:
-      duration:
-      */
+      numQuestions: 0,
+      questions: [],
+      duration: 0,
     });
 
     const QuizTwo = requestAdminQuizCreate(
@@ -242,11 +240,9 @@ describe('adminQuizInfo testing', () => {
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'this is my second quiz',
-      /*
-      numQuestion:
-      question:
-      duration:
-      */
+      numQuestions: 0,
+      questions: [],
+      duration: 0,
     });
   });
 

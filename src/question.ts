@@ -20,8 +20,10 @@ import {
   QuestionBody,
   CreateQuizQuestionReturn,
   AuthUserId,
+  ErrorObjectWithCode,
 } from './library/interfaces';
 
+import { isAuthUserIdMatchQuizId } from './quiz';
 // CONSTANTS - START
 
 const MIN_QUESTION_STRING_LENGTH = 5;
@@ -348,6 +350,52 @@ export function createQuizQuestion(
   };
 }
 
+function deleteQuizQuestion(
+  token: string, 
+  quizId: number, 
+  questionId: number): Record<string,never> | ErrorObjectWithCode {
+    const data = retrieveDataFromFile();
+    const authUserId = getAuthUserIdUsingToken(data, token);
+    const isQuizIdValidTest = isQuizIdValid(data, quizId);
+    const isTokenValidTest = isTokenValid(data, token);
+    if (!isAuthUserIdMatchQuizId(data, authUserId.authUserId, quizId) && isTokenValidTest && isQuizIdValidTest) {
+      return {
+        error: 'QuizId does not match authUserId',
+        errorCode: RESPONSE_ERROR_403,
+      };
+    }
+    if (!token) {
+      return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
+    }
+    if (!isTokenValidTest) {
+      return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
+    }
+    if (!isQuizIdValidTest) {
+      return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
+    }
+    if (!questionId) {
+      return { error: 'QuestionId is empty', errorCode: RESPONSE_ERROR_400 };
+    }
+    if (!isQuestionIdValid(data, quizId, questionId)) {
+      return { error: 'QuestionId is not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 }
+    }
+    const newdata = data;
+    const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
+    const deleteQuestion = quizToUpdate.questions.filter((question) => question.questionId !== questionId);
+    quizToUpdate.questions = deleteQuestion;
+    for (let check of newdata.quizzes) {
+      if (check.quizId === quizId) {
+        check = quizToUpdate;
+        check.numQuestions = check.numQuestions - 1;
+      }
+    }
+    saveDataInFile(newdata);
+    return {};
+}
+ 
+export { deleteQuizQuestion };
+
+
 // HELPER FUNCTIONS - START
 
 /**
@@ -380,6 +428,25 @@ function isQuizIdValid(data: DataStore, quizId: number): boolean {
     return true;
   }
 
+  return false;
+}
+
+
+const isQuestionIdValid = (data: DataStore, quizId: number, questionId: number): boolean => {
+  const questionIdArray = data.quizzes;
+  const quizQuestionIdArray = [];
+  for (const quiz of questionIdArray) {
+    if (quiz.quizId === quizId) {
+      for (const check of quiz.questions) {
+        if (check.questionId === questionId) {
+          quizQuestionIdArray.push(check);
+        }
+      }
+    }
+  }
+  if (quizQuestionIdArray.length === 1) {
+    return true;
+  }
   return false;
 }
 

@@ -1,4 +1,4 @@
-import { DataStore } from './dataStore';
+import { DataStore , Question} from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -41,6 +41,9 @@ interface QuizInfoReturn {
   timeCreated: number;
   timeLastEdited: number;
   description: string;
+  numQuestions: number;
+  questions: Question[],
+  duration: number,
 }
 
 interface QuizInfoInTrashObject {
@@ -64,14 +67,14 @@ interface QuizListReturn {
 // TypeScript interfacts - END
 
 /**
- * Printing out the the quiz information
+ * Printing out the the quiz information (added new object for iteration 2)
  *
  * @param {string} token - the token of the person want to print quiz - must exist / be valid / be unique
  * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
  * ...
  *
- * @returns {{error: string}} - an error object if an error occurs
- * @returns {{quizInfo}} - an array with all the quiz informations
+ * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
+ * @returns {{quizInfo}} - an object with all the quiz informations
  */
 function adminQuizInfo(
   token: string,
@@ -86,8 +89,11 @@ function adminQuizInfo(
     authUserId.authUserId,
     quizId
   );
-  if (!isQuizIdValidTest) {
-    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
+  if (!isAuthUserIdMatchQuizIdTest && isTokenValidTest && isQuizIdValidTest) {
+    return {
+      error: 'QuizId does not match authUserId',
+      errorCode: RESPONSE_ERROR_403,
+    };
   }
   if (!token) {
     return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
@@ -95,27 +101,25 @@ function adminQuizInfo(
   if (!isTokenValidTest) {
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
-  if (!isAuthUserIdMatchQuizIdTest) {
-    return {
-      error: 'QuizId does not match authUserId',
-      errorCode: RESPONSE_ERROR_403,
-    };
+  if (!isQuizIdValidTest) {
+    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
 
   for (const check of data.quizzes) {
     if (check.quizId === quizId) {
+      let duration = 0;
+      for (const count of check.questions) {
+        duration += count.duration;
+      }
       return {
         quizId: check.quizId,
         name: check.name,
         timeCreated: check.timeCreated,
         timeLastEdited: check.timeLastEdited,
         description: check.description,
-        /*
-        for part 2
         numQuestions: check.numQuestions,
         questions: check.questions,
-        duration: check.duration,
-        */
+        duration: duration,
       };
     }
   }
@@ -262,6 +266,7 @@ function adminQuizCreate(
     userId: [authUserId.authUserId],
     questions: [],
     numQuestions: 0,
+    duration: 0,
   });
 
   // Add quizId to quizId[] array in data.users
@@ -283,14 +288,14 @@ function adminQuizCreate(
 export { adminQuizCreate };
 
 /**
- * Update the name of the relevant quiz.
+ * Update the description of the relevant quiz.
  *
- * @param {number} authUserId - the id of the person want to print quiz - must exist / be valid / be unique
- * @param {number} quizId - the id of the quiz being print - must exist / be valid / be unique
- * @param {number} name - the new name of the quiz - must valid
+ * @param {string} token - the token of the person want to update quiz's description - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being update - must exist / be valid / be unique
+ * @param {string} description - the new description of the quiz
  * ...
  *
- * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
  * @returns {} - return nothing
  */
 function adminQuizDescriptionUpdate(
@@ -398,6 +403,17 @@ function adminQuizDescriptionUpdate(
 
 export { adminQuizDescriptionUpdate };
 
+/**
+ * Update the name of the relevant quiz.
+ *
+ * @param {string} token - the token of the person want to update quiz's name - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being change - must exist / be valid / be unique
+ * @param {string} name - the new name of the quiz - must be valid / unique
+ * ...
+ *
+ * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
 function adminQuizNameUpdate(
   token: string,
   quizId: number,
@@ -554,14 +570,14 @@ export { adminQuizList };
  * @param {number} quizId - the id of the quiz want to be delete - must exist / be valid / be unique
  * ...
  *
- * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
  * @returns {} - return nothing
  */
 function adminQuizRemove(
   token: string,
   quizId: number
 ): Record<string, never> | ErrorObjectWithCode {
-  const data = retrieveDataFromFile();
+  const data: DataStore = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
   const isTokenValidTest = isTokenValid(data, token);
@@ -570,22 +586,20 @@ function adminQuizRemove(
     authUserId.authUserId,
     quizId
   );
-  // console.log(data.users);
-  // console.log(data.quizzes);
-  if (!isQuizIdValidTest) {
-    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
-  }
-  if (!token) {
-    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
-  }
-  if (!isTokenValidTest) {
-    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
-  }
-  if (!isAuthUserIdMatchQuizIdTest) {
+  if (!isAuthUserIdMatchQuizIdTest && isTokenValidTest && isQuizIdValidTest) {
     return {
       error: 'QuizId does not match authUserId',
       errorCode: RESPONSE_ERROR_403,
     };
+  }
+  if (!token) {
+    return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
+  }
+  if (!isTokenValidTest) {
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
+  }
+  if (!isQuizIdValidTest) {
+    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
 
   const newdata = data;
@@ -612,7 +626,16 @@ function adminQuizRemove(
 
 export { adminQuizRemove };
 
-// New functions for Iteration 2 Part 2:
+// NEW FUNCTIONS FOR ITERATION 2 - START
+
+/**
+ * Print the quizzes in trash
+ *
+ * @param {string} token - the token of the person who wants to print quizzes - must exist / be valid / be unique
+ *
+ * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
+ * @returns {} - return nothing
+ */
 function adminTrashQuizList(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
@@ -645,6 +668,16 @@ function adminTrashQuizList(
 
 export { adminTrashQuizList };
 
+/**
+ * Restore the quizzes in trash with the provided quizId
+ *
+ * @param {string} token - the token of the person who wants to delete quizzes - must exist / be valid / be unique
+ * @param {number[]} quizId - the id of the quizzes want to restore - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
+ * @returns {} - return nothing
+ */
 function adminTrashQuizRestore(
   token: string,
   quizId: number
@@ -689,21 +722,11 @@ function adminTrashQuizRestore(
   );
   newdata.trash = newdata.trash.filter((quiz) => quiz.quizId !== quizId);
   userToUpdata.quizId.push(quizId);
-
-  // data.trash = data.trash.filter((quiz) => quiz.quizId !== quizId);
-  // if (userToUpdata) {
-  //   // const indexToRemove = userToUpdata.quizId.indexOf(quizId);
-  //   // if (indexToRemove !== -1) {
-  //   //   userToUpdata.quizId.splice(indexToRemove, 1);
-  //   // }
-  //   userToUpdata.quizId.push(quizId);
-  // }
   for (let check of newdata.users) {
     if (check.authUserId === authUserId.authUserId) {
       check = userToUpdata;
     }
   }
-  // quizToRestore[0].timeLastEdited = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
   newdata.quizzes.push(quizToRestore[0]);
   saveDataInFile(newdata);
   return {};
@@ -711,6 +734,17 @@ function adminTrashQuizRestore(
 
 export { adminTrashQuizRestore };
 
+
+/**
+ * Delete the quizzes in trash with the provided quizId array
+ *
+ * @param {string} token - the token of the person who wants to delete quizzes - must exist / be valid / be unique
+ * @param {number[]} quizIds - array of the id of the quizzes want to delete - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
 function adminTrashQuizEmpty(
   token: string,
   quizIds: number[]
@@ -718,7 +752,6 @@ function adminTrashQuizEmpty(
   const data = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isTokenValidTest = isTokenValid(data, token);
-  console.log(data.trash);
   if (!token) {
     return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
   }
@@ -750,23 +783,12 @@ function adminTrashQuizEmpty(
   //   }
   // }
   saveDataInFile(newdata);
-  console.log(newdata.trash);
   return {};
 }
 
 export { adminTrashQuizEmpty };
 
-/**
- * Update the description of the relevant quiz.
- *
- * @param {number} authUserId - the id of the person want to print quizzes - must exist / be valid / be unique
- * @param {number} quizId - the id of the quiz want to change description - must exist / be valid / be unique
- * @param {string} description - the new description of the quiz
- * ...
- *
- * @returns {{error: string}} - an error object if an error occurs
- * @returns {} - return nothing
- */
+// NEW FUNCTIONS FOR ITERATION 2 - END
 
 // HELPER FUNCTIONS - START ------------------------------------------------------------------------
 
@@ -917,7 +939,7 @@ function isQuizIdValid(data: DataStore, quizId: number): boolean {
  *
  * @returns {boolean} - true if authId is valid / false if authId is not valid
  */
-function isAuthUserIdMatchQuizId(
+export function isAuthUserIdMatchQuizId(
   data: DataStore,
   authUserId: number,
   quizId: number
