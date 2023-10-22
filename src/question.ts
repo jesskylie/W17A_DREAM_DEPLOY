@@ -21,12 +21,16 @@ import {
 import { adminAuthRegister } from './auth';
 import { adminQuizCreate } from './quiz';
 
-import { QuestionBody, CreateQuizQuestionReturn } from './library/interfaces';
+import {
+  QuestionBody,
+  CreateQuizQuestionReturn,
+  AuthUserId,
+} from './library/interfaces';
 import { isTokenKind } from 'typescript';
 
-interface AuthUserId {
-  authUserId: number;
-}
+// interface AuthUserId {
+//   authUserId: number;
+// }
 
 // CONSTANTS - START
 

@@ -9,6 +9,8 @@ import {
   WAIT_TIME,
 } from './library/constants';
 
+import { TokenString } from './library/interfaces';
+
 import {
   adminAuthRegister,
   adminUserDetails,
@@ -40,10 +42,6 @@ interface AdminUserDetailUpdateReturn {
 interface RequestAdminDetailsUpdateServerReturn {
   bodyString: AdminUserDetailUpdateReturn;
   statusCode: number;
-}
-
-interface TokenString {
-  token: string;
 }
 
 interface RequestUserDetailsReturn {

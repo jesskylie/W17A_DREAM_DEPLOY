@@ -4,6 +4,7 @@ import {
   saveDataInFile,
   isTokenValid,
   getAuthUserIdUsingToken,
+  createCurrentTimeStamp,
 } from './functions';
 
 import {
@@ -12,6 +13,11 @@ import {
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
 } from './library/constants';
+
+import { AuthUserId } from './library/interfaces';
+
+const MIN_QUIZ_NAME_LENGTH = 3;
+const MAX_QUIZ_NAME_LENGTH = 30;
 
 // TypeScript interfacts - START
 
@@ -35,6 +41,7 @@ interface QuizInfoReturn {
   timeCreated: number;
   timeLastEdited: number;
   description: string;
+
   /*
   (Part 2)
   numQuestions: number;
@@ -315,21 +322,13 @@ function adminQuizNameUpdate(
   token: string,
   quizId: number,
   name: string
-): Record<string, never> | { error: string; errorCode: number } {
-  const data = getData();
-  // 1. check that authUserId is valid
-  // if not, then return error
-  const authUserId = getAuthUserIdUsingToken(data, token);
-  const isAuthUserIdValidTest = isAuthUserIdValid(data, authUserId.authUserId);
-  for (const user of data.users) {
-    if (!user.token.includes(token)) {
-      return {
-        error: 'Token is invalid or empty',
-        errorCode: RESPONSE_ERROR_401,
-      };
-    }
-  }
+): Record<string, never> | ErrorObjectWithCode {
+  // const data = getData();
+  const data: DataStore = retrieveDataFromFile();
 
+  // Step 1 - check for errors - START
+  // Check for 400 errors - START
+  // Step 1a - Quiz ID does not refer to a valid quiz - START
   if (!isQuizIdValid(data, quizId)) {
     return {
       error: 'QuizId does not refer to a valid quiz.',
@@ -337,34 +336,109 @@ function adminQuizNameUpdate(
     };
   }
 
-  if (!doesQuizIdRefer(quizId, authUserId.authUserId)) {
+  // Step 1a - Quiz ID does not refer to a valid quiz - END
+  // Step 1b - START
+  // Name contains invalid characters. Valid characters are alphanumeric and spaces AND
+  // Name is already used by the current logged in user for another quiz
+
+  // get authUserId from Token
+  const authUserIdObj = getAuthUserIdUsingToken(data, token) as AuthUserId;
+  const authUserId = authUserIdObj.authUserId;
+
+  // check if quiz name is valid
+  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
+  if (!isQuizNameValidTest.result) {
     return {
-      error: 'Quiz ID does not refer to a quiz that this user owns',
+      error:
+        'Name contains invalid characters. Valid characters are alphanumeric and spaces, or Name is already used by the current logged in user for another quiz',
+      errorCode: RESPONSE_ERROR_400,
+    };
+  }
+  // Step 1b - END
+
+  // Step 1c - Name is either less than 3 characters long or more than 30 characters long - START
+
+  if (
+    name.length < MIN_QUIZ_NAME_LENGTH ||
+    name.length > MAX_QUIZ_NAME_LENGTH
+  ) {
+    return {
+      error:
+        'Name is either less than 3 characters long or more than 30 characters long',
+      errorCode: RESPONSE_ERROR_400,
+    };
+  }
+
+  // Step 1c - Name is either less than 3 characters long or more than 30 characters long - END
+  // Check for 400 errors - END
+
+  // Step 2: Check for 401 errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+
+  if (!isTokenValidTest) {
+    return {
+      error:
+        'Token is empty or invalid (does not refer to valid logged in user session)',
+      errorCode: RESPONSE_ERROR_401,
+    };
+  }
+
+  // Step 2: Check for 401 errors - END
+
+  // Step 3: Check for 403 errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+  // Need:
+  // a. authUserId
+  // b. quizId
+  // Then:
+  // x. iterate over data.users
+  // y. find user array that corresponds with authUserId
+  // z. check in that user's quizid array to test whether quizId is included
+
+  // x
+  const userArr = data.users;
+
+  let userOwnsQuizBool = false;
+
+  for (const user of userArr) {
+    if (user.authUserId === authUserId && user.quizId.includes(quizId)) {
+      userOwnsQuizBool = true;
+    }
+  }
+
+  if (!userOwnsQuizBool) {
+    return {
+      error: 'Valid token is provided, but user is not an owner of this quiz',
       errorCode: RESPONSE_ERROR_403,
     };
   }
 
-  const isQuizNameValidTest = isQuizNameValid(
-    data,
-    name,
-    authUserId.authUserId
-  );
-  if (!isQuizNameValidTest.result) {
-    return { error: isQuizNameValidTest.error, errorCode: RESPONSE_ERROR_400 };
-  }
+  // Step 3: Check for 403 errors - END
+  // Step 1 - check for errors - END
+
+  // All errors have been dealt with
+  // now mutate the dataStore
+  // by updating the quiz name
+
+  console.log('from quiz.ts: name ->', name);
 
   for (const quiz of data.quizzes) {
+    console.log('quiz ->', quiz);
+    console.log('quiz.quizId ->', quiz.quizId);
     if (quiz.quizId === quizId) {
-      quiz.name === name;
-      quiz.timeLastEdited++;
+      console.log('Match made !!@');
+      quiz.name = name;
+      quiz.timeLastEdited = createCurrentTimeStamp();
     }
   }
+  saveDataInFile(data);
   return {};
 }
 export { adminQuizNameUpdate };
 
 function doesQuizIdRefer(quizId: number, authUserId: number) {
-  // let is_valid = False;
   const data = getData();
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
@@ -495,7 +569,7 @@ function adminTrashQuizList(
   let quizIdArray = [];
   for (const checkId of data.users) {
     if (checkId.authUserId === authUserId.authUserId) {
-      quizIdArray.push(...checkId.quizId)
+      quizIdArray.push(...checkId.quizId);
     }
   }
   for (const checkQuizzes of data.trash) {
@@ -523,11 +597,11 @@ function adminTrashQuizRestore(
   if (!isTokenValidTest) {
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
-  if (typeof quizId !== "number") {
+  if (typeof quizId !== 'number') {
     return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
   if (!isQuizIdInTrash(data, quizId)) {
-    return { error: 'QuizId is not in trash', errorCode: RESPONSE_ERROR_400 }
+    return { error: 'QuizId is not in trash', errorCode: RESPONSE_ERROR_400 };
   }
   if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {
     return {
@@ -541,14 +615,19 @@ function adminTrashQuizRestore(
     (user) => user.authUserId === authUserId.authUserId
   );
   let quizToRestore = data.trash.filter((quiz) => quiz.quizId === quizId);
-  const isQuizNameValidTest = isQuizNameValid(data, quizToRestore[0].name, authUserId.authUserId);
+  const isQuizNameValidTest = isQuizNameValid(
+    data,
+    quizToRestore[0].name,
+    authUserId.authUserId
+  );
   if (!isQuizNameValidTest.result) {
     return { error: isQuizNameValidTest.error, errorCode: RESPONSE_ERROR_400 };
   }
-  quizToRestore[0].timeLastEdited = Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
+  quizToRestore[0].timeLastEdited = Math.floor(
+    Date.now() / CONVERT_MSECS_TO_SECS
+  );
   newdata.trash = newdata.trash.filter((quiz) => quiz.quizId !== quizId);
   userToUpdata.quizId.push(quizId);
-
 
   // data.trash = data.trash.filter((quiz) => quiz.quizId !== quizId);
   // if (userToUpdata) {
@@ -578,7 +657,7 @@ function adminTrashQuizEmpty(
   const data = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isTokenValidTest = isTokenValid(data, token);
-  console.log(data.trash)
+  console.log(data.trash);
   if (!token) {
     return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
   }
@@ -586,11 +665,11 @@ function adminTrashQuizEmpty(
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
   for (const quizId of quizIds) {
-    if (typeof quizId !== "number") {
+    if (typeof quizId !== 'number') {
       return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
     }
     if (!isQuizIdInTrash(data, quizId)) {
-      return { error: 'QuizId is not in trash', errorCode: RESPONSE_ERROR_400 }
+      return { error: 'QuizId is not in trash', errorCode: RESPONSE_ERROR_400 };
     }
     if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {
       return {
@@ -610,7 +689,7 @@ function adminTrashQuizEmpty(
   //   }
   // }
   saveDataInFile(newdata);
-  console.log(newdata.trash)
+  console.log(newdata.trash);
   return {};
 }
 
