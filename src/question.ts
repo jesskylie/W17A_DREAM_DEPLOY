@@ -446,5 +446,5 @@ const isQuestionIdValid = (data: DataStore, quizId: number, questionId: number):
     return true;
   }
   return false;
-}
+};
 // HELPER FUNCTIONS - END
