@@ -71,16 +71,6 @@ Example usage
 
 // TypeScript interfaces for Iteration 2 - START
 
-<<<<<<< HEAD
-export interface DataStore {
-  users: Users[];
-  quizzes: Quizzes[];
-  trash: Quizzes[];
-}
-
-
-=======
->>>>>>> e7cc3b5a1448b14b0347ec6c95487f00c1be3002
 export interface Users {
   authUserId: number;
   nameFirst: string;
@@ -119,23 +109,10 @@ export interface Quizzes {
   duration: number;
 }
 
-<<<<<<< HEAD
-export interface Question {
-question: string;
-duration: number;
-points: number;
-answers:
-  {
-    answer: string;
-    correct: boolean;
-  }[];
-
-=======
 export interface DataStore {
   users: Users[];
   quizzes: Quizzes[];
   trash: Quizzes[];
->>>>>>> e7cc3b5a1448b14b0347ec6c95487f00c1be3002
 }
 
 export let data: DataStore = {
@@ -157,4 +134,3 @@ function setData(newData: DataStore) {
 export { getData, setData };
 
 // TypeScript interfaces for Iteration 2 - END
-
