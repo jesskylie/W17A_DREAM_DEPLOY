@@ -28,7 +28,7 @@ import {
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
 } from './quiz';
-import { createQuizQuestion } from './question';
+import { createQuizQuestion, deleteQuizQuestion } from './question';
 
 import {
   RESPONSE_OK_200,
@@ -308,6 +308,23 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const result = adminTrashQuizRestore(token, quizId);
   if ('error' in result) {
     console.log('error in response 4');
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json({ error: result.error });
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json({ error: result.error });
+    }
+  }
+  res.status(RESPONSE_OK_200).json(result);
+});
+
+app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizId = parseInt(req.params.quizid);
+  const questionId = parseInt(req.params.questionid);
+  const result = deleteQuizQuestion(token, quizId, questionId);
+  if ('error' in result) {
     if (result.errorCode === RESPONSE_ERROR_400) {
       return res.status(RESPONSE_ERROR_400).json({ error: result.error });
     } else if (result.errorCode === RESPONSE_ERROR_401) {

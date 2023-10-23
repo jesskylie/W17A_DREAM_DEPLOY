@@ -94,7 +94,7 @@ export interface Users {
   token: string[];
 }
 
-interface Question {
+export interface Question {
   questionId: number;
   question: string;
   duration: number;
@@ -116,6 +116,7 @@ export interface Quizzes {
   userId: number[];
   numQuestions: number;
   questions: Question[];
+  duration: number;
 }
 
 <<<<<<< HEAD
