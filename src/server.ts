@@ -28,8 +28,7 @@ import {
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
 } from './quiz';
-import { createQuizQuestion, deleteQuizQuestion } from './question';
-
+import { createQuizQuestion, deleteQuizQuestion, updateQuizQuestion } from './question';
 import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
@@ -278,8 +277,9 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   res.status(RESPONSE_OK_200).json(response);
 });
 
-app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizid);
+app.post('/v1/admin/quiz/:quizId/question', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId);
+  console.log(quizId);
   const { token, questionBody } = req.body;
 
   const response = createQuizQuestion(token, questionBody, quizId);
@@ -333,6 +333,23 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
     }
   }
   res.status(RESPONSE_OK_200).json(result);
+});
+
+app.put('/v1/admin/quiz/:quizId/question/:questionId', (req: Request, res: Response) => {
+  const { token, questionBody } = req.body;
+  const quizId = parseInt(req.params.quizId);
+  const questionId = parseInt(req.params.questionId);
+  const response = updateQuizQuestion(quizId, questionId, token, questionBody);
+  if ('error' in response) {
+    if (response.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json({ error: response.error });
+    } else if (response.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json({ error: response.error });
+    } else if (response.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json({ error: response.error });
+    }
+  }
+  res.status(RESPONSE_OK_200).json(response);
 });
 
 // ***********************************************************************
