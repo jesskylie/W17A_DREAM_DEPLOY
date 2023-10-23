@@ -691,8 +691,35 @@ function adminQuizTransfer(
         // Replace old element with new element
         quiz.userId.splice(indexToReplace, 1, transfereeAuthUserId);
       }
+      // update timeLastEdited
+      quiz.timeLastEdited = createCurrentTimeStamp();
     }
   }
+
+  // also mutate the users array
+  // transfer the quizId from the transferor to transferee
+  // in users.quizId
+
+  // Remove quizId from users.quizId of transferor
+
+  for (const user of userArr) {
+    if (user.authUserId === authUserIdTransferor) {
+      // remove quizId from transferor's quizId array
+      const index = user.quizId.indexOf(quizId);
+      if (index !== -1) {
+        user.quizId.splice(index, 1);
+      }
+    }
+  }
+
+  // Add quizId to users.quizId of transferee
+
+  for (const user of userArr) {
+    if (user.authUserId === transfereeAuthUserId) {
+      user.quizId.push(quizId);
+    }
+  }
+
   saveDataInFile(data);
   return {};
 }
