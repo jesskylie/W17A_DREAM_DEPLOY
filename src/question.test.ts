@@ -1,7 +1,7 @@
 import request from 'sync-request-curl';
 import config from './config.json';
 import { requestDelete, requestAdminRegister } from './auth_2.test';
-import { requestAdminQuizCreate } from './quiz_2.test';
+import { requestAdminQuizCreate, requestAdminQuizInfo } from './quiz_2.test';
 
 import {
   RESPONSE_OK_200,
@@ -916,6 +916,779 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
       expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_403);
+    }
+  });
+});
+
+function requestUpdateQuestion(
+  quizId: number,
+  questionId: number,
+  token: string,
+  question: QuestionBody
+): CreateQuizQuestionServerReturn {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
+    {
+      json: {
+        token: token,
+        questionBody: {
+          question: question.question,
+          duration: question.duration,
+          points: question.points,
+          answers: question.answers as QuestionBody['answers'],
+        },
+      },
+    }
+  );
+
+  return {
+    bodyString: JSON.parse(res.body.toString()),
+    statusCode: res.statusCode,
+  };
+}
+
+describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
+  test('Testing valid question update ', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+        const result = requestUpdateQuestion(quizId, questionId, token, newQuestion);
+        expect(result).toStrictEqual({});
+        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+      }
+    }
+  });
+
+  test('Testing valid question update with timeLastEdited changed', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+
+        const quizBeforeUpdate = requestAdminQuizInfo(token, quizId);
+        const result = requestUpdateQuestion(quizId, questionId, token, newQuestion);
+        const quizAfterUpdate = requestAdminQuizInfo(token, quizId);
+        expect(quizBeforeUpdate).not.toEqual(quizAfterUpdate);
+        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+      }
+    }
+  });
+
+  test('Testing updating question with invalid questionId - error code 400', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+
+        // question id does not refer to valid question within quiz
+        const invalidQuestionId = requestUpdateQuestion(-1, questionId, token, newQuestion);
+        expect(invalidQuestionId).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(invalidQuestionId.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
+    }
+  });
+
+  test('Testing update question when answers is not between 2 and 6 - error code 400', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const shortAnswers = {
+          question: 'What is the capital of Australia?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+          ],
+        } as QuestionBody;
+
+        // question id does not refer to valid question within quiz
+        const response = requestUpdateQuestion(quizId, questionId, token, shortAnswers);
+        expect(response).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+
+        const longAnswers = {
+          question: 'What is the capital of Australia?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+          ],
+        } as QuestionBody;
+
+        // question id does not refer to valid question within quiz
+        const responseTwo = requestUpdateQuestion(quizId, questionId, token, longAnswers);
+        expect(responseTwo).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(responseTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
+    }
+  });
+
+  test('Testing update question with invalid question string length - error code 400', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        // question string is less than 5 characters and/or greater than 50 characters
+        const shortLength = {
+          question: 'W?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+
+        // question length is less than 5 characters
+        const shortResponse = requestUpdateQuestion(quizId, questionId, token, shortLength);
+        expect(shortResponse).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(shortResponse.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+
+        // question string is larger than 50 characters
+        const longLength = {
+          question: '12345678911 1234567891 1234567891 1234567891 1234567891?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+
+        // question id does not refer to valid question within quiz
+        const longResponse = requestUpdateQuestion(quizId, questionId, token, longLength);
+        expect(longResponse).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(longResponse.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
+    }
+  });
+
+  test('Testing question update when question duration is not a positive number - error code 400 ', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: -10,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+        const result = requestUpdateQuestion(quizId, questionId, token, newQuestion);
+        expect(result).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+      }
+    }
+  });
+
+  test('Testing question  update when question exceeds 3 minutes - error code 400 ', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 200,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+        const result = requestUpdateQuestion(quizId, questionId, token, newQuestion);
+        expect(result).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+      }
+    }
+  });
+
+  test('Testing question update when points are between 1 and 10 - error code 400 ', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 200,
+          points: 11,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+
+        const result = requestUpdateQuestion(quizId, questionId, token, newQuestion);
+        expect(result).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+
+        const newQuestionTwo = {
+          question: 'What is the capital of Australia?',
+          duration: 200,
+          points: 0,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+        const resultTwo = requestUpdateQuestion(quizId, questionId, token, newQuestionTwo);
+        expect(resultTwo).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(resultTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
+    }
+  });
+
+  test('Length of answer must be between 1 and 30 characters ', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const oneCharacter = {
+          question: 'What is the capital of Australia?',
+          duration: 200,
+          points: 11,
+          answers: [
+            {
+              answer: '',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+
+        const result = requestUpdateQuestion(quizId, questionId, token, oneCharacter);
+        expect(result).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+
+        const thirtyCharacters = {
+          question: 'What is the capital of Australia?',
+          duration: 200,
+          points: 0,
+          answers: [
+            {
+              answer: 'qwertyuiopasdfghjklzxcvbnmqwertyuiopopsafhgjhkhl',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+        const resultTwo = requestUpdateQuestion(quizId, questionId, token, thirtyCharacters);
+        expect(resultTwo).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(resultTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+      }
+    }
+  });
+
+  test('Testing invalid question update with duplicate answers - error code 400 ', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 200,
+          points: 11,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+          ],
+        } as QuestionBody;
+
+        const result = requestUpdateQuestion(quizId, questionId, token, newQuestion);
+        expect(result).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+      }
+    }
+  });
+
+  test('Testing invalid question update when there are no correct answers - error code 400 ', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 200,
+          points: 11,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: false,
+            },
+          ],
+        } as QuestionBody;
+
+        const result = requestUpdateQuestion(quizId, questionId, token, newQuestion);
+        expect(result).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_400 });
+        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+      }
+    }
+  });
+
+  test('Testing invalid/empty token - error code 401', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+        const emptyToken = requestUpdateQuestion(quizId, questionId, '', newQuestion);
+        expect(emptyToken).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_401 });
+        expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
+
+        const invalidToken = requestUpdateQuestion(quizId, questionId, 'abcdefg', newQuestion);
+        expect(invalidToken).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_401 });
+        expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
+      }
+    }
+  });
+
+  test('Testing valid token provided, but wrong user - error code 403', () => {
+    requestDelete();
+    const userOne = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const userTwo = requestAdminRegister('jessica@hotmail.com', 'hello1234566', 'Jess', 'Lily');
+    const tokenOne = userOne.body.token;
+    const tokenTwo = userTwo.body.token;
+    const newQuiz = requestAdminQuizCreate(tokenOne, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestion(tokenTwo, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+        const result = requestUpdateQuestion(quizId, questionId, tokenOne, newQuestion);
+        expect(result).toStrictEqual({ error: expect.any(String), errorCode: RESPONSE_ERROR_403 });
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_403);
+      }
     }
   });
 });
