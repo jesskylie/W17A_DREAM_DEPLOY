@@ -350,7 +350,7 @@ export function createQuizQuestion(
 }
 
 /**
- * This function updates the relevant details of a particular question within a quiz
+ * Updates the relevant details of a particular question within a quiz
  * When this route is called, last edited time is updated
  * @param {quizId} number - quizId of current quiz to be updated
  * @param {questionId} number - questionId to be updated
@@ -470,7 +470,6 @@ export function updateQuizQuestion(
     }
   }
   saveDataInFile(data);
-
   // successfully updated quiz question
   return {};
 }
@@ -495,7 +494,7 @@ function duplicateAnswers(answers: string[]): boolean {
 }
 
 /**
- * This function checks if total duration is within 3 minutes (180 seconds) after adding new duration
+ * Checks if total duration is within 3 minutes (180 seconds) after adding new duration
  * if there is no duplicates, returns true, otherwise returns false
  * @param {data} dataStore - dataStore to search through
  * @param {quizId} string[] - quizId of quiz to search
