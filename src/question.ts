@@ -21,6 +21,7 @@ import {
   CreateQuizQuestionReturn,
   AuthUserId,
   ErrorObjectWithCode,
+  NewQuestionId,
 } from './library/interfaces';
 
 import { isAuthUserIdMatchQuizId } from './quiz';
@@ -517,15 +518,15 @@ function duplicateAnswers(answers: string[]): boolean {
   // No duplicates found
   return false;
 }
-
 /**
- * Checks if total duration is within 3 minutes (180 seconds) after adding new duration
- * if there is no duplicates, returns true, otherwise returns false
- * @param {data} dataStore - dataStore to search through
- * @param {quizId} string[] - quizId of quiz to search
- * @param {questionId} string[] - questionId of question to search
- * @param {newDuration} string[] - new duration to be updated
- * @returns {boolean} - returns true if duration is valid and under 3 minutes, otherwise returns false
+ * A duplicated question is immediately inserted after the source question in the questions array
+ * When this route is called, the time last edited is updated
+ * @param {quizId} number - quizId to search for
+ * @param {questionId} number - questionId of question to search
+ * @param {token} string - token to search for
+ * @returns {ErrorObjectWithCode} - returns error if questionId does not refer to valid quiz, token
+ * is empty/invalid, valid token is provided, but user is now an owner of the quiz
+ *  @returns {NewQuestionId} - returns newQUestionId if successfully duplicates a question
  */
 function isValidDuration(
   data: DataStore,
@@ -534,14 +535,57 @@ function isValidDuration(
   newDuration: number
 ): boolean {
   let currentDuration = 0;
+export function duplicateQuestion(quizId: number, questionId: number, token: string):
+ErrorObjectWithCode | NewQuestionId {
+  const data = retrieveDataFromFile();
+  // token is empty/invalid return - 401 error
+  if (!isTokenValid(data, token)) {
+    return { error: 'Invalid token provided', errorCode: 401 };
+  }
+
+  // valid token provided but incorrect user - 403 error
+  const authUserIdString = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdString.authUserId;
+
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (!user.quizId.includes(quizId)) {
+        return { error: 'Valid token provided but incorrect user', errorCode: 403 };
+      }
+    }
+  }
+
+  // Question Id does not refer to a valid question within this quiz - error 400
+  if (!isQuestionIdValid(data, quizId, questionId)) {
+    return { error: 'QuestionId does not refer to valid question in this quiz', errorCode: 400 };
+  }
+
+  // find quizId to duplicate
   for (const quiz of data.quizzes) {
-    currentDuration = currentDuration + quiz.duration;
+    // returns the index of the element in an array to duplicate
+    const indexToDuplicate = quiz.questions.findIndex(q => q.questionId === questionId);
+    // findIndex returns -1 if no element is found
+    if (indexToDuplicate !== -1) {
+      // indexToDuplicate will = index of the array we want to duplicate
+      const questionToDuplicate = quiz.questions[indexToDuplicate];
+
+      const newDuplicateQuestion = {
+        questionId: quiz.questions.length + 1,
+        question: questionToDuplicate.question,
+        duration: questionToDuplicate.duration,
+        points: questionToDuplicate.points,
+        answers: questionToDuplicate.answers,
+      };
+
+      // inserts new duplicate question into question array at correct index
+      quiz.questions.splice(indexToDuplicate + 1, 0, newDuplicateQuestion);
+      // update time last edited for quiz
+      quiz.timeLastEdited = createCurrentTimeStamp();
+      saveDataInFile(data);
+      return { newQuestionId: newDuplicateQuestion.questionId };
+    }
   }
-  const totalDuration = newDuration + currentDuration;
-  if (totalDuration > MAX_DURATION_IN_SECONDS) {
-    return false;
-  }
-  return true;
 }
 
 function deleteQuizQuestion(
@@ -657,6 +701,7 @@ const isQuestionIdValid = (
 };
 
 /**
+
  * Checks when a question is created, if total duration is within 3 minutes (180 seconds) after adding new duration
  * @param {data} dataStore - dataStore to search through
  * @param {quizId} number - quizId of quiz to search
@@ -682,6 +727,24 @@ function isValidDurationCreate(
     return false;
   }
 
+/*
+ * Checks if total duration is within 3 minutes (180 seconds) after adding new duration
+ * if there is no duplicates, returns true, otherwise returns false
+ * @param {data} dataStore - dataStore to search through
+ * @param {quizId} string[] - quizId of quiz to search
+ * @param {questionId} string[] - questionId of question to search
+ * @param {newDuration} string[] - new duration to be updated
+ * @returns {boolean} - returns true if duration is valid and under 3 minutes, otherwise returns false
+ */
+function isValidDuration (data: DataStore, quizId: number, questionId: number, newDuration: number): boolean {
+  let currentDuration = 0;
+  for (const quiz of data.quizzes) {
+    currentDuration = currentDuration + quiz.duration;
+  }
+  const totalDuration = newDuration + currentDuration;
+  if (totalDuration > MAX_DURATION_IN_SECONDS) {
+    return false;
+  }
   return true;
 }
 // HELPER FUNCTIONS - END

@@ -2057,3 +2057,192 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
     }
   });
 });
+
+function requestDuplicateQuestion(
+  quizId: number,
+  questionId: number,
+  token: string
+): CreateQuizQuestionServerReturn {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/duplicate`,
+    {
+      json: {
+        token: token,
+      },
+    }
+  );
+  const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+  return {
+    bodyString,
+    statusCode,
+  };
+}
+
+describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', () => {
+  test('Successful duplicate question', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+      const QuestionOne = {
+        question: 'First Question?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const QuestionTwo = {
+        question: 'Second question?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      // creates three questions
+      requestCreateQuestion(token, QuestionOne, quizId);
+      const resultTwo = requestCreateQuestion(token, QuestionTwo, quizId);
+      if ('questionId' in resultTwo.bodyString) {
+        const questionId = resultTwo.bodyString.questionId as number;
+        // duplicate second question
+        const duplicateResult = requestDuplicateQuestion(quizId, questionId, token);
+        expect(duplicateResult.bodyString).toStrictEqual({ newQuestionId: expect.any(Number) });
+        expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_OK_200);
+        const result = requestAdminQuizInfo(token, quizId);
+        if ('questions' in result.bodyString) {
+          const questions = result.bodyString.questions;
+          // there should be 3 questions now
+          expect(questions.length).toStrictEqual(3);
+          // expect the third question in the array to be the duplicated question
+          expect(questions[2]).toStrictEqual(duplicateResult.bodyString);
+        }
+      }
+    }
+  });
+
+  test('QuestionId does not refer to valid question in this quiz - error code 400', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+      const QuestionOne = {
+        question: 'First Question?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      requestCreateQuestion(token, QuestionOne, quizId);
+      const duplicateResult = requestDuplicateQuestion(quizId, -1, token);
+      expect(duplicateResult.bodyString).toStrictEqual({ error: expect.any(String) });
+      expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+    }
+  });
+
+  test('Token is empty or invalid - error code 401', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const Question = {
+        question: 'Second question?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+
+      const resultTwo = requestCreateQuestion(token, Question, quizId);
+      if ('questionId' in resultTwo.bodyString) {
+        const questionId = resultTwo.bodyString.questionId as number;
+
+        const emptyToken = requestDuplicateQuestion(quizId, questionId, '');
+        expect(emptyToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
+
+        const invalidToken = requestDuplicateQuestion(quizId, questionId, 'abcfde');
+        expect(invalidToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
+      }
+    }
+  });
+
+  test('Valid token is provided, but user does not own quiz - error code 403', () => {
+    requestDelete();
+    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const newUserTwo = requestAdminRegister('annleee@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const token = newUser.body.token;
+    const tokenTwo = newUserTwo.body.token;
+    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const Question = {
+        question: 'Second question?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+
+      const result = requestCreateQuestion(tokenTwo, Question, quizId);
+      if ('questionId' in result.bodyString) {
+        const questionId = result.bodyString.questionId as number;
+
+        const invalidToken = requestDuplicateQuestion(quizId, questionId, '');
+        expect(invalidToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_403);
+      }
+    }
+  });
+});
