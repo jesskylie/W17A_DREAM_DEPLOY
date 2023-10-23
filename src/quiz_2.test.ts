@@ -47,7 +47,7 @@ interface requestAdminQuizInfoReturn {
   bodyString: Quizzes | ErrorObject;
 }
 
-interface requestAdminQuizListReturn {
+export interface requestAdminQuizListReturn {
   statusCode?: number;
   bodyString: Quizzes[] | ErrorObject;
 }
@@ -182,7 +182,9 @@ const requestAdminQuizRemove = (
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
 
-const requestAdminQuizList = (token: string): requestAdminQuizListReturn => {
+export const requestAdminQuizList = (
+  token: string
+): requestAdminQuizListReturn => {
   const res = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
     qs: { token },
   });
@@ -751,10 +753,9 @@ describe('adminTrashQuizRestore testing', () => {
       'Tony quiz'
     ).bodyString as QuizId;
     // priority Error test: 403 > 400
-    expect(requestAdminTrashQuizRestore(
-      testToken,
-      TonyQuiz.quizId
-    ).statusCode).toBe(RESPONSE_ERROR_403);
+    expect(
+      requestAdminTrashQuizRestore(testToken, TonyQuiz.quizId).statusCode
+    ).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     const quizIdNotReferToUser1 = requestAdminTrashQuizRestore(
       testToken,
@@ -938,10 +939,9 @@ describe('adminTrashQuizEmpty testing', () => {
       'Jack',
       'Tony quiz'
     ).bodyString as QuizId;
-    expect(requestAdminTrashQuizRestore(
-      testToken,
-      TonyQuiz.quizId
-    ).statusCode).toBe(RESPONSE_ERROR_403);
+    expect(
+      requestAdminTrashQuizRestore(testToken, TonyQuiz.quizId).statusCode
+    ).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(testToken, [
       TonyQuiz.quizId,
