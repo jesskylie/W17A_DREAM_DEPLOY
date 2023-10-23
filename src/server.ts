@@ -33,6 +33,7 @@ import {
   createQuizQuestion,
   deleteQuizQuestion,
   updateQuizQuestion,
+  duplicateQuestion,
 } from './question';
 import {
   RESPONSE_OK_200,
@@ -385,6 +386,23 @@ app.put(
     res.status(RESPONSE_OK_200).json(response);
   }
 );
+
+app.post('/v1/admin/quiz/:quizId/question/:questionId/duplicate', (req: Request, res: Response) => {
+  const { token } = req.body;
+  const quizId = parseInt(req.params.quizId);
+  const questionId = parseInt(req.params.questionId);
+  const response = duplicateQuestion(quizId, questionId, token);
+  if ('error' in response) {
+    if (response.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json({ error: response.error });
+    } else if (response.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json({ error: response.error });
+    } else if (response.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json({ error: response.error });
+    }
+  }
+  res.status(RESPONSE_OK_200).json(response);
+});
 
 // ***********************************************************************
 
