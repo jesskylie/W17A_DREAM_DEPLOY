@@ -1,3 +1,4 @@
+import isEmail from 'validator/lib/isEmail.js';
 import { DataStore, Question } from './dataStore';
 import {
   retrieveDataFromFile,
@@ -42,8 +43,8 @@ interface QuizInfoReturn {
   timeLastEdited: number;
   description: string;
   numQuestions: number;
-  questions: Question[],
-  duration: number,
+  questions: Question[];
+  duration: number;
 }
 
 interface QuizInfoInTrashObject {
@@ -528,6 +529,176 @@ function adminQuizNameUpdate(
   return {};
 }
 export { adminQuizNameUpdate };
+
+/**
+ * Transfer ownership of a quiz to a different user based on their email
+ *
+ * @param {string} token - the token of the person who is transferring the quiz (Transferor) - must exist / be valid / be unique
+ * @param {string} userEmail - the email of the person to whom the quiz is to be transferred (Transferee) - must exist
+ * @param {number} quizId - the id of the quiz being transferred - must exist / be valid / be unique
+ * ...
+ *
+ * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
+function adminQuizTransfer(
+  token: string,
+  userEmail: string,
+  quizId: number
+): Record<string, never> | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+
+  // Step 1 - check for errors - START
+
+  // Step 1a: Check for 401 errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+
+  if (!isTokenValidTest) {
+    return {
+      error:
+        'Token is empty or invalid (does not refer to valid logged in user session)',
+      errorCode: RESPONSE_ERROR_401,
+    };
+  }
+
+  // Step 1a: Check for 401 errors - END
+
+  // Step 1b: Check for 403 errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+  // Need:
+  // a. authUserId
+  // b. quizId
+  // Then:
+  // x. iterate over data.users
+  // y. find user array that corresponds with authUserId
+  // z. check in that user's quizid array to test whether quizId is included
+
+  // x
+
+  // get authUserId from Token
+  const authUserIdObj = getAuthUserIdUsingToken(data, token) as AuthUserId;
+  const authUserIdTransferor = authUserIdObj.authUserId;
+  const userArr = data.users;
+
+  let userOwnsQuizBool = false;
+
+  for (const user of userArr) {
+    if (
+      user.authUserId === authUserIdTransferor &&
+      user.quizId.includes(quizId)
+    ) {
+      userOwnsQuizBool = true;
+    }
+  }
+
+  if (!userOwnsQuizBool) {
+    return {
+      error: 'Valid token is provided, but user is not an owner of this quiz',
+      errorCode: RESPONSE_ERROR_403,
+    };
+  }
+
+  // Step 1b: Check for 403 errors - END
+
+  // Check for 400 errors - START
+
+  // Step 1c: Check for userEmail is not a real user - START
+  // includes whether email is valid
+
+  if (!isEmail(userEmail) || !isUserEmailRealUser(data, userEmail)) {
+    return {
+      error: 'userEmail is not a real user',
+      errorCode: RESPONSE_ERROR_400,
+    };
+  }
+
+  // Step 1c: Check for userEmail is not a real user - START
+
+  // Step 1d: Check userEmail is the current logged in user - START
+  // includes whether email is valid
+
+  if (isUserEmailIsCurrentLoggedInUser(data, token, userEmail)) {
+    return {
+      error: 'userEmail is the current logged in user',
+      errorCode: RESPONSE_ERROR_400,
+    };
+  }
+
+  // Step 1d: Check userEmail is the current logged in user - END
+
+  // Step 1e: Quiz ID refers to a quiz that has a name that is already used by the target user - START
+
+  // step 1: get name of quiz from quizId
+  // step 2: get array of all quiz names of transferee via userEmail
+  // step 3: confirm authUserId of transferee via userEmail: new function
+  // step 4: iterate over quiz array and make array of all quiz names where quizzes.userId includes authUserId of transferee
+  // step 5: check if name of quiz being transferred is in this array. If so, then ERROR, if not, then OK
+
+  // step 1: get name of quiz being transferred
+  const quizArr = data.quizzes;
+  let transferQuizName: string;
+  for (const quiz of quizArr) {
+    if (quiz.quizId === quizId) {
+      transferQuizName = quiz.name;
+    }
+  }
+
+  // step 2 & 3: get authUserId of transferee via email
+  let transfereeAuthUserId: number;
+  for (const user of userArr) {
+    if (user.email === userEmail) {
+      transfereeAuthUserId = user.authUserId;
+    }
+  }
+
+  // step 4: make array of all quiz names where quizzes.userId includes authUserId of transferee
+
+  const quizNamesArray: string[] = [];
+
+  for (const quiz of quizArr) {
+    if (quiz.userId.includes(transfereeAuthUserId)) {
+      quizNamesArray.push(quiz.name);
+    }
+  }
+
+  if (quizNamesArray.includes(transferQuizName)) {
+    return {
+      error:
+        'Quiz ID refers to a quiz that has a name that is already used by the target user',
+      errorCode: RESPONSE_ERROR_400,
+    };
+  }
+
+  // Step 1e: Quiz ID refers to a quiz that has a name that is already used by the target user - END
+
+  // Check for 400 errors - END
+
+  // Step 1 - check for errors - END
+
+  // All errors have been dealt with
+  // now mutate the dataStore
+  // by transferring the quiz to the transferee
+
+  for (const quiz of quizArr) {
+    if (quiz.quizId === quizId) {
+      // get index of element to be replaced
+      const indexToReplace = quiz.userId.indexOf(authUserIdTransferor);
+
+      // Ensure element can be found in array
+      if (indexToReplace !== -1) {
+        // Replace old element with new element
+        quiz.userId.splice(indexToReplace, 1, transfereeAuthUserId);
+      }
+    }
+  }
+  saveDataInFile(data);
+  return {};
+}
+export { adminQuizTransfer };
+
+// TO HERE - END
 
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
@@ -1016,5 +1187,53 @@ function isAuthUserIdMatchTrashQuizId(
   if (quizArray.length === 1) {
     return true;
   }
+  return false;
+}
+
+/**
+ * Function to test whether userEmail is a real user
+ *
+ * @param {object} data - the dataStore object
+ * @param {string} userEmail - the email of the user to whom the quiz is being transferred
+ * ...
+ *
+ * @returns {boolean} - true if userEmail is a real user / false if userEmail is not a real user
+ */
+export function isUserEmailRealUser(
+  data: DataStore,
+  userEmail: string
+): boolean {
+  const usersArr = data.users;
+  for (const arr of usersArr) {
+    if (arr.email === userEmail) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Function to test whether userEmail is the current logged in user
+ *
+ * @param {object} data - the dataStore object
+ * @param {string} token - the token of the person transferring the quiz
+ * @param {string} userEmail - the email of the user to whom the quiz is being transferred
+ * ...
+ *
+ * @returns {boolean} - true if userEmail is the current logged in user / false if userEmail is not the current logged in user
+ */
+export function isUserEmailIsCurrentLoggedInUser(
+  data: DataStore,
+  token: string,
+  userEmail: string
+): boolean {
+  const usersArr = data.users;
+  for (const arr of usersArr) {
+    if (arr.email === userEmail && arr.token.includes(token)) {
+      return true;
+    }
+  }
+
   return false;
 }

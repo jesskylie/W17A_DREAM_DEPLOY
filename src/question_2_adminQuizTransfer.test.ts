@@ -1,7 +1,11 @@
 import request from 'sync-request-curl';
 import config from './config.json';
 import { requestDelete, requestAdminRegister } from './auth_2.test';
-import { requestAdminQuizCreate, requestAdminQuizInfo } from './quiz_2.test';
+import {
+  requestAdminQuizCreate,
+  requestAdminQuizList,
+  requestAdminQuizListReturn,
+} from './quiz_2.test';
 
 import {
   RESPONSE_OK_200,
@@ -11,11 +15,9 @@ import {
 } from './library/constants';
 
 import {
-  QuestionBody,
   CreateQuizQuestionReturn,
   ErrorObjectWithCode,
 } from './library/interfaces';
-import { NumericLiteral } from 'typescript';
 
 // constants used throughout file - START
 
@@ -72,43 +74,43 @@ function requestTransferQuestion(
   };
 }
 
-function requestCreateQuestion(
-  token: string,
-  question: QuestionBody,
-  quizId: number
-): CreateQuizQuestionServerReturn {
-  const res = request(
-    'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question`,
-    {
-      json: {
-        token: token,
-        questionBody: {
-          question: question.question,
-          duration: question.duration,
-          points: question.points,
-          answers: question.answers as QuestionBody['answers'],
-        },
-      },
-    }
-  );
+// functions to call server routes used in this file - END
 
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
+// helper functions used in this file - START
 
-  return {
-    bodyString,
-    statusCode,
-  };
+interface SmallQuizArray {
+  quizId: number;
+  name: string;
 }
 
-// functions to call server routes used in this file - END
+/**
+ * Function to test quizId appears in array
+ *
+ * @param {SmallQuizArray[]} quizArray - the quiz array
+ * @param {number} targetQuizId - the name of the quiz
+ * ...
+ *
+ * @returns {boolean} - true quizId is in array | false if quizId is not in array
+ */
+function doesQuizExist(
+  quizArray: SmallQuizArray[],
+  targetQuizId: number
+): boolean {
+  for (const quizObj of quizArray) {
+    if (quizObj.quizId === targetQuizId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// helper functions used in this file - END
 
 // Start of testing suite - START
 // From swagger:
 // Transfer the quiz to another owner
 
-describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
+describe('Testing POST adminQuizTransfer', () => {
   test('Testing successful transferring a quiz - EXPECT SUCCESS 200', () => {
     requestDelete();
 
@@ -123,25 +125,6 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
     );
     // user 1 token
     const tokenUser1 = user1.body.token as string;
-    // user 1 quiz 1
-    const quizUser1CreateQuiz1Response = requestAdminQuizCreate(
-      tokenUser1,
-      'User 1 Quiz 1',
-      'This is quiz 1 about user 1'
-    ).bodyString as QuizId;
-
-    // User 1 quiz 1 quizid
-    const quizId1User1 = quizUser1CreateQuiz1Response.quizId;
-
-    // user 1 quiz 2
-    const quizUser1CreateQuiz2Response = requestAdminQuizCreate(
-      tokenUser1,
-      'User 1 Quiz 2',
-      'This is quiz 2 about user 1'
-    ).bodyString as QuizId;
-
-    // User 1 quiz 2 quizid
-    const quizId2User1 = quizUser1CreateQuiz2Response.quizId;
 
     // create user 2
     const user2 = requestAdminRegister(
@@ -161,16 +144,6 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
 
     // User 2 quiz 1 quizid
     const quizId1User2 = quizUser2CreateQuiz1Response.quizId;
-
-    // user 2 quiz 2
-    const quizUser2CreateQuiz2Response = requestAdminQuizCreate(
-      tokenUser2,
-      'User 2 Quiz 2',
-      'This is quiz 2 about user 2'
-    ).bodyString as QuizId;
-
-    // User 2 quiz 2 quizid
-    const quizId2User2 = quizUser2CreateQuiz2Response.quizId;
 
     // Transfer user 2's quiz 1 to user 1
 
@@ -198,6 +171,54 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
 
     expect(transferStatusCodeTest).toStrictEqual(RESPONSE_OK_200);
     // ######
+    // Test that quizIdUser2 now appears in quizzes owned by user 1
+    // get list of all quizzes owned by user 1
+    const user1Quizzes: requestAdminQuizListReturn =
+      requestAdminQuizList(tokenUser1);
+
+    if ('quizzes' in user1Quizzes.bodyString) {
+      const quizzesTest = user1Quizzes.bodyString;
+      const user1QuizArray = quizzesTest.quizzes as SmallQuizArray[];
+      const doesTransferredQuizAppearInTransfereeArrayTest = doesQuizExist(
+        user1QuizArray,
+        quizId1User2
+      ) as boolean;
+      expect(doesTransferredQuizAppearInTransfereeArrayTest).toStrictEqual(
+        true
+      );
+    }
+
+    // Test that quizIdUser2 now no longer appears in quizzes owned by user 2
+    // get list of all quizzes owned by user 1
+    const user2Quizzes: requestAdminQuizListReturn =
+      requestAdminQuizList(tokenUser2);
+
+    if ('quizzes' in user2Quizzes.bodyString) {
+      const quizzes2Test = user2Quizzes.bodyString;
+      const user2QuizArray = quizzes2Test.quizzes as SmallQuizArray[];
+      const doesTransferredQuizAppearInTransfereeArrayTest = doesQuizExist(
+        user2QuizArray,
+        quizId1User2
+      ) as boolean;
+      expect(doesTransferredQuizAppearInTransfereeArrayTest).toStrictEqual(
+        false
+      );
+    }
+
+    // const user1QuizArray = user1Quizzes.bodyString;
+
+    // console.log('user1QuizArray ->', user1QuizArray);
+
+    // const doesTransferredQuizAppearInTransfereeArrayTest = doesQuizExist(
+    //   user1QuizArray,
+    //   quizId1User2
+    // ) as boolean;
+
+    // const user2Quizzes = requestAdminQuizList(
+    //   tokenUser2
+    // ) as requestAdminQuizListReturn;
+
+    // console.log('user2Quizzes ->', user2Quizzes.bodyString);
     // 1. check that transferor no longer has the quiz
     // 2. check that the transferee has the quiz
   });
@@ -226,16 +247,6 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
     // User 2 quiz 1 quizid
     const quizId1User2 = quizUser2CreateQuiz1Response.quizId;
 
-    // user 2 quiz 2
-    const quizUser2CreateQuiz2Response = requestAdminQuizCreate(
-      tokenUser2,
-      'User 2 Quiz 2',
-      'This is quiz 2 about user 2'
-    ).bodyString as QuizId;
-
-    // User 2 quiz 2 quizid
-    const quizId2User2 = quizUser2CreateQuiz2Response.quizId;
-
     // Transfer user 2's quiz 1 to user 1
 
     // Transferee's email address: DOES NOT EXIST - HAS NOT BEEN CREATED
@@ -263,9 +274,9 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
     expect(transferStatusCodeTest).toStrictEqual(RESPONSE_ERROR_400);
   });
 
-  test('Testing userEmail is the current logged in user - error code 400', () => {
+  test('Testing transferee userEmail is not a real user (invalid email) - error code 400', () => {
     requestDelete();
-    const user1Email = 'abc@hotmail.com';
+    const user1Email = 'abc@hotmail';
     const user2Email = 'xyz@hotmail.com';
 
     // create user 2
@@ -287,15 +298,55 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
     // User 2 quiz 1 quizid
     const quizId1User2 = quizUser2CreateQuiz1Response.quizId;
 
-    // user 2 quiz 2
-    const quizUser2CreateQuiz2Response = requestAdminQuizCreate(
+    // Transfer user 2's quiz 1 to user 1
+
+    // Transferee's email address: EMAIL ADDRESS IS NOT A VALID EMAIL
+    const transfereeEmail = user1Email;
+    // Trasnferor's token
+    const transferorToken = tokenUser2;
+
+    // execute transfer
+    const responseTransfer = requestTransferQuestion(
+      transferorToken,
+      transfereeEmail,
+      quizId1User2
+    ) as TransferQuizServerReturn;
+
+    const transferResponseTest = responseTransfer.bodyString;
+
+    // Check for error object
+
+    expect(transferResponseTest).toStrictEqual({ error: expect.any(String) });
+
+    // check for status code 400
+
+    const transferStatusCodeTest = responseTransfer.statusCode;
+
+    expect(transferStatusCodeTest).toStrictEqual(RESPONSE_ERROR_400);
+  });
+
+  test('Testing userEmail is the current logged in user - error code 400', () => {
+    requestDelete();
+    const user2Email = 'xyz@hotmail.com';
+
+    // create user 2
+    const user2 = requestAdminRegister(
+      user2Email,
+      'abcde4284',
+      'Xavier',
+      'Xylophone'
+    );
+    // user 2 token
+    const tokenUser2 = user2.body.token as string;
+    // user 2 quiz 1
+    const quizUser2CreateQuiz1Response = requestAdminQuizCreate(
       tokenUser2,
-      'User 2 Quiz 2',
-      'This is quiz 2 about user 2'
+      'User 2 Quiz 1',
+      'This is quiz 1 about user 2'
     ).bodyString as QuizId;
 
-    // User 2 quiz 2 quizid
-    const quizId2User2 = quizUser2CreateQuiz2Response.quizId;
+    // User 2 quiz 1 quizid
+    const quizId1User2 = quizUser2CreateQuiz1Response.quizId;
 
     // Transfer user 2's quiz 1 to user 1
 
@@ -329,34 +380,6 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
 
     const user1Email = 'abc@hotmail.com';
     const user2Email = 'xyz@hotmail.com';
-    // create user 1
-    const user1 = requestAdminRegister(
-      user1Email,
-      'abcde42841',
-      'Ann',
-      'Arthur'
-    );
-    // user 1 token
-    const tokenUser1 = user1.body.token as string;
-    // user 1 quiz 1
-    const quizUser1CreateQuiz1Response = requestAdminQuizCreate(
-      tokenUser1,
-      'Quiz 1',
-      'This is quiz about COMP1531'
-    ).bodyString as QuizId;
-
-    // User 1 quiz 1 quizid
-    const quizId1User1 = quizUser1CreateQuiz1Response.quizId;
-
-    // user 1 quiz 2
-    const quizUser1CreateQuiz2Response = requestAdminQuizCreate(
-      tokenUser1,
-      'Quiz 2',
-      'This is quiz about COMP1511'
-    ).bodyString as QuizId;
-
-    // User 1 quiz 2 quizid
-    const quizId2User1 = quizUser1CreateQuiz2Response.quizId;
 
     // create user 2
     const user2 = requestAdminRegister(
@@ -376,16 +399,6 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
 
     // User 2 quiz 1 quizid
     const quizId1User2 = quizUser2CreateQuiz1Response.quizId;
-
-    // user 2 quiz 2
-    const quizUser2CreateQuiz2Response = requestAdminQuizCreate(
-      tokenUser2,
-      'Quiz 2',
-      'This is quiz about COMP1511'
-    ).bodyString as QuizId;
-
-    // User 2 quiz 2 quizid
-    const quizId2User2 = quizUser2CreateQuiz2Response.quizId;
 
     // Transfer user 2's quiz 1 to user 1
     // will error as user 2's quiz 1 has the
@@ -440,16 +453,6 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
     // User 2 quiz 1 quizid
     const quizId1User2 = quizUser2CreateQuiz1Response.quizId;
 
-    // user 2 quiz 2
-    const quizUser2CreateQuiz2Response = requestAdminQuizCreate(
-      tokenUser2,
-      'User 2 Quiz 2',
-      'This is quiz 2 about user 2'
-    ).bodyString as QuizId;
-
-    // User 2 quiz 2 quizid
-    const quizId2User2 = quizUser2CreateQuiz2Response.quizId;
-
     // Transfer user 2's quiz 1 to user 1
 
     // Transferee's email address:
@@ -492,25 +495,6 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
     );
     // user 1 token
     const tokenUser1 = user1.body.token as string;
-    // user 1 quiz 1
-    const quizUser1CreateQuiz1Response = requestAdminQuizCreate(
-      tokenUser1,
-      'User 1 Quiz 1',
-      'This is quiz 1 about user 1'
-    ).bodyString as QuizId;
-
-    // User 1 quiz 1 quizid
-    const quizId1User1 = quizUser1CreateQuiz1Response.quizId;
-
-    // user 1 quiz 2
-    const quizUser1CreateQuiz2Response = requestAdminQuizCreate(
-      tokenUser1,
-      'User 1 Quiz 2',
-      'This is quiz 2 about user 1'
-    ).bodyString as QuizId;
-
-    // User 1 quiz 2 quizid
-    const quizId2User1 = quizUser1CreateQuiz2Response.quizId;
 
     // create user 2
     const user2 = requestAdminRegister(
@@ -531,23 +515,13 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
     // User 2 quiz 1 quizid
     const quizId1User2 = quizUser2CreateQuiz1Response.quizId;
 
-    // user 2 quiz 2
-    const quizUser2CreateQuiz2Response = requestAdminQuizCreate(
-      tokenUser2,
-      'User 2 Quiz 2',
-      'This is quiz 2 about user 2'
-    ).bodyString as QuizId;
-
-    // User 2 quiz 2 quizid
-    const quizId2User2 = quizUser2CreateQuiz2Response.quizId;
-
     // Transfer user 2's quiz 1 to user 1: BUT
     // use Transferee's token,
-    // ie Trasnferee is not an onwer of this quiz, so can't transfer
+    // ie Trasnferee is not an owner of this quiz, so can't transfer
     // Transferee's email address:
-    const transfereeEmail = user1Email;
+    const transfereeEmail = user2Email;
     // Trasnferor's token
-    const transferorToken = tokenUser2;
+    const transferorToken = tokenUser1;
 
     // execute transfer
     const responseTransfer = requestTransferQuestion(
@@ -558,11 +532,11 @@ describe('Testing POST /v1/admin/quiz/${quizId}/transfer', () => {
 
     const transferResponseTest = responseTransfer.bodyString;
 
-    // Check for blank object
+    // Check for error object
 
     expect(transferResponseTest).toStrictEqual({ error: expect.any(String) });
 
-    // check for status code 200
+    // check for status code 403
 
     const transferStatusCodeTest = responseTransfer.statusCode;
 
