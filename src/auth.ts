@@ -1,5 +1,4 @@
-import { TokenClass } from 'typescript';
-import { getData, setData, DataStore } from './dataStore';
+import { DataStore } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
 import {
   retrieveDataFromFile,
@@ -11,17 +10,12 @@ import { uid } from 'uid';
 import { ErrorObjectWithCode } from './quiz';
 
 import {
-  RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  RESPONSE_ERROR_403,
+  MAX_NAME_LENGTH,
+  MIN_NAME_LENGTH,
+  MIN_PASSWORD_LENGTH,
 } from './library/constants';
-
-const MAX_NAME_LENGTH = 20;
-const MIN_NAME_LENGTH = 2;
-const MIN_PASSWORD_LENGTH = 8;
-const MAX = 1000;
-const MIN = 10000;
 
 // TypeScript interfaces - START
 interface TokenString {
@@ -32,7 +26,7 @@ interface ErrorObject {
   error: string;
 }
 
-interface UserInfo {
+export interface UserInfo {
   user: {
     authUserId: number;
     name: string;
@@ -53,6 +47,10 @@ interface UserData {
   numFailedPasswordsSinceLastLogin: number;
   quizId: number[];
   token: string[];
+}
+
+interface AdminUserDetailUpdateReturn {
+  detailsUpdateResponse: Record<string, never> | ErrorObjectWithCode;
 }
 
 // TypeScript interfaces - END
@@ -111,7 +109,7 @@ export function adminAuthRegister(
   const data: DataStore = retrieveDataFromFile();
   // Iteration 2: New data retrieval system - END
 
-  //email address is already in use
+  // email address is already in use
   if (data.users.length >= 1) {
     for (const pass of data.users) {
       if (pass.email === email) {
@@ -248,37 +246,37 @@ export function updatePassword(
   newPassword: string,
   oldPassword: string
 ): Record<string, never> | ErrorObjectWithCode {
-  //new password must be more than 8 characters, and have letters and numbers
+  // new password must be more than 8 characters, and have letters and numbers
   if (!isValidPassword(newPassword)) {
     return { error: 'Invalid password', errorCode: 401 };
   }
 
-  //loop through datastore to find the token
+  // loop through datastore to find the token
   const data: DataStore = retrieveDataFromFile();
   for (const user of data.users) {
     if (user.token.includes(token)) {
-      //token is found
+      // token is found
       if (newPassword === user.password || newPassword === oldPassword) {
-        //check if new password is equal to old password
+        // check if new password is equal to old password
         return {
           error: 'New password can not be the same as old password',
           errorCode: 401,
         };
-      } else if (oldPassword != user.password) {
-        //old password does not match old password
+      } else if (oldPassword !== user.password) {
+        // old password does not match old password
         return {
           error: 'Old password does not match old password',
           errorCode: 401,
         };
       } else if (user.oldPasswords.includes(newPassword)) {
-        //check if old password exists in old password array
+        // check if old password exists in old password array
         return {
           error: 'New password has already been used by this user',
           errorCode: 401,
         };
       } else {
-        //move current password to old passwords array
-        //update new password
+        // move current password to old passwords array
+        // update new password
         const password = user.password;
         user.oldPasswords.push(password);
         user.password = newPassword;
@@ -341,6 +339,107 @@ function adminAuthLogout(token: string): Record<string, never> | ErrorObject {
 }
 
 export { adminAuthLogout };
+
+/**
+ * Updates the details of a user: email, firstName, lastName
+ * Returns an empty object if successful
+ * Returns two error types if an error occurs
+ * error 400: errors relating to invalid names or emails
+ * error 401: error relating to an empty or invalid token
+ *
+ * @param {string} token - user's current sessionId
+ * @param {string} email - new email of user
+ * @param {string} nameFirst - new first name of user
+ * @param {string} nameLast - new last name of user
+ *
+ * @returns {void} - returns {} on successful password change
+ * @returns {{error: string}} - on error
+ */
+function adminUserDetailUpdate(
+  token: string,
+  email: string,
+  nameFirst: string,
+  nameLast: string
+): AdminUserDetailUpdateReturn {
+  const data = retrieveDataFromFile();
+  // step 1: check for valid token
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+
+  if (!isTokenValidTest) {
+    return {
+      detailsUpdateResponse: {
+        error: 'Token is empty or invalid',
+        errorCode: RESPONSE_ERROR_401,
+      },
+    };
+  }
+
+  // step 1a get authUserId from token
+
+  const authUserIdTest = getAuthUserIdUsingToken(data, token)
+    .authUserId as number;
+
+  // step 2: check if email is currently used by another user (excluding the current authorised user)
+  const userArr = data.users;
+  for (const user of userArr) {
+    if (user.authUserId !== authUserIdTest && user.email === email) {
+      return {
+        detailsUpdateResponse: {
+          error:
+            'Email is currently used by another user (excluding the current authorised user)',
+          errorCode: RESPONSE_ERROR_400,
+        },
+      };
+    }
+  }
+
+  // step 2: check if email satisifes NPM email validator package
+  if (!isEmail(email)) {
+    return {
+      detailsUpdateResponse: {
+        error:
+          'Email does not satisfy this: https://www.npmjs.com/package/validator (validator.isEmail)',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // step 4: check if nameFirst is valid
+  if (!isValidName(nameFirst)) {
+    return {
+      detailsUpdateResponse: {
+        error: 'The first name is not valid',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // step 5: check if nameLast is valid
+  if (!isValidName(nameLast)) {
+    return {
+      detailsUpdateResponse: {
+        error: 'The last name is not valid',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // step 6: all negative conditions have been passed, now update the user details
+
+  for (const user of userArr) {
+    if (user.token.includes(token)) {
+      user.email = email;
+      user.nameFirst = nameFirst;
+      user.nameLast = nameLast;
+    }
+  }
+
+  saveDataInFile(data);
+
+  return { detailsUpdateResponse: {} };
+}
+
+export { adminUserDetailUpdate };
 
 // Helper functions
 

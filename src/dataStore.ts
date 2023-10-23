@@ -53,8 +53,6 @@
 //   ],
 // };
 
-import { QuestionDotToken } from "typescript";
-
 // YOU SHOULDNT NEED TO MODIFY THE FUNCTIONS BELOW IN ITERATION 1
 
 /*
@@ -71,20 +69,9 @@ Example usage
     setData(store)
 */
 
-// Use get() to access the data
-function getData() {
-  return data;
-}
-
-// Use set(newData) to pass in the entire data object, with modifications made
-function setData(newData: DataStore) {
-  data = newData;
-}
-
-export { getData, setData };
-
 // TypeScript interfaces for Iteration 2 - START
 
+<<<<<<< HEAD
 export interface DataStore {
   users: Users[];
   quizzes: Quizzes[];
@@ -92,6 +79,8 @@ export interface DataStore {
 }
 
 
+=======
+>>>>>>> e7cc3b5a1448b14b0347ec6c95487f00c1be3002
 export interface Users {
   authUserId: number;
   nameFirst: string;
@@ -105,6 +94,19 @@ export interface Users {
   token: string[];
 }
 
+interface Question {
+  questionId: number;
+  question: string;
+  duration: number;
+  points: number;
+  answers: {
+    answerId: number;
+    answer: string;
+    colour: string;
+    correct: boolean;
+  }[];
+}
+
 export interface Quizzes {
   quizId: number;
   name: string;
@@ -112,9 +114,11 @@ export interface Quizzes {
   timeCreated: number;
   timeLastEdited: number;
   userId: number[];
+  numQuestions: number;
   questions: Question[];
 }
 
+<<<<<<< HEAD
 export interface Question {
 question: string;
 duration: number;
@@ -125,6 +129,12 @@ answers:
     correct: boolean;
   }[];
 
+=======
+export interface DataStore {
+  users: Users[];
+  quizzes: Quizzes[];
+  trash: Quizzes[];
+>>>>>>> e7cc3b5a1448b14b0347ec6c95487f00c1be3002
 }
 
 export let data: DataStore = {
@@ -132,6 +142,18 @@ export let data: DataStore = {
   quizzes: [],
   trash: [],
 };
+
+// Use get() to access the data
+function getData() {
+  return data;
+}
+
+// Use set(newData) to pass in the entire data object, with modifications made
+function setData(newData: DataStore) {
+  data = newData;
+}
+
+export { getData, setData };
 
 // TypeScript interfaces for Iteration 2 - END
 

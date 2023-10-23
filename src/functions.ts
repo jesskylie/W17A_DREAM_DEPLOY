@@ -1,5 +1,9 @@
 // a file in which to store functions which
 // are called regularly throughout the application
+import {
+  CONVERT_MSECS_TO_SECS,
+  RANDOM_COLOURS_ARRAY,
+} from './library/constants';
 
 // import libraries
 import fs from 'fs';
@@ -136,7 +140,7 @@ export function isTokenValid(data: DataStore, token: string): boolean {
   // not testing for type equality here
   // as during testing tokenArray.length does not return true
   // for type number
-  if (tokenArr.length == 1) {
+  if (tokenArr.length === 1) {
     return true;
   }
 
@@ -171,4 +175,95 @@ export function getAuthUserIdUsingToken(
     }
   }
   return { authUserId };
+}
+
+/**
+ * Function that returns current datetime stamp
+ * expressed in seconds
+ *
+ * @param  - nil
+ * ...
+ *
+ * @returns {number} - current timestamp in seconds
+ */
+export function createCurrentTimeStamp(): number {
+  return Math.floor(Date.now() / CONVERT_MSECS_TO_SECS);
+}
+
+/**
+ * Function that returns the total number
+ * of questions on file as a number
+ *
+ * @param  - {object} - data: DataStore
+ * ...
+ *
+ * @returns {number} - total number of questions
+ */
+export function countAllQuestions(data: DataStore): number {
+  const quizArr = data.quizzes;
+
+  let numQuestions = 0;
+
+  for (const quiz of quizArr) {
+    numQuestions += quiz.questions.length;
+  }
+  return numQuestions;
+}
+
+/**
+ * Function that returns the total number
+ * of answers on file as a number
+ *
+ * @param  - {object} - data: DataStore
+ * ...
+ *
+ * @returns {number} - total number of answers
+ */
+export function countAllAnswers(data: DataStore): number {
+  const quizArr = data.quizzes;
+
+  let numAnswers = 0;
+
+  for (const quiz of quizArr) {
+    const questArr = quiz.questions;
+    for (const questn of questArr) {
+      numAnswers += questn.answers.length;
+    }
+  }
+  return numAnswers;
+}
+
+/**
+ * Function to generate random number
+ * from 0 to max - 1
+ * eg:
+ *   console.log(getRandomInt(3));
+ * Expected output: 0, 1 or 2
+ * Used in:
+ * createQuizQuestion()
+ * From:
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+ *
+ * @param {number} max - the max number
+ * ...
+ *
+ * @returns {number} - the random number generated
+ * between 0 and up to but not including max
+ */
+function getRandomInt(max: number): number {
+  return Math.floor(Math.random() * max);
+}
+
+/**
+ * Function to return a random colour
+ * from an array of colours
+ *
+ * @param {array} array of colours: RANDOM_COLOURS_ARRAY
+ * ...
+ *
+ * @returns {string} - the randomly selected colour
+ */
+export function returnRandomColour(): string {
+  const randomNumber = getRandomInt(RANDOM_COLOURS_ARRAY.length);
+  return RANDOM_COLOURS_ARRAY[randomNumber];
 }
