@@ -36,6 +36,7 @@ const MIN_QUESTION_POINTS_AWARDED = 1;
 const MAX_QUESTION_POINTS_AWARDED = 10;
 const MIN_ANSWER_LENGTH = 1;
 const MAX_ANSWER_LENGTH = 30;
+const MAX_DURATION_IN_SECONDS = 180;
 
 // CONSTANTS - END
 
@@ -341,13 +342,177 @@ export function createQuizQuestion(
       }
     }
   }
-
   console.log('after mutation ->', data);
-
   saveDataInFile(data);
   return {
     createQuizQuestionResponse: { questionId: questionIdNumber },
   };
+}
+
+/**
+ * This function updates the relevant details of a particular question within a quiz
+ * When this route is called, last edited time is updated
+ * @param {quizId} number - quizId of current quiz to be updated
+ * @param {questionId} number - questionId to be updated
+ * @param {token} string - current token ID of session
+ * @param {question} QuestionBody - new updated details of question
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{}} - returns empty object on successful question update
+ */
+export function updateQuizQuestion(
+  quizId: number,
+  questionId: number,
+  token: string,
+  question: QuestionBody
+): Record<string, never> | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+
+  // 401 error token is invalid
+  if (!isTokenValid(data, token)) {
+    return { error: 'Invalid token provided', errorCode: 401 };
+  }
+
+  // 403 error - valid token provided but incorrect user
+  const authUserIdString = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdString.authUserId;
+
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (!user.quizId.includes(quizId)) {
+        return { error: 'Valid token provided but incorrect user', errorCode: 403 };
+      }
+    }
+  }
+
+  // 400 errors
+  // Question Id does not refer to a valid question within this quiz
+  if (!isQuestionIdValid(data, quizId, questionId)) {
+    return { error: 'QuestionId does not refer to valid question in this quiz', errorCode: 400 };
+  }
+
+  // Question string is less than 5 characters in length or greater than 50 characters in length
+  if (question.question.length < MIN_QUESTION_STRING_LENGTH ||
+    question.question.length > MAX_QUESTION_STRING_LENGTH) {
+    return { error: 'Invalid Question string length', errorCode: 400 };
+  }
+
+  // The question has more than 6 answers or less than 2 answers
+  if (question.answers.length < MIN_NUM_ANSWERS) {
+    return { error: 'Question has less than 2 answers', errorCode: 400 };
+  }
+
+  if (question.answers.length > MAX_NUM_ANSWERS) {
+    return { error: 'Question has more than 6 answers', errorCode: 400 };
+  }
+
+  // The question duration is not a positive number
+  if (question.duration < POSITIVE_NUMBER_UPPER_LIMIT) {
+    return { error: 'Question duration must be a positive number', errorCode: 400 };
+  }
+
+  // If this question were to be updated, the sum of the question durations in the quiz exceeds 3 minutes
+  if (!isValidDuration(data, quizId, questionId, question.duration)) {
+    return { error: 'Duration total must not exceed 3 minutes', errorCode: 400 };
+  }
+
+  // The points awarded for the question are less than 1 or greater than 10
+  if (question.points < MIN_QUESTION_POINTS_AWARDED) {
+    return { error: 'Points awarded can not be less than 1', errorCode: 400 };
+  }
+
+  if (question.points > MAX_QUESTION_POINTS_AWARDED) {
+    return { error: 'Points awarded can not be more than 10', errorCode: 400 };
+  }
+
+  // The length of any answer is shorter than 1 character long, or longer than 30 characters long
+  for (const answer of question.answers) {
+    const answerLength = answer.answer.length;
+    if (answerLength < MIN_ANSWER_LENGTH || answerLength > MAX_ANSWER_LENGTH) {
+      return { error: 'Length of answer must be between 1 and 30 characters', errorCode: 400 };
+    }
+  }
+
+  // Any answer strings are duplicates of one another (within the same question)
+  if (duplicateAnswers(question.answers.map(answer => answer.answer))) {
+    // map extracts the answer strings
+    // duplicate answers returns true if they match
+    return { error: 'Answers can not be duplicates of one another', errorCode: 400 };
+  }
+
+  // There are no correct answers
+  const correctAnswers = question.answers.map(answer => answer.correct);
+  if (!correctAnswers.includes(true)) {
+    return { error: 'There must be a correct answer', errorCode: 400 };
+  }
+
+  // no errors captured
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (user.quizId.includes(quizId)) {
+        const newQuestion = {
+          questionId: questionId,
+          question: question.question,
+          duration: question.duration,
+          points: question.points,
+          answers: question.answers,
+        };
+        // find current quizId in quizzes
+        const quiz = data.quizzes.find((q) => q.quizId === quizId);
+        if (quiz !== undefined) {
+          quiz.questions.push(newQuestion);
+          quiz.timeLastEdited = createCurrentTimeStamp();
+        }
+      }
+    }
+  }
+  saveDataInFile(data);
+
+  // successfully updated quiz question
+  return {};
+}
+
+/**
+ * This function loops through answers array to check for duplicates
+ * if there is no duplicates, returns true, otherwise returns false
+ * @param {answers} string[] - array of answers to search through
+ * @returns {boolean} -if there is no duplicates, returns true, otherwise returns false=
+ */
+function duplicateAnswers(answers: string[]): boolean {
+  const answerSet = new Set();
+  for (const answer of answers) {
+    if (answerSet.has(answer)) {
+      // Found a duplicate
+      return true;
+    }
+    answerSet.add(answer);
+  }
+  // No duplicates found
+  return false;
+}
+
+/**
+ * This function checks if total duration is within 3 minutes (180 seconds) after adding new duration
+ * if there is no duplicates, returns true, otherwise returns false
+ * @param {data} dataStore - dataStore to search through
+ * @param {quizId} string[] - quizId of quiz to search
+ * @param {questionId} string[] - questionId of question to search
+ * @param {newDuration} string[] - new duration to be updated
+ * @returns {boolean} - returns true if duration is valid and under 3 minutes, otherwise returns false
+ */
+function isValidDuration (data: DataStore, quizId: number, questionId: number, newDuration: number): boolean {
+  let currentDuration = 0;
+  for (const quiz of data.quizzes) {
+    currentDuration = currentDuration + quiz.duration;
+  }
+  const totalDuration = newDuration + currentDuration;
+  if (totalDuration > MAX_DURATION_IN_SECONDS) {
+    return false;
+  }
+  return true;
 }
 
 function deleteQuizQuestion(
