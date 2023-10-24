@@ -42,7 +42,7 @@ interface requestAdminQuizCreateReturn {
   bodyString: QuizId | ErrorObject;
 }
 
-interface requestAdminQuizInfoReturn {
+export interface requestAdminQuizInfoReturn {
   statusCode?: number;
   bodyString: Quizzes | ErrorObject;
 }
