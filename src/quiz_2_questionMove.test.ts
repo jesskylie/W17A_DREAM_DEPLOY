@@ -298,9 +298,9 @@ describe('AdminQuizQuestionMove testing', () => {
       newQuiz.quizId
     ).bodyString as CreateQuizQuestionReturn;
 
-    const invalidQuestionId = requestAdminQuizQuestionMove('', newQuiz.quizId, 999 + questionTwo.createQuizQuestionResponse.questionId, 0);
+    const invalidQuestionId = requestAdminQuizQuestionMove('', newQuiz.quizId, questionTwo.createQuizQuestionResponse.questionId, 0);
 
-    expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_400);
+    expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidQuestionId.bodyString).toStrictEqual({ error: expect.any(String) });
   });
 

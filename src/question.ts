@@ -559,6 +559,60 @@ function deleteQuizQuestion(
 
 export { deleteQuizQuestion };
 
+export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number) {
+  const data = retrieveDataFromFile();
+  const authUserIdString = getAuthUserIdUsingToken(data, token);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isTokenValidTest = isTokenValid(data, token);
+  if (token === '') {
+    return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
+  }
+  if (!isTokenValidTest) {
+    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
+  }
+  if (!isQuizIdValidTest) {
+    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
+  }
+  if (!isQuestionIdValid(data, quizId, questionId)) {
+    return { error: 'QuestionId is not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
+  }
+
+  const newdata = data;
+  const authUserId = authUserIdString.authUserId;
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (!user.quizId.includes(quizId)) {
+        return { error: 'Valid token provided but incorrect user', errorCode: 403 };
+      }
+    }
+  }
+
+  const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
+  if (!quizToUpdate.questions.some((quiz) => quiz.questionId === questionId)) {
+    return { error: 'Question Id does not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
+  }
+  if (newPosition < 0) {
+    return { error: 'NewPosition cannot be less than 0', errorCode: RESPONSE_ERROR_400 };
+  }
+  if (quizToUpdate.questions.length - 1 < newPosition) {
+    return { error: 'NewPosition cannot be more than number of existing questions', errorCode: 400 };
+  }
+
+  const questionToMove = quizToUpdate.questions.find((quiz) => quiz.questionId === questionId);
+  const index = quizToUpdate.questions.indexOf(questionToMove);
+
+  if (index === newPosition) {
+    return { error: 'NewPosition cannot be position of the current question', errorCode: 400 };
+  }
+
+  quizToUpdate.questions.splice(index, 1);
+  quizToUpdate.questions.splice(newPosition, 0, questionToMove);
+  data.quizzes.find((quiz) => quiz.quizId === quizId).timeLastEdited = Math.floor(Date.now() / 1000);
+  saveDataInFile(newdata);
+  return {};
+}
+
 // HELPER FUNCTIONS - START
 
 /**

@@ -62,6 +62,7 @@ function requestCreateQuestion(
   };
 }
 
+export { requestCreateQuestion };
 const requestDeleteQuizQuestion = (
   token: string,
   quizId: number,
