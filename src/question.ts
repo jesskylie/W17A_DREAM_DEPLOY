@@ -716,6 +716,8 @@ function isValidDurationCreate(
 
   if (currentDuration + newDuration > MAX_DURATION_IN_SECONDS) {
     return false;
+  } else {
+    return true;
   }
 }
 
