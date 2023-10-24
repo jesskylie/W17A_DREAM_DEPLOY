@@ -119,7 +119,6 @@ export function createQuizQuestion(
       },
     };
   }
-
   // Step 2: Check for 403 errors - END
 
   // Step 3: Check for 400 errors - START
@@ -528,13 +527,6 @@ function duplicateAnswers(answers: string[]): boolean {
  * is empty/invalid, valid token is provided, but user is now an owner of the quiz
  *  @returns {NewQuestionId} - returns newQUestionId if successfully duplicates a question
  */
-function isValidDuration(
-  data: DataStore,
-  quizId: number,
-  questionId: number,
-  newDuration: number
-): boolean {
-  let currentDuration = 0;
 export function duplicateQuestion(quizId: number, questionId: number, token: string):
 ErrorObjectWithCode | NewQuestionId {
   const data = retrieveDataFromFile();
@@ -678,7 +670,7 @@ function isQuizIdValid(data: DataStore, quizId: number): boolean {
   return false;
 }
 
-const isQuestionIdValid = (
+export const isQuestionIdValid = (
   data: DataStore,
   quizId: number,
   questionId: number
@@ -701,7 +693,6 @@ const isQuestionIdValid = (
 };
 
 /**
-
  * Checks when a question is created, if total duration is within 3 minutes (180 seconds) after adding new duration
  * @param {data} dataStore - dataStore to search through
  * @param {quizId} number - quizId of quiz to search
@@ -726,8 +717,9 @@ function isValidDurationCreate(
   if (currentDuration + newDuration > MAX_DURATION_IN_SECONDS) {
     return false;
   }
+}
 
-/*
+/**
  * Checks if total duration is within 3 minutes (180 seconds) after adding new duration
  * if there is no duplicates, returns true, otherwise returns false
  * @param {data} dataStore - dataStore to search through
@@ -747,4 +739,5 @@ function isValidDuration (data: DataStore, quizId: number, questionId: number, n
   }
   return true;
 }
+
 // HELPER FUNCTIONS - END
