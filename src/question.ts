@@ -654,9 +654,9 @@ function deleteQuizQuestion(
 
 export { deleteQuizQuestion };
 
-export function adminQuizQuestionMove(token: string, 
-  quizId: number, 
-  questionId: number, 
+export function adminQuizQuestionMove(token: string,
+  quizId: number,
+  questionId: number,
   newPosition: number): ErrorObjectWithCode | Record<string, never> {
   const data = retrieveDataFromFile();
   const authUserIdString = getAuthUserIdUsingToken(data, token);
