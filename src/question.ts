@@ -21,6 +21,7 @@ import {
   CreateQuizQuestionReturn,
   AuthUserId,
   ErrorObjectWithCode,
+  NewQuestionId,
 } from './library/interfaces';
 
 import { isAuthUserIdMatchQuizId } from './quiz';
@@ -31,11 +32,11 @@ const MAX_QUESTION_STRING_LENGTH = 50;
 const MIN_NUM_ANSWERS = 2;
 const MAX_NUM_ANSWERS = 6;
 const POSITIVE_NUMBER_UPPER_LIMIT = 1;
-const MAX_QUESTION_DURATION = 3;
 const MIN_QUESTION_POINTS_AWARDED = 1;
 const MAX_QUESTION_POINTS_AWARDED = 10;
 const MIN_ANSWER_LENGTH = 1;
 const MAX_ANSWER_LENGTH = 30;
+const MAX_DURATION_IN_SECONDS = 180;
 
 // CONSTANTS - END
 
@@ -68,158 +69,7 @@ export function createQuizQuestion(
 ): CreateQuizQuestionReturn {
   const data: DataStore = retrieveDataFromFile();
 
-  console.log('question.ts - GOT TO HERE 1');
-  console.log('question.ts - GOT TO HERE 1: token ->', token);
-  console.log('question.ts - GOT TO HERE 1: question ->', question);
-  console.log('question.ts - GOT TO HERE 1: quizId ->', quizId);
-
-  // Step 1: Check for 400 errors - START
-
-  // Step 1a: Quiz ID does not refer to a valid quiz
-
-  const isQuizIdValidTest = isQuizIdValid(data, quizId);
-
-  if (!isQuizIdValidTest) {
-    return {
-      createQuizQuestionResponse: {
-        error: 'Quiz ID does not refer to a valid quiz',
-        errorCode: RESPONSE_ERROR_400,
-      },
-    };
-  }
-
-  // Step 1b: Question string is less than 5 characters in length or greater than 50 characters in length
-  if (
-    question.question.length < MIN_QUESTION_STRING_LENGTH ||
-    question.question.length > MAX_QUESTION_STRING_LENGTH
-  ) {
-    return {
-      createQuizQuestionResponse: {
-        error:
-          'Question string is less than 5 characters in length or greater than 50 characters in length',
-        errorCode: RESPONSE_ERROR_400,
-      },
-    };
-  }
-  console.log('question.ts - GOT TO HERE 2');
-  // Step 1c: The question has more than 6 answers or less than 2 answers
-
-  const questionAnswerArray = question.answers;
-  if (
-    questionAnswerArray.length < MIN_NUM_ANSWERS ||
-    questionAnswerArray.length > MAX_NUM_ANSWERS
-  ) {
-    return {
-      createQuizQuestionResponse: {
-        error: 'The question has more than 6 answers or less than 2 answers',
-        errorCode: RESPONSE_ERROR_400,
-      },
-    };
-  }
-
-  // Step 1d: The question duration is not a positive number
-
-  if (question.duration < POSITIVE_NUMBER_UPPER_LIMIT) {
-    return {
-      createQuizQuestionResponse: {
-        error: 'The question duration is not a positive number',
-        errorCode: RESPONSE_ERROR_400,
-      },
-    };
-  }
-
-  // Step 1e: The sum of the question durations in the quiz exceeds 3 minutes
-  // ############
-  // NOT SURE ABOUT WHAT THIS TEST MEANS
-  // ############
-
-  if (question.duration > MAX_QUESTION_DURATION) {
-    return {
-      createQuizQuestionResponse: {
-        error:
-          'The sum of the question durations in the quiz exceeds 3 minutes',
-        errorCode: RESPONSE_ERROR_400,
-      },
-    };
-  }
-
-  // Step 1f: The points awarded for the question are less than 1 or greater than 10
-
-  const pointsAwarded = question.points;
-
-  if (
-    pointsAwarded < MIN_QUESTION_POINTS_AWARDED ||
-    pointsAwarded > MAX_QUESTION_POINTS_AWARDED
-  ) {
-    return {
-      createQuizQuestionResponse: {
-        error:
-          'The points awarded for the question are less than 1 or greater than 10',
-        errorCode: RESPONSE_ERROR_400,
-      },
-    };
-  }
-
-  // Step 1g: The length of any answer is shorter than 1 character long, or longer than 30 characters long
-
-  for (const questn of questionAnswerArray) {
-    const answerLength = questn.answer.length;
-
-    if (answerLength < MIN_ANSWER_LENGTH || answerLength > MAX_ANSWER_LENGTH) {
-      return {
-        createQuizQuestionResponse: {
-          error:
-            'The length of any answer is shorter than 1 character long, or longer than 30 characters long',
-          errorCode: RESPONSE_ERROR_400,
-        },
-      };
-    }
-  }
-
-  // Step 1h: Any answer strings are duplicates of one another (within the same question)
-
-  const answerStringArray = [];
-  for (const questn of questionAnswerArray) {
-    answerStringArray.push(questn.answer);
-  }
-  // Create set of answerStringArray
-  const answerStringArraySet = new Set(answerStringArray);
-
-  // if size/length of original array is greater than set of that array
-  // there must be duplicates, so return error
-
-  if (answerStringArray.length > answerStringArraySet.size) {
-    return {
-      createQuizQuestionResponse: {
-        error:
-          'Any answer strings are duplicates of one another (within the same question)',
-        errorCode: RESPONSE_ERROR_400,
-      },
-    };
-  }
-
-  // Step 1i: There are no correct answers
-
-  let correctAnswersExistBool = false;
-
-  for (const questn of questionAnswerArray) {
-    if (questn.correct === true) {
-      correctAnswersExistBool = true;
-    }
-  }
-
-  if (!correctAnswersExistBool) {
-    return {
-      createQuizQuestionResponse: {
-        error: 'There are no correct answers',
-        errorCode: RESPONSE_ERROR_400,
-      },
-    };
-  }
-
-  // Step 1: Check for 400 errors - END
-
-  // Step 2: Check for 401 errors - START
+  // Step 1: Check for 401 errors - START
   // Token is empty or invalid (does not refer to valid logged in user session)
 
   const isTokenValidTest = isTokenValid(data, token) as boolean;
@@ -234,9 +84,9 @@ export function createQuizQuestion(
     };
   }
 
-  // Step 2: Check for 401 errors - END
+  // Step 1: Check for 401 errors - END
 
-  // Step 3: Check for 403 errors - START
+  // Step 2: Check for 403 errors - START
   // Token is empty or invalid (does not refer to valid logged in user session)
   // Need:
   // a. authUserId
@@ -269,8 +119,150 @@ export function createQuizQuestion(
       },
     };
   }
+  // Step 2: Check for 403 errors - END
 
-  // Step 3: Check for 403 errors - END
+  // Step 3: Check for 400 errors - START
+
+  // Step 3a: Quiz ID does not refer to a valid quiz
+
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+
+  if (!isQuizIdValidTest) {
+    return {
+      createQuizQuestionResponse: {
+        error: 'Quiz ID does not refer to a valid quiz',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // Step 3b: Question string is less than 5 characters in length or greater than 50 characters in length
+  if (
+    question.question.length < MIN_QUESTION_STRING_LENGTH ||
+    question.question.length > MAX_QUESTION_STRING_LENGTH
+  ) {
+    return {
+      createQuizQuestionResponse: {
+        error:
+          'Question string is less than 5 characters in length or greater than 50 characters in length',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // Step 3c: The question has more than 6 answers or less than 2 answers
+
+  const questionAnswerArray = question.answers;
+  if (
+    questionAnswerArray.length < MIN_NUM_ANSWERS ||
+    questionAnswerArray.length > MAX_NUM_ANSWERS
+  ) {
+    return {
+      createQuizQuestionResponse: {
+        error: 'The question has more than 6 answers or less than 2 answers',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // Step 3d: The question duration is not a positive number
+
+  if (question.duration < POSITIVE_NUMBER_UPPER_LIMIT) {
+    return {
+      createQuizQuestionResponse: {
+        error: 'The question duration is not a positive number',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // Step 3e: The sum of the question durations in the quiz
+  // exceeds 3 minutes (180 seconds: durations are listed in seconds)
+  if (!isValidDurationCreate(data, quizId, question.duration)) {
+    return {
+      createQuizQuestionResponse: {
+        error:
+          'The sum of the question durations in the quiz exceeds 3 minutes',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // Step 3f: The points awarded for the question are less than 1 or greater than 10
+
+  const pointsAwarded = question.points;
+
+  if (
+    pointsAwarded < MIN_QUESTION_POINTS_AWARDED ||
+    pointsAwarded > MAX_QUESTION_POINTS_AWARDED
+  ) {
+    return {
+      createQuizQuestionResponse: {
+        error:
+          'The points awarded for the question are less than 1 or greater than 10',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // Step 3g: The length of any answer is shorter than 1 character long, or longer than 30 characters long
+
+  for (const questn of questionAnswerArray) {
+    const answerLength = questn.answer.length;
+
+    if (answerLength < MIN_ANSWER_LENGTH || answerLength > MAX_ANSWER_LENGTH) {
+      return {
+        createQuizQuestionResponse: {
+          error:
+            'The length of any answer is shorter than 1 character long, or longer than 30 characters long',
+          errorCode: RESPONSE_ERROR_400,
+        },
+      };
+    }
+  }
+
+  // Step 3h: Any answer strings are duplicates of one another (within the same question)
+
+  const answerStringArray = [];
+  for (const questn of questionAnswerArray) {
+    answerStringArray.push(questn.answer);
+  }
+  // Create set of answerStringArray
+  const answerStringArraySet = new Set(answerStringArray);
+
+  // if size/length of original array is greater than set of that array
+  // there must be duplicates, so return error
+
+  if (answerStringArray.length > answerStringArraySet.size) {
+    return {
+      createQuizQuestionResponse: {
+        error:
+          'Any answer strings are duplicates of one another (within the same question)',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // Step 3i: There are no correct answers
+
+  let correctAnswersExistBool = false;
+
+  for (const questn of questionAnswerArray) {
+    if (questn.correct === true) {
+      correctAnswersExistBool = true;
+    }
+  }
+
+  if (!correctAnswersExistBool) {
+    return {
+      createQuizQuestionResponse: {
+        error: 'There are no correct answers',
+        errorCode: RESPONSE_ERROR_400,
+      },
+    };
+  }
+
+  // Step 3: Check for 400 errors - END
 
   // Step 4: all error conditions have passed
   // now, add the new question to the quiz
@@ -293,17 +285,28 @@ export function createQuizQuestion(
   // 5. colour: pick random colour from constant array
   // function returnRandomColour()
 
-  // ######################
-  // Do you also need to return {duration: number} in quiz[]?
-  // (sum of all quiz durations in that question?)
-  // ######################
+  // Update question duration (total duration of all questions in quiz)
+  // equals the existing duration plus the new duration
+
+  // get current duration in all quizzes in the question
+
+  const arrQuiz = data.quizzes;
+  let existingDuration = 0;
+  for (const quiz of arrQuiz) {
+    if (quiz.quizId === quizId) {
+      const questnArr = quiz.questions;
+      for (const quest of questnArr) {
+        existingDuration += quest.duration;
+      }
+    }
+  }
+
+  const updatedDuration = existingDuration + question.duration;
 
   const tempAnswerArray = question.answers;
   let tempCounter = 0;
 
   for (const ansArr of tempAnswerArray) {
-    console.log('ansArr ->', ansArr);
-    console.log('newAnswerId ->', newAnswerId);
     ansArr.answerId = newAnswerId + tempCounter;
     tempCounter++;
     ansArr.colour = returnRandomColour();
@@ -334,6 +337,9 @@ export function createQuizQuestion(
           const currentQuestions = quiz.numQuestions;
           quiz.numQuestions = currentQuestions + 1;
 
+          // update question duration
+          quiz.duration = updatedDuration;
+
           // push new question to quizzes
           quiz.questions.push(newQuestion);
           questionIdNumber = quiz.questions.length;
@@ -342,23 +348,252 @@ export function createQuizQuestion(
     }
   }
 
-  console.log('after mutation ->', data);
-
   saveDataInFile(data);
   return {
     createQuizQuestionResponse: { questionId: questionIdNumber },
   };
 }
 
+/**
+ * Updates the relevant details of a particular question within a quiz
+ * When this route is called, last edited time is updated
+ * @param {quizId} number - quizId of current quiz to be updated
+ * @param {questionId} number - questionId to be updated
+ * @param {token} string - current token ID of session
+ * @param {question} QuestionBody - new updated details of question
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{}} - returns empty object on successful question update
+ */
+export function updateQuizQuestion(
+  quizId: number,
+  questionId: number,
+  token: string,
+  question: QuestionBody
+): Record<string, never> | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+
+  // 401 error token is invalid
+  if (!isTokenValid(data, token)) {
+    return { error: 'Invalid token provided', errorCode: 401 };
+  }
+
+  // 403 error - valid token provided but incorrect user
+  const authUserIdString = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdString.authUserId;
+
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (!user.quizId.includes(quizId)) {
+        return {
+          error: 'Valid token provided but incorrect user',
+          errorCode: 403,
+        };
+      }
+    }
+  }
+
+  // 400 errors
+  // Question Id does not refer to a valid question within this quiz
+  if (!isQuestionIdValid(data, quizId, questionId)) {
+    return {
+      error: 'QuestionId does not refer to valid question in this quiz',
+      errorCode: 400,
+    };
+  }
+
+  // Question string is less than 5 characters in length or greater than 50 characters in length
+  if (
+    question.question.length < MIN_QUESTION_STRING_LENGTH ||
+    question.question.length > MAX_QUESTION_STRING_LENGTH
+  ) {
+    return { error: 'Invalid Question string length', errorCode: 400 };
+  }
+
+  // The question has more than 6 answers or less than 2 answers
+  if (question.answers.length < MIN_NUM_ANSWERS) {
+    return { error: 'Question has less than 2 answers', errorCode: 400 };
+  }
+
+  if (question.answers.length > MAX_NUM_ANSWERS) {
+    return { error: 'Question has more than 6 answers', errorCode: 400 };
+  }
+
+  // The question duration is not a positive number
+  if (question.duration < POSITIVE_NUMBER_UPPER_LIMIT) {
+    return {
+      error: 'Question duration must be a positive number',
+      errorCode: 400,
+    };
+  }
+
+  // If this question were to be updated, the sum of the question durations in the quiz exceeds 3 minutes 180 secs
+  if (!isValidDuration(data, quizId, questionId, question.duration)) {
+    return {
+      error: 'Duration total must not exceed 3 minutes',
+      errorCode: 400,
+    };
+  }
+
+  // The points awarded for the question are less than 1 or greater than 10
+  if (question.points < MIN_QUESTION_POINTS_AWARDED) {
+    return { error: 'Points awarded can not be less than 1', errorCode: 400 };
+  }
+
+  if (question.points > MAX_QUESTION_POINTS_AWARDED) {
+    return { error: 'Points awarded can not be more than 10', errorCode: 400 };
+  }
+
+  // The length of any answer is shorter than 1 character long, or longer than 30 characters long
+  for (const answer of question.answers) {
+    const answerLength = answer.answer.length;
+    if (answerLength < MIN_ANSWER_LENGTH || answerLength > MAX_ANSWER_LENGTH) {
+      return {
+        error: 'Length of answer must be between 1 and 30 characters',
+        errorCode: 400,
+      };
+    }
+  }
+
+  // Any answer strings are duplicates of one another (within the same question)
+  if (duplicateAnswers(question.answers.map((answer) => answer.answer))) {
+    // map extracts the answer strings
+    // duplicate answers returns true if they match
+    return {
+      error: 'Answers can not be duplicates of one another',
+      errorCode: 400,
+    };
+  }
+
+  // There are no correct answers
+  const correctAnswers = question.answers.map((answer) => answer.correct);
+  if (!correctAnswers.includes(true)) {
+    return { error: 'There must be a correct answer', errorCode: 400 };
+  }
+
+  // no errors captured
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (user.quizId.includes(quizId)) {
+        const newQuestion = {
+          questionId: questionId,
+          question: question.question,
+          duration: question.duration,
+          points: question.points,
+          answers: question.answers,
+        };
+        // find current quizId in quizzes
+        const quiz = data.quizzes.find((q) => q.quizId === quizId);
+        if (quiz !== undefined) {
+          quiz.questions.push(newQuestion);
+          quiz.timeLastEdited = createCurrentTimeStamp();
+        }
+      }
+    }
+  }
+  saveDataInFile(data);
+  // successfully updated quiz question
+  return {};
+}
+
+/**
+ * This function loops through answers array to check for duplicates
+ * if there is no duplicates, returns true, otherwise returns false
+ * @param {answers} string[] - array of answers to search through
+ * @returns {boolean} -if there is no duplicates, returns true, otherwise returns false=
+ */
+function duplicateAnswers(answers: string[]): boolean {
+  const answerSet = new Set();
+  for (const answer of answers) {
+    if (answerSet.has(answer)) {
+      // Found a duplicate
+      return true;
+    }
+    answerSet.add(answer);
+  }
+  // No duplicates found
+  return false;
+}
+/**
+ * A duplicated question is immediately inserted after the source question in the questions array
+ * When this route is called, the time last edited is updated
+ * @param {quizId} number - quizId to search for
+ * @param {questionId} number - questionId of question to search
+ * @param {token} string - token to search for
+ * @returns {ErrorObjectWithCode} - returns error if questionId does not refer to valid quiz, token
+ * is empty/invalid, valid token is provided, but user is now an owner of the quiz
+ *  @returns {NewQuestionId} - returns newQUestionId if successfully duplicates a question
+ */
+export function duplicateQuestion(quizId: number, questionId: number, token: string):
+ErrorObjectWithCode | NewQuestionId {
+  const data = retrieveDataFromFile();
+  // token is empty/invalid return - 401 error
+  if (!isTokenValid(data, token)) {
+    return { error: 'Invalid token provided', errorCode: 401 };
+  }
+
+  // valid token provided but incorrect user - 403 error
+  const authUserIdString = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdString.authUserId;
+
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (!user.quizId.includes(quizId)) {
+        return { error: 'Valid token provided but incorrect user', errorCode: 403 };
+      }
+    }
+  }
+
+  // Question Id does not refer to a valid question within this quiz - error 400
+  if (!isQuestionIdValid(data, quizId, questionId)) {
+    return { error: 'QuestionId does not refer to valid question in this quiz', errorCode: 400 };
+  }
+
+  // find quizId to duplicate
+  for (const quiz of data.quizzes) {
+    // returns the index of the element in an array to duplicate
+    const indexToDuplicate = quiz.questions.findIndex(q => q.questionId === questionId);
+    // findIndex returns -1 if no element is found
+    if (indexToDuplicate !== -1) {
+      // indexToDuplicate will = index of the array we want to duplicate
+      const questionToDuplicate = quiz.questions[indexToDuplicate];
+
+      const newDuplicateQuestion = {
+        questionId: quiz.questions.length + 1,
+        question: questionToDuplicate.question,
+        duration: questionToDuplicate.duration,
+        points: questionToDuplicate.points,
+        answers: questionToDuplicate.answers,
+      };
+
+      // inserts new duplicate question into question array at correct index
+      quiz.questions.splice(indexToDuplicate + 1, 0, newDuplicateQuestion);
+      // update time last edited for quiz
+      quiz.timeLastEdited = createCurrentTimeStamp();
+      saveDataInFile(data);
+      return { newQuestionId: newDuplicateQuestion.questionId };
+    }
+  }
+}
+
 function deleteQuizQuestion(
   token: string,
   quizId: number,
-  questionId: number): Record<string, never> | ErrorObjectWithCode {
+  questionId: number
+): Record<string, never> | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
   const isTokenValidTest = isTokenValid(data, token);
-  if (!isAuthUserIdMatchQuizId(data, authUserId.authUserId, quizId) && isTokenValidTest && isQuizIdValidTest) {
+  if (
+    !isAuthUserIdMatchQuizId(data, authUserId.authUserId, quizId) &&
+    isTokenValidTest &&
+    isQuizIdValidTest
+  ) {
     return {
       error: 'QuizId does not match authUserId',
       errorCode: RESPONSE_ERROR_403,
@@ -377,11 +612,16 @@ function deleteQuizQuestion(
     return { error: 'QuestionId is empty', errorCode: RESPONSE_ERROR_400 };
   }
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    return { error: 'QuestionId is not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
+    return {
+      error: 'QuestionId is not refer to a valid question within this quiz',
+      errorCode: RESPONSE_ERROR_400,
+    };
   }
   const newdata = data;
   const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
-  const deleteQuestion = quizToUpdate.questions.filter((question) => question.questionId !== questionId);
+  const deleteQuestion = quizToUpdate.questions.filter(
+    (question) => question.questionId !== questionId
+  );
   quizToUpdate.questions = deleteQuestion;
   for (let check of newdata.quizzes) {
     if (check.quizId === quizId) {
@@ -430,7 +670,11 @@ function isQuizIdValid(data: DataStore, quizId: number): boolean {
   return false;
 }
 
-const isQuestionIdValid = (data: DataStore, quizId: number, questionId: number): boolean => {
+export const isQuestionIdValid = (
+  data: DataStore,
+  quizId: number,
+  questionId: number
+): boolean => {
   const questionIdArray = data.quizzes;
   const quizQuestionIdArray = [];
   for (const quiz of questionIdArray) {
@@ -447,4 +691,55 @@ const isQuestionIdValid = (data: DataStore, quizId: number, questionId: number):
   }
   return false;
 };
+
+/**
+ * Checks when a question is created, if total duration is within 3 minutes (180 seconds) after adding new duration
+ * @param {data} dataStore - dataStore to search through
+ * @param {quizId} number - quizId of quiz to search
+ * @param {newDuration} number - new duration to be updated and checked
+ *
+ * @returns {boolean} - returns true if duration is valid and under 3 minutes, otherwise returns false
+ */
+function isValidDurationCreate(
+  data: DataStore,
+  quizId: number,
+  newDuration: number
+): boolean {
+  // find existing duration of quiz
+  const quizArr = data.quizzes;
+  let currentDuration: number;
+  for (const quiz of quizArr) {
+    if (quiz.quizId === quizId) {
+      currentDuration = quiz.duration;
+    }
+  }
+
+  if (currentDuration + newDuration > MAX_DURATION_IN_SECONDS) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/**
+ * Checks if total duration is within 3 minutes (180 seconds) after adding new duration
+ * if there is no duplicates, returns true, otherwise returns false
+ * @param {data} dataStore - dataStore to search through
+ * @param {quizId} string[] - quizId of quiz to search
+ * @param {questionId} string[] - questionId of question to search
+ * @param {newDuration} string[] - new duration to be updated
+ * @returns {boolean} - returns true if duration is valid and under 3 minutes, otherwise returns false
+ */
+function isValidDuration (data: DataStore, quizId: number, questionId: number, newDuration: number): boolean {
+  let currentDuration = 0;
+  for (const quiz of data.quizzes) {
+    currentDuration = currentDuration + quiz.duration;
+  }
+  const totalDuration = newDuration + currentDuration;
+  if (totalDuration > MAX_DURATION_IN_SECONDS) {
+    return false;
+  }
+  return true;
+}
+
 // HELPER FUNCTIONS - END
