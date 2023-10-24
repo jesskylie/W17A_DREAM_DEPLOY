@@ -403,7 +403,6 @@ app.post('/v1/admin/quiz/:quizId/question/:questionId/duplicate', (req: Request,
   }
   res.status(RESPONSE_OK_200).json(response);
 });
-
 // ***********************************************************************
 
 app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
