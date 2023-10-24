@@ -636,7 +636,7 @@ function isQuizIdValid(data: DataStore, quizId: number): boolean {
   return false;
 }
 
-const isQuestionIdValid = (data: DataStore, quizId: number, questionId: number): boolean => {
+export const isQuestionIdValid = (data: DataStore, quizId: number, questionId: number): boolean => {
   const questionIdArray = data.quizzes;
   const quizQuestionIdArray = [];
   for (const quiz of questionIdArray) {
