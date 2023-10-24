@@ -635,7 +635,7 @@ function deleteQuizQuestion(
 
 export { deleteQuizQuestion };
 
-export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number) {
+export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number): ErrorObjectWithCode | Record<string, never> {
   const data = retrieveDataFromFile();
   const authUserIdString = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -643,16 +643,10 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
   if (token === '') {
     return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
   }
+
   if (!isTokenValidTest) {
     return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
   }
-  if (!isQuizIdValidTest) {
-    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
-  }
-  if (!isQuestionIdValid(data, quizId, questionId)) {
-    return { error: 'QuestionId is not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
-  }
-
   const newdata = data;
   const authUserId = authUserIdString.authUserId;
   // checks if current user id owns current quiz
@@ -662,6 +656,12 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
         return { error: 'Valid token provided but incorrect user', errorCode: 403 };
       }
     }
+  }
+  if (!isQuizIdValidTest) {
+    return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
+  }
+  if (!isQuestionIdValid(data, quizId, questionId)) {
+    return { error: 'QuestionId is not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
   }
 
   const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
