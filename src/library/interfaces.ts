@@ -30,3 +30,7 @@ export interface QuestionId {
 export interface CreateQuizQuestionReturn {
   createQuizQuestionResponse: QuestionId | ErrorObjectWithCode;
 }
+
+export interface NewQuestionId {
+  newQuestionId: number;
+}
