@@ -472,16 +472,13 @@ export function updateQuizQuestion(
   if (!correctAnswers.includes(true)) {
     return { error: 'There must be a correct answer', errorCode: 400 };
   }
-  
-  //update colours of the questions 
+
+  // update colours of the questions
   const tempAnswerArray = question.answers;
-  let tempCounter = 0;
   for (const ansArr of tempAnswerArray) {
-    tempCounter++;
     ansArr.colour = returnRandomColour();
   }
-  
-  
+
   // no errors captured
   // checks if current user id owns current quiz
   for (const user of data.users) {
