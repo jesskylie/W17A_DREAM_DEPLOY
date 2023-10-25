@@ -332,7 +332,9 @@ export function createQuizQuestion(
         const quiz = data.quizzes.find((q) => q.quizId === quizId);
         if (quiz !== undefined) {
           // update timeLastEdited
-          quiz.timeLastEdited = createCurrentTimeStamp() as number;
+          // initially incorrect - timeLastEdited does not change
+          // with creation of a question 25Oct23 19:05
+          // quiz.timeLastEdited = createCurrentTimeStamp() as number;
           // update numQuestions
           const currentQuestions = quiz.numQuestions;
           quiz.numQuestions = currentQuestions + 1;
@@ -527,8 +529,11 @@ function duplicateAnswers(answers: string[]): boolean {
  * is empty/invalid, valid token is provided, but user is now an owner of the quiz
  *  @returns {NewQuestionId} - returns newQUestionId if successfully duplicates a question
  */
-export function duplicateQuestion(quizId: number, questionId: number, token: string):
-ErrorObjectWithCode | NewQuestionId {
+export function duplicateQuestion(
+  quizId: number,
+  questionId: number,
+  token: string
+): ErrorObjectWithCode | NewQuestionId {
   const data = retrieveDataFromFile();
   // token is empty/invalid return - 401 error
   if (!isTokenValid(data, token)) {
@@ -543,20 +548,28 @@ ErrorObjectWithCode | NewQuestionId {
   for (const user of data.users) {
     if (user.authUserId === authUserId) {
       if (!user.quizId.includes(quizId)) {
-        return { error: 'Valid token provided but incorrect user', errorCode: 403 };
+        return {
+          error: 'Valid token provided but incorrect user',
+          errorCode: 403,
+        };
       }
     }
   }
 
   // Question Id does not refer to a valid question within this quiz - error 400
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    return { error: 'QuestionId does not refer to valid question in this quiz', errorCode: 400 };
+    return {
+      error: 'QuestionId does not refer to valid question in this quiz',
+      errorCode: 400,
+    };
   }
 
   // find quizId to duplicate
   for (const quiz of data.quizzes) {
     // returns the index of the element in an array to duplicate
-    const indexToDuplicate = quiz.questions.findIndex(q => q.questionId === questionId);
+    const indexToDuplicate = quiz.questions.findIndex(
+      (q) => q.questionId === questionId
+    );
     // findIndex returns -1 if no element is found
     if (indexToDuplicate !== -1) {
       // indexToDuplicate will = index of the array we want to duplicate
@@ -635,7 +648,12 @@ function deleteQuizQuestion(
 
 export { deleteQuizQuestion };
 
-export function adminQuizQuestionMove(token: string, quizId: number, questionId: number, newPosition: number) {
+export function adminQuizQuestionMove(
+  token: string,
+  quizId: number,
+  questionId: number,
+  newPosition: number
+) {
   const data = retrieveDataFromFile();
   const authUserIdString = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -650,7 +668,10 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
     return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    return { error: 'QuestionId is not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
+    return {
+      error: 'QuestionId is not refer to a valid question within this quiz',
+      errorCode: RESPONSE_ERROR_400,
+    };
   }
 
   const newdata = data;
@@ -659,32 +680,50 @@ export function adminQuizQuestionMove(token: string, quizId: number, questionId:
   for (const user of data.users) {
     if (user.authUserId === authUserId) {
       if (!user.quizId.includes(quizId)) {
-        return { error: 'Valid token provided but incorrect user', errorCode: 403 };
+        return {
+          error: 'Valid token provided but incorrect user',
+          errorCode: 403,
+        };
       }
     }
   }
 
   const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
   if (!quizToUpdate.questions.some((quiz) => quiz.questionId === questionId)) {
-    return { error: 'Question Id does not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
+    return {
+      error: 'Question Id does not refer to a valid question within this quiz',
+      errorCode: RESPONSE_ERROR_400,
+    };
   }
   if (newPosition < 0) {
-    return { error: 'NewPosition cannot be less than 0', errorCode: RESPONSE_ERROR_400 };
+    return {
+      error: 'NewPosition cannot be less than 0',
+      errorCode: RESPONSE_ERROR_400,
+    };
   }
   if (quizToUpdate.questions.length - 1 < newPosition) {
-    return { error: 'NewPosition cannot be more than number of existing questions', errorCode: 400 };
+    return {
+      error: 'NewPosition cannot be more than number of existing questions',
+      errorCode: 400,
+    };
   }
 
-  const questionToMove = quizToUpdate.questions.find((quiz) => quiz.questionId === questionId);
+  const questionToMove = quizToUpdate.questions.find(
+    (quiz) => quiz.questionId === questionId
+  );
   const index = quizToUpdate.questions.indexOf(questionToMove);
 
   if (index === newPosition) {
-    return { error: 'NewPosition cannot be position of the current question', errorCode: 400 };
+    return {
+      error: 'NewPosition cannot be position of the current question',
+      errorCode: 400,
+    };
   }
 
   quizToUpdate.questions.splice(index, 1);
   quizToUpdate.questions.splice(newPosition, 0, questionToMove);
-  data.quizzes.find((quiz) => quiz.quizId === quizId).timeLastEdited = Math.floor(Date.now() / 1000);
+  data.quizzes.find((quiz) => quiz.quizId === quizId).timeLastEdited =
+    Math.floor(Date.now() / 1000);
   saveDataInFile(newdata);
   return {};
 }
@@ -784,7 +823,12 @@ function isValidDurationCreate(
  * @param {newDuration} string[] - new duration to be updated
  * @returns {boolean} - returns true if duration is valid and under 3 minutes, otherwise returns false
  */
-function isValidDuration (data: DataStore, quizId: number, questionId: number, newDuration: number): boolean {
+function isValidDuration(
+  data: DataStore,
+  quizId: number,
+  questionId: number,
+  newDuration: number
+): boolean {
   let currentDuration = 0;
   for (const quiz of data.quizzes) {
     currentDuration = currentDuration + quiz.duration;
