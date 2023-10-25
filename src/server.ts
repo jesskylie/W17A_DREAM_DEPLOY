@@ -33,6 +33,7 @@ import {
   createQuizQuestion,
   deleteQuizQuestion,
   updateQuizQuestion,
+  adminQuizQuestionMove,
   duplicateQuestion,
 } from './question';
 import {
@@ -422,13 +423,31 @@ app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   res.status(RESPONSE_OK_200).json(response);
 });
 
+app.put('/v1/admin/quiz/:quizId/question/:questionId/move', (req: Request, res: Response) => {
+  const quizId = parseInt(req.params.quizId);
+  const questionId = parseInt(req.params.questionId);
+  const { token, newPosition } = req.body;
+  const response = adminQuizQuestionMove(token, quizId, questionId, newPosition);
+
+  if ('error' in response) {
+    if (response.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json({ error: response.error });
+    } else if (response.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json({ error: response.error });
+    } else if (response.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json({ error: response.error });
+    }
+  }
+  res.status(RESPONSE_OK_200).json(response);
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
 
 app.use((req: Request, res: Response) => {
   const error = `
-    404 Not found - This could be because:
+  404 Not found - This could be because:
       0. You have defined routes below (not above) this middleware in server.ts
       1. You have not implemented the route ${req.method} ${req.path}
       2. There is a typo in either your test or server, e.g. /posts/list in one
