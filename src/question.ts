@@ -475,6 +475,12 @@ export function updateQuizQuestion(
     return { error: 'There must be a correct answer', errorCode: 400 };
   }
 
+  // update colours of the questions
+  const tempAnswerArray = question.answers;
+  for (const ansArr of tempAnswerArray) {
+    ansArr.colour = returnRandomColour();
+  }
+
   // no errors captured
   // checks if current user id owns current quiz
   for (const user of data.users) {
