@@ -204,23 +204,6 @@ describe('Testing POST adminQuizTransfer', () => {
         false
       );
     }
-
-    // const user1QuizArray = user1Quizzes.bodyString;
-
-    // console.log('user1QuizArray ->', user1QuizArray);
-
-    // const doesTransferredQuizAppearInTransfereeArrayTest = doesQuizExist(
-    //   user1QuizArray,
-    //   quizId1User2
-    // ) as boolean;
-
-    // const user2Quizzes = requestAdminQuizList(
-    //   tokenUser2
-    // ) as requestAdminQuizListReturn;
-
-    // console.log('user2Quizzes ->', user2Quizzes.bodyString);
-    // 1. check that transferor no longer has the quiz
-    // 2. check that the transferee has the quiz
   });
 
   test('Testing transferee userEmail is not a real user - error code 400', () => {
