@@ -71,7 +71,8 @@ describe('AdminQuizQuestionMove testing', () => {
       validQuestionTwo,
       newQuiz.quizId
     ).bodyString as CreateQuizQuestionReturn;
-
+    const oldQuizInfo = requestAdminQuizInfo(token, newQuiz.quizId).bodyString as Quizzes;
+    const TimeBefore = expect(oldQuizInfo.timeLastEdited);
     const validQuestionThree = {
       question: 'What is the capital of the USA?',
       duration: 2,
@@ -85,12 +86,13 @@ describe('AdminQuizQuestionMove testing', () => {
       validQuestionThree,
       newQuiz.quizId
     ).bodyString as CreateQuizQuestionReturn;
-
     requestAdminQuizQuestionMove(token, newQuiz.quizId, questionTwo.createQuizQuestionResponse.questionId, 0);
     const newQuizInfo = requestAdminQuizInfo(token, newQuiz.quizId).bodyString as Quizzes;
     expect(newQuizInfo.questions[0].questionId).toStrictEqual(questionTwo.createQuizQuestionResponse.questionId);
     expect(newQuizInfo.questions[1].questionId).toStrictEqual(questionOne.createQuizQuestionResponse.questionId);
     expect(newQuizInfo.questions[2].questionId).toStrictEqual(questionThree.createQuizQuestionResponse.questionId);
+    const TimeAfter = expect(newQuizInfo.timeLastEdited);
+    expect(TimeBefore).not.toEqual(TimeAfter);
   });
 
   test('Error 400: New position is less than 0.', () => {

@@ -473,7 +473,7 @@ describe('Testing adminQuizRemove', () => {
       'Peter',
       'description'
     ).bodyString as QuizId;
-    // console.log(peterQuizId);
+
     const quizIdNotReferToUser = requestAdminQuizRemove(
       testToken,
       peterQuizId.quizId
@@ -947,9 +947,7 @@ describe('adminTrashQuizEmpty testing', () => {
       TonyQuiz.quizId,
     ]);
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
-    // console.log(quizIdNotReferToUser1.bodyString);
-    // this should only return error instead of returnning both error and errorcode in
-    // bodystring
+
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
     });
