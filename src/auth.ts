@@ -242,21 +242,30 @@ export function adminAuthLogin(
 
 export function updatePassword(
   token: string,
-  newPassword: string,
-  oldPassword: string
+  oldPassword: string,
+  newPassword: string
 ): Record<string, never> | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+  // token is empty/invalid - return 401 error
+  if (!isTokenValid(data, token)) {
+    return {
+      error: 'Token is empty or invalid',
+      errorCode: RESPONSE_ERROR_401,
+    };
+  }
+
   // new password must be more than 8 characters, and have letters and numbers
   if (!isValidPassword(newPassword)) {
     return { error: 'Invalid password', errorCode: RESPONSE_ERROR_400 };
   }
 
   // loop through datastore to find the token
-  const data: DataStore = retrieveDataFromFile();
   for (const user of data.users) {
     if (user.token.includes(token)) {
       // token is found
-      if (newPassword === user.password || newPassword === oldPassword) {
+      if (newPassword === user.password) {
         // check if new password is equal to old password
+        // check if it exists in old passwords array
         return {
           error: 'New password can not be the same as old password',
           errorCode: RESPONSE_ERROR_400,

@@ -1,7 +1,6 @@
 // This is a test message for pull everything in testMaster to local vscode
 // New tests for functions for iteration 2
 import { adminAuthRegister, updatePassword } from './auth';
-import { RESPONSE_ERROR_400, RESPONSE_ERROR_401 } from './library/constants';
 
 import { newClear } from './other';
 
@@ -26,10 +25,7 @@ describe('Testing update password', () => {
       'password123456',
       'helloworld123'
     );
-    expect(result).toStrictEqual({
-      error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
-    });
+    expect(result).toStrictEqual({ error: expect.any(String), errorCode: 400 });
   });
 
   test('New password and old password match exactly', () => {
@@ -44,10 +40,7 @@ describe('Testing update password', () => {
       'password1234',
       'password1234'
     );
-    expect(result).toStrictEqual({
-      error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
-    });
+    expect(result).toStrictEqual({ error: expect.any(String), errorCode: 400 });
   });
 
   test('New password has already been used before by this user', () => {
@@ -57,12 +50,9 @@ describe('Testing update password', () => {
       'Jake',
       'Garry'
     ) as TokenString;
-    updatePassword(newUser.token, 'hello123456', 'password1234');
+    updatePassword(newUser.token, 'password1234', 'hello123456');
     const result = updatePassword(newUser.token, 'password1234', 'hello123456');
-    expect(result).toStrictEqual({
-      error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
-    });
+    expect(result).toStrictEqual({ error: expect.any(String), errorCode: 400 });
   });
 
   test('Invalid new password', () => {
@@ -73,10 +63,7 @@ describe('Testing update password', () => {
       'Garry'
     ) as TokenString;
     const result = updatePassword(newUser.token, 'password', 'password1234');
-    expect(result).toStrictEqual({
-      error: expect.any(String),
-      errorCode: RESPONSE_ERROR_400,
-    });
+    expect(result).toStrictEqual({ error: expect.any(String), errorCode: 400 });
   });
 
   test('Successfully updated new password', () => {
@@ -88,8 +75,8 @@ describe('Testing update password', () => {
     ) as TokenString;
     const result = updatePassword(
       newUser.token,
-      'hello1234567',
-      'password1234'
+      'password1234',
+      'hello1234567'
     );
     expect(result).toStrictEqual({});
   });
@@ -102,9 +89,6 @@ describe('Testing update password', () => {
       'Garry'
     ) as TokenString;
     const result = updatePassword('abc', 'hello1234567', 'password1234');
-    expect(result).toStrictEqual({
-      error: expect.any(String),
-      errorCode: RESPONSE_ERROR_401,
-    });
+    expect(result).toStrictEqual({ error: expect.any(String), errorCode: 401 });
   });
 });
