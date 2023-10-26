@@ -173,8 +173,8 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 });
 
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
-  const { token, newPassword, oldPassword } = req.body;
-  const response = updatePassword(token, newPassword, oldPassword);
+  const { token, oldPassword, newPassword } = req.body;
+  const response = updatePassword(token, oldPassword, newPassword);
 
   if ('error' in response) {
     console.log('error in response 2');
