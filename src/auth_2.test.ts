@@ -228,7 +228,7 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.body).toStrictEqual({});
   });
 
-  test('Testing unsuccessful password change with error code 401', () => {
+  test('Testing unsuccessful password change with error code 400', () => {
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -240,20 +240,20 @@ describe('Testing PUT /v1/admin/user/password', () => {
       'abcde4284',
       'abcde4284'
     );
-    expect(result.status).toStrictEqual(RESPONSE_ERROR_401);
-    expect(result.body).toStrictEqual({
-      error: expect.any(String),
-      errorCode: 401,
-    });
-  });
-
-  test('Testing unsuccessful password change with error code 400', () => {
-    requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    const result = requestUpdatePassword('a', 'HelloWorld1234', 'abcde4284');
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
+      errorCode: RESPONSE_ERROR_400,
+    });
+  });
+
+  test('Testing unsuccessful password change with error code 401', () => {
+    requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const result = requestUpdatePassword('a', 'HelloWorld1234', 'abcde4284');
+    expect(result.status).toStrictEqual(RESPONSE_ERROR_401);
+    expect(result.body).toStrictEqual({
+      error: expect.any(String),
+      errorCode: RESPONSE_ERROR_401,
     });
   });
 });
