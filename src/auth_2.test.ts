@@ -295,16 +295,15 @@ describe('Testing PUT /v1/admin/user/password', () => {
     });
   });
 
-
-test('New password does not contain at least one number and one letter - with error code 400', () => {
-  const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-  const result = requestUpdatePassword(response.body.token, 'abcde4284', '12345678910');
-  expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
-  expect(result.body).toStrictEqual({
-    error: expect.any(String),
-    errorCode: 400,
+  test('New password does not contain at least one number and one letter - with error code 400', () => {
+    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const result = requestUpdatePassword(response.body.token, 'abcde4284', '12345678910');
+    expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
+    expect(result.body).toStrictEqual({
+      error: expect.any(String),
+      errorCode: 400,
+    });
   });
-});
 
   test('Testing unsuccessful password change (invalid token) with error code 401', () => {
     requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
@@ -315,7 +314,6 @@ test('New password does not contain at least one number and one letter - with er
       errorCode: 401,
     });
   });
-  
 });
 
 function requestUserDetails(token: string) {
