@@ -245,13 +245,13 @@ export function updatePassword(
   token: string,
   newPassword: string,
   oldPassword: string
-): Record<string, never> | ErrorObjectWithCode { 
+): Record<string, never> | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
-  //token is empty/invalid - return 401 error
-  if (!isTokenValid(data,token)) {
+  // token is empty/invalid - return 401 error
+  if (!isTokenValid(data, token)) {
     return { error: 'Token is empty or invalid', errorCode: RESPONSE_ERROR_401 };
   }
-  
+
   // new password must be more than 8 characters, and have letters and numbers
   if (!isValidPassword(newPassword)) {
     return { error: 'Invalid password', errorCode: RESPONSE_ERROR_400 };
