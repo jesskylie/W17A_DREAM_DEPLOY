@@ -243,8 +243,8 @@ export function adminAuthLogin(
 
 export function updatePassword(
   token: string,
-  newPassword: string,
-  oldPassword: string
+  oldPassword: string,
+  newPassword: string
 ): Record<string, never> | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
   // token is empty/invalid - return 401 error
@@ -261,8 +261,9 @@ export function updatePassword(
   for (const user of data.users) {
     if (user.token.includes(token)) {
       // token is found
-      if (newPassword === user.password || newPassword === oldPassword) {
+      if (newPassword === user.password || user.oldPasswords.includes(newPassword)) {
         // check if new password is equal to old password
+        // check if it exists in old passwords array
         return {
           error: 'New password can not be the same as old password',
           errorCode: RESPONSE_ERROR_400,
@@ -271,12 +272,6 @@ export function updatePassword(
         // old password does not match old password
         return {
           error: 'Old password does not match old password',
-          errorCode: RESPONSE_ERROR_400,
-        };
-      } else if (user.oldPasswords.includes(newPassword)) {
-        // check if old password exists in old password array
-        return {
-          error: 'New password has already been used by this user',
           errorCode: RESPONSE_ERROR_400,
         };
       } else {

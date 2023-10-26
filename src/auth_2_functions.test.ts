@@ -50,7 +50,7 @@ describe('Testing update password', () => {
       'Jake',
       'Garry'
     ) as TokenString;
-    updatePassword(newUser.token, 'hello123456', 'password1234');
+    updatePassword(newUser.token, 'password1234', 'hello123456');
     const result = updatePassword(newUser.token, 'password1234', 'hello123456');
     expect(result).toStrictEqual({ error: expect.any(String), errorCode: 400 });
   });
@@ -75,8 +75,8 @@ describe('Testing update password', () => {
     ) as TokenString;
     const result = updatePassword(
       newUser.token,
-      'hello1234567',
-      'password1234'
+      'password1234',
+      'hello1234567'
     );
     expect(result).toStrictEqual({});
   });
