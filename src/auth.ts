@@ -212,7 +212,6 @@ export function adminAuthLogin(
   let token;
   for (const arr of data.users) {
     if (arr.email === email && arr.password === password) {
-      console.log('arr ->', arr);
       token = arr.token[0];
       arr.numSuccessfulLogins++;
       arr.numFailedPasswordsSinceLastLogin = 0;
