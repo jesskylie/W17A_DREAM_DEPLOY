@@ -7,14 +7,17 @@ import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-  WAIT_TIME,
 } from './library/constants';
 
 import { TokenString } from './library/interfaces';
 
-// assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
 import { Quizzes } from './dataStore';
-import { requestAdminQuizCreate, requestAdminQuizInfo } from './quiz_2.test';
+
+import {
+  requestClear,
+  requestAdminQuizCreate,
+  requestAdminQuizInfo,
+} from './library/route_testing_functions';
 
 function requestAdminRegister(
   email: string,
@@ -57,15 +60,6 @@ const url = config.url;
 const SERVER_URL = `${url}:${port}`;
 
 // constants used throughout file - END
-
-const requestClear = () => {
-  const res = request('DELETE', SERVER_URL + '/v1/clear', {
-    timeout: WAIT_TIME,
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-  return { statusCode, bodyString };
-};
 
 const requestAdminQuizDescriptionUpdate = (
   token: string,

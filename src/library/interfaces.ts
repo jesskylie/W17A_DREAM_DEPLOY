@@ -1,3 +1,5 @@
+import { Quizzes } from '../dataStore';
+
 export interface QuestionBody {
   question: string;
   duration: number;
@@ -33,4 +35,27 @@ export interface CreateQuizQuestionReturn {
 
 export interface NewQuestionId {
   newQuestionId: number;
+}
+
+export interface ErrorObject {
+  error: string;
+}
+
+export interface QuizId {
+  quizId: number;
+}
+
+export interface requestAdminQuizCreateReturn {
+  statusCode?: number;
+  bodyString: QuizId | ErrorObject;
+}
+
+export interface requestAdminQuizListReturn {
+  statusCode?: number;
+  bodyString: Quizzes[] | ErrorObject;
+}
+
+export interface requestAdminQuizInfoReturn {
+  statusCode?: number;
+  bodyString: Quizzes | ErrorObject;
 }

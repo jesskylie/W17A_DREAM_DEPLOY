@@ -1,5 +1,5 @@
 import { getData, setData, DataStore } from './dataStore';
-import { saveDataInFile } from './functions';
+import { saveDataInFile } from './library/functions';
 
 /**
  * Clears the data store upon call

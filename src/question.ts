@@ -8,7 +8,7 @@ import {
   countAllQuestions,
   countAllAnswers,
   returnRandomColour,
-} from './functions';
+} from './library/functions';
 
 import {
   RESPONSE_ERROR_400,
@@ -483,7 +483,8 @@ export function updateQuizQuestion(
 
   // no errors captured
   // checks if current user id owns current quiz
-  for (const user of data.users) {
+  const newdata = data;
+  for (const user of newdata.users) {
     if (user.authUserId === authUserId) {
       if (user.quizId.includes(quizId)) {
         const newQuestion = {
@@ -495,6 +496,13 @@ export function updateQuizQuestion(
         };
         // find current quizId in quizzes
         const quiz = data.quizzes.find((q) => q.quizId === quizId);
+        for (let i = 0; i < quiz.questions.length; i++) {
+          if (questionId === quiz.questions[i].questionId) {
+            newdata.quizzes
+              .find((q) => q.quizId === quizId)
+              .questions.splice(i, 1);
+          }
+        }
         if (quiz !== undefined) {
           quiz.questions.push(newQuestion);
           quiz.timeLastEdited = createCurrentTimeStamp();
@@ -502,7 +510,37 @@ export function updateQuizQuestion(
       }
     }
   }
-  saveDataInFile(data);
+
+  // const newdata = data;
+  // const quizToUpdate = data.quizzes.find((quiz) => quiz.quizId === quizId);
+  // let questionToUpdate = quizToUpdate.questions.find((question) => question.questionId === questionId);
+  // questionToUpdate = {
+  //   questionId: 100,
+  //   question: question.question,
+  //   duration: question.duration,
+  //   points: question.points,
+  //   answers: question.answers,
+  // }
+
+  // for (const quiz of newdata.quizzes) {
+  //   if (quiz.quizId === quizId) {
+  //     for (let replce of quiz.questions) {
+  //       if (replce.questionId === questionId) {
+  //         replce = {
+  //           questionId: questionId,
+  //           question: question.question,
+  //           duration: question.duration,
+  //           points: question.points,
+  //           answers: question.answers,
+  //         };
+  //         quiz.timeLastEdited = createCurrentTimeStamp();
+  //       }
+  //     }
+  //   }
+
+  // }
+
+  saveDataInFile(newdata);
   // successfully updated quiz question
   return {};
 }
@@ -576,6 +614,7 @@ export function duplicateQuestion(
     const indexToDuplicate = quiz.questions.findIndex(
       (q) => q.questionId === questionId
     );
+    data.quizzes.find((quiz) => quiz.quizId === quizId).numQuestions += 1;
     // findIndex returns -1 if no element is found
     if (indexToDuplicate !== -1) {
       // indexToDuplicate will = index of the array we want to duplicate
@@ -654,10 +693,12 @@ function deleteQuizQuestion(
 
 export { deleteQuizQuestion };
 
-export function adminQuizQuestionMove(token: string,
+export function adminQuizQuestionMove(
+  token: string,
   quizId: number,
   questionId: number,
-  newPosition: number): ErrorObjectWithCode | Record<string, never> {
+  newPosition: number
+): ErrorObjectWithCode | Record<string, never> {
   const data = retrieveDataFromFile();
   const authUserIdString = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -686,7 +727,10 @@ export function adminQuizQuestionMove(token: string,
     return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    return { error: 'QuestionId is not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
+    return {
+      error: 'QuestionId is not refer to a valid question within this quiz',
+      errorCode: RESPONSE_ERROR_400,
+    };
   }
 
   const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
@@ -840,5 +884,4 @@ function isValidDuration(
   }
   return true;
 }
-
 // HELPER FUNCTIONS - END

@@ -1,11 +1,15 @@
 import request from 'sync-request-curl';
 import config from './config.json';
-import { requestDelete, requestAdminRegister } from './auth_2.test';
+
+import {
+  requestClear,
+  requestAdminRegister,
+} from './library/route_testing_functions';
+
 import {
   requestAdminQuizCreate,
   requestAdminQuizInfo,
-  requestAdminQuizInfoReturn,
-} from './quiz_2.test';
+} from './library/route_testing_functions';
 
 import {
   RESPONSE_OK_200,
@@ -15,7 +19,11 @@ import {
   WAIT_TIME,
 } from './library/constants';
 
-import { QuestionBody, CreateQuizQuestionReturn } from './library/interfaces';
+import {
+  QuestionBody,
+  CreateQuizQuestionReturn,
+  requestAdminQuizInfoReturn,
+} from './library/interfaces';
 
 // constants used throughout file - START
 
@@ -68,7 +76,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   let quizId: number;
 
   test('Testing successful creating a quiz question', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -125,7 +133,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Testing QuizId does not refer to valid quiz - error code 403', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -175,7 +183,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question string is less than 5 characters - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -232,7 +240,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question string is more than 50 characters - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -289,7 +297,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question duration is not a positive number - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -342,7 +350,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question has less than 2 answers - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -391,7 +399,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question has more than 6 answers - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -464,7 +472,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question duration exceeds 3 minutes - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -536,7 +544,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question duration updated correctly - response true', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -610,7 +618,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Points awarded for question is not between 1 and 10 - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -699,7 +707,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('The length of the answers must be between 1 and 30 characters - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -789,7 +797,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Answer strings are duplicates of one another - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -843,7 +851,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('There are no correct answers - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -897,7 +905,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Testing Token is empty or invalid - error code 401', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -953,7 +961,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Valid token is provided, but user is not an owner of this quiz - error code 403', () => {
-    requestDelete();
+    requestClear();
     // user1 created and user1's token creates quiz
     const user1 = requestAdminRegister(
       'abc@hotmail.com',
@@ -1048,7 +1056,7 @@ function requestUpdateQuestion(
 
 describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   test('Testing valid question update ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1110,7 +1118,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing valid question update with timeLastEdited changed', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1181,7 +1189,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing updating question with invalid questionId - error code 400', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1249,7 +1257,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing update question when answers is not between 2 and 6 - error code 400', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1362,7 +1370,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing update question with invalid question string length - error code 400', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1460,7 +1468,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing question update when question duration is not a positive number - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1525,7 +1533,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing question  update when question exceeds 3 minutes - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1590,7 +1598,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing question update when points are between 1 and 10 - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1683,7 +1691,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Length of answer must be between 1 and 30 characters ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1776,7 +1784,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing invalid question update with duplicate answers - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1842,7 +1850,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing invalid question update when there are no correct answers - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1908,7 +1916,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing invalid/empty token - error code 401', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1985,7 +1993,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing valid token provided, but wrong user - error code 403', () => {
-    requestDelete();
+    requestClear();
     const userOne = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -2081,10 +2089,19 @@ function requestDuplicateQuestion(
 
 describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', () => {
   test('Successful duplicate question', () => {
-    requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
       const QuestionOne = {
@@ -2123,8 +2140,14 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       if ('questionId' in resultTwo.bodyString) {
         const questionId = resultTwo.bodyString.questionId as number;
         // duplicate second question
-        const duplicateResult = requestDuplicateQuestion(quizId, questionId, token);
-        expect(duplicateResult.bodyString).toStrictEqual({ newQuestionId: expect.any(Number) });
+        const duplicateResult = requestDuplicateQuestion(
+          quizId,
+          questionId,
+          token
+        );
+        expect(duplicateResult.bodyString).toStrictEqual({
+          newQuestionId: expect.any(Number),
+        });
         expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_OK_200);
         const result = requestAdminQuizInfo(token, quizId);
         if ('questions' in result.bodyString) {
@@ -2139,10 +2162,19 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
   });
 
   test('QuestionId does not refer to valid question in this quiz - error code 400', () => {
-    requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
       const QuestionOne = {
@@ -2162,16 +2194,27 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       } as QuestionBody;
       requestCreateQuestion(token, QuestionOne, quizId);
       const duplicateResult = requestDuplicateQuestion(quizId, -1, token);
-      expect(duplicateResult.bodyString).toStrictEqual({ error: expect.any(String) });
+      expect(duplicateResult.bodyString).toStrictEqual({
+        error: expect.any(String),
+      });
       expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_ERROR_400);
     }
   });
 
   test('Token is empty or invalid - error code 401', () => {
-    requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
 
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
@@ -2197,23 +2240,45 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         const questionId = resultTwo.bodyString.questionId as number;
 
         const emptyToken = requestDuplicateQuestion(quizId, questionId, '');
-        expect(emptyToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        expect(emptyToken.bodyString).toStrictEqual({
+          error: expect.any(Number),
+        });
         expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
 
-        const invalidToken = requestDuplicateQuestion(quizId, questionId, 'abcfde');
-        expect(invalidToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        const invalidToken = requestDuplicateQuestion(
+          quizId,
+          questionId,
+          'abcfde'
+        );
+        expect(invalidToken.bodyString).toStrictEqual({
+          error: expect.any(Number),
+        });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
       }
     }
   });
 
   test('Valid token is provided, but user does not own quiz - error code 403', () => {
-    requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
-    const newUserTwo = requestAdminRegister('annleee@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
+    const newUserTwo = requestAdminRegister(
+      'annleee@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
     const tokenTwo = newUserTwo.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
 
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
@@ -2239,7 +2304,9 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         const questionId = result.bodyString.questionId as number;
 
         const invalidToken = requestDuplicateQuestion(quizId, questionId, '');
-        expect(invalidToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        expect(invalidToken.bodyString).toStrictEqual({
+          error: expect.any(Number),
+        });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_403);
       }
     }

@@ -1,10 +1,19 @@
 import request from 'sync-request-curl';
 import config from './config.json';
-import { requestAdminRegister } from './auth_2.test';
-import { requestAdminQuizCreate, requestAdminQuizInfo, requestClear } from './quiz_2.test';
+
+import {
+  requestClear,
+  requestAdminQuizCreate,
+  requestAdminQuizInfo,
+  requestAdminRegister,
+} from './library/route_testing_functions';
 import { QuestionBody, TokenString } from './library/interfaces';
 import { ErrorObjectWithCode } from './quiz';
-import { RESPONSE_ERROR_400, RESPONSE_ERROR_401, RESPONSE_ERROR_403 } from './library/constants';
+import {
+  RESPONSE_ERROR_400,
+  RESPONSE_ERROR_401,
+  RESPONSE_ERROR_403,
+} from './library/constants';
 
 const port = config.port;
 const url = config.url;
@@ -68,9 +77,13 @@ const requestDeleteQuizQuestion = (
   quizId: number,
   questionId: number
 ): RequestDeleteQuizQuestionReturn => {
-  const res = request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`, {
-    qs: { quizId, token, questionId },
-  });
+  const res = request(
+    'DELETE',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
+    {
+      qs: { quizId, token, questionId },
+    }
+  );
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
@@ -111,7 +124,11 @@ describe('deleteQuizQuestion testing', () => {
       validQuestion,
       QuizOne.quizId
     ).bodyString as CreateQuizQuestionReturn;
-    requestDeleteQuizQuestion(testToken, QuizOne.quizId, questionOne.createQuizQuestionResponse.questionId);
+    requestDeleteQuizQuestion(
+      testToken,
+      QuizOne.quizId,
+      questionOne.createQuizQuestionResponse.questionId
+    );
     const quiz1Info = requestAdminQuizInfo(testToken, QuizOne.quizId);
     expect(quiz1Info.bodyString).toStrictEqual({
       quizId: QuizOne.quizId,
@@ -160,7 +177,11 @@ describe('deleteQuizQuestion testing', () => {
       validQuestion,
       QuizOne.quizId
     ).bodyString as CreateQuizQuestionReturn;
-    const invalidQuizId = requestDeleteQuizQuestion(testToken, -1 * (QuizOne.quizId + 1531), questionOne.createQuizQuestionResponse.questionId);
+    const invalidQuizId = requestDeleteQuizQuestion(
+      testToken,
+      -1 * (QuizOne.quizId + 1531),
+      questionOne.createQuizQuestionResponse.questionId
+    );
     expect(invalidQuizId.statusCode).toBe(RESPONSE_ERROR_400);
     expect(invalidQuizId.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -202,7 +223,11 @@ describe('deleteQuizQuestion testing', () => {
       validQuestion,
       QuizOne.quizId
     ).bodyString as CreateQuizQuestionReturn;
-    const invalidQuestionId = requestDeleteQuizQuestion(testToken, QuizOne.quizId, -1 * (1531 + questionOne.createQuizQuestionResponse.questionId));
+    const invalidQuestionId = requestDeleteQuizQuestion(
+      testToken,
+      QuizOne.quizId,
+      -1 * (1531 + questionOne.createQuizQuestionResponse.questionId)
+    );
     expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_400);
     expect(invalidQuestionId.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -244,7 +269,11 @@ describe('deleteQuizQuestion testing', () => {
       validQuestion,
       QuizOne.quizId
     ).bodyString as CreateQuizQuestionReturn;
-    const invalidToken = requestDeleteQuizQuestion('invalid', QuizOne.quizId, questionOne.createQuizQuestionResponse.questionId);
+    const invalidToken = requestDeleteQuizQuestion(
+      'invalid',
+      QuizOne.quizId,
+      questionOne.createQuizQuestionResponse.questionId
+    );
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -286,7 +315,11 @@ describe('deleteQuizQuestion testing', () => {
       validQuestion,
       QuizOne.quizId
     ).bodyString as CreateQuizQuestionReturn;
-    const emptyToken = requestDeleteQuizQuestion('', -1 * QuizOne.quizId, questionOne.createQuizQuestionResponse.questionId);
+    const emptyToken = requestDeleteQuizQuestion(
+      '',
+      -1 * QuizOne.quizId,
+      questionOne.createQuizQuestionResponse.questionId
+    );
     expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(emptyToken.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -342,7 +375,11 @@ describe('deleteQuizQuestion testing', () => {
       validQuestion,
       JackQuiz.quizId
     ).bodyString as CreateQuizQuestionReturn;
-    const quizIdNotReferToUser1 = requestDeleteQuizQuestion(testToken2, JackQuiz.quizId, questionOne.createQuizQuestionResponse.questionId);
+    const quizIdNotReferToUser1 = requestDeleteQuizQuestion(
+      testToken2,
+      JackQuiz.quizId,
+      questionOne.createQuizQuestionResponse.questionId
+    );
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
       error: expect.any(String),
