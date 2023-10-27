@@ -20,8 +20,6 @@ import {
 
 import { TokenString, ErrorObjectWithCode } from './library/interfaces';
 
-// assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
-
 import { Quizzes } from './dataStore';
 
 // interfaces used throughout file - START
@@ -73,15 +71,6 @@ const SERVER_URL = `${url}:${port}`;
 
 // constants used throughout file - END
 
-// export const requestClear = () => {
-//   const res = request('DELETE', SERVER_URL + '/v1/clear', {
-//     timeout: WAIT_TIME,
-//   });
-//   const bodyString = JSON.parse(res.body.toString());
-//   const statusCode = res.statusCode;
-//   return { statusCode, bodyString };
-// };
-
 function requestAdminRegister(
   email: string,
   password: string,
@@ -111,67 +100,6 @@ const requestAdminAuthLogin = (
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
 
-// beforeAll(() => {
-//   requestClear();
-// });
-
-// describe('HTTP tests using Jest', () => {
-//   test('Test successful echo', () => {
-//     const res = request('GET', `${url}:${port}/echo`, {
-//       qs: {
-//         echo: 'Hello',
-//       },
-//       // adding a timeout will help you spot when your server hangs
-//       timeout: 100,
-//     });
-//     const bodyObj = JSON.parse(res.body as string);
-//     expect(res.statusCode).toBe(RESPONSE_OK_200);
-//     expect(bodyObj.value).toEqual('Hello');
-//   });
-//   test('Test invalid echo', () => {
-//     const res = request('GET', `${url}:${port}/echo`, {
-//       qs: {
-//         echo: 'echo',
-//       },
-//       timeout: 100,
-//     });
-//     const bodyObj = JSON.parse(res.body as string);
-//     expect(res.statusCode).toBe(RESPONSE_ERROR_400);
-//     expect(bodyObj.error).toStrictEqual(expect.any(String));
-//   });
-// });
-
-// // Helper functions:
-
-// export const requestAdminQuizCreate = (
-//   token: string,
-//   name: string,
-//   description: string
-// ): requestAdminQuizCreateReturn => {
-//   const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
-//     json: { token, name, description },
-//     timeout: WAIT_TIME,
-//   });
-//   return {
-//     statusCode: res.statusCode,
-//     bodyString: JSON.parse(res.body.toString()),
-//   };
-// };
-
-// export const requestAdminQuizInfo = (
-//   token: string,
-//   quizid: number
-// ): requestAdminQuizInfoReturn => {
-//   const res = request('GET', SERVER_URL + `/v1/admin/quiz/${quizid}`, {
-//     qs: {
-//       token,
-//       quizid,
-//     },
-//   });
-//   const bodyString = JSON.parse(res.body.toString());
-//   return { statusCode: res.statusCode, bodyString: bodyString };
-// };
-
 const requestAdminQuizRemove = (
   token: string,
   quizid: number
@@ -182,16 +110,6 @@ const requestAdminQuizRemove = (
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
-
-// export const requestAdminQuizList = (
-//   token: string
-// ): requestAdminQuizListReturn => {
-//   const res = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
-//     qs: { token },
-//   });
-//   const bodyString = JSON.parse(res.body.toString());
-//   return { statusCode: res.statusCode, bodyString: bodyString };
-// };
 
 // ***********************************************************************************
 // tests:
@@ -783,10 +701,6 @@ const requestAdminTrashQuizEmpty = (
 };
 
 describe('adminTrashQuizEmpty testing', () => {
-  // beforeAll(() => {
-  //   requestClear();
-  //   requestAdminRegister('emma1@hotmail.com', '123456ab', 'Emma', 'Homes');
-  // });
   test('StatusCode 200: Valid input', () => {
     requestClear();
     // create user

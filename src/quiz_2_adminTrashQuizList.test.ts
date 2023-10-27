@@ -40,16 +40,6 @@ interface QuizId {
   quizId: number;
 }
 
-// interface requestAdminQuizCreateReturn {
-//   statusCode?: number;
-//   bodyString: QuizId | ErrorObject;
-// }
-
-// interface requestAdminQuizInfoReturn {
-//   statusCode?: number;
-//   bodyString: Quizzes | ErrorObject;
-// }
-
 interface requestAdminQuizListReturn {
   statusCode?: number;
   bodyString: Quizzes[] | ErrorObject;
@@ -69,43 +59,6 @@ const url = config.url;
 const SERVER_URL = `${url}:${port}`;
 
 // constants used throughout file - END
-
-// const requestClear = () => {
-//   const res = request('DELETE', SERVER_URL + '/v1/clear', {
-//     timeout: WAIT_TIME,
-//   });
-//   const bodyString = JSON.parse(res.body.toString());
-//   const statusCode = res.statusCode;
-//   return { statusCode, bodyString };
-// };
-
-// export const requestAdminQuizCreate = (
-//   token: string,
-//   name: string,
-//   description: string
-// ): requestAdminQuizCreateReturn => {
-//   const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
-//     json: { token, name, description },
-//   });
-//   return {
-//     statusCode: res.statusCode,
-//     bodyString: JSON.parse(res.body.toString()),
-//   };
-// };
-
-// export const requestAdminQuizInfo = (
-//   token: string,
-//   quizid: number
-// ): requestAdminQuizInfoReturn => {
-//   const res = request('GET', SERVER_URL + `/v1/admin/quiz/${quizid}`, {
-//     qs: {
-//       token,
-//       quizid,
-//     },
-//   });
-//   const bodyString = JSON.parse(res.body.toString());
-//   return { statusCode: res.statusCode, bodyString: bodyString };
-// };
 
 const requestAdminQuizRemove = (
   token: string,
