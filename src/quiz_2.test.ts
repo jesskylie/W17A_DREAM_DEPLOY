@@ -183,6 +183,7 @@ describe('adminQuizInfo testing', () => {
 
     const testToken = returnTokenObj.token;
     const quizIdIsInvalid = requestAdminQuizInfo(testToken, -1 * 1531);
+
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
