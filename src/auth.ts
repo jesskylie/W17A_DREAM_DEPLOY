@@ -292,7 +292,6 @@ export function updatePassword(
       }
     }
   }
-  return { error: 'Token is empty or invalid', errorCode: RESPONSE_ERROR_401 };
 }
 
 // Iteration 2 functions

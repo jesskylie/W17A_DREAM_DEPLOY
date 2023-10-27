@@ -693,8 +693,7 @@ function deleteQuizQuestion(
 
 export { deleteQuizQuestion };
 
-export function adminQuizQuestionMove(
-  token: string,
+export function adminQuizQuestionMove(token: string,
   quizId: number,
   questionId: number,
   newPosition: number
