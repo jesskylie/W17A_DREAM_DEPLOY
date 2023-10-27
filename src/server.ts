@@ -185,9 +185,11 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 
   if ('error' in response) {
     if (response.errorCode === 400) {
-      return res.status(400).json(response);
+      // return res.status(400).json(response);
+      return res.status(400).json({ error: response.error });
     } else if (response.errorCode === 401) {
-      return res.status(401).json(response);
+      // return res.status(401).json(response);
+      return res.status(401).json({ error: response.error });
     }
   }
   res.json(response);
@@ -301,15 +303,30 @@ app.post('/v1/admin/quiz/:quizId/question', (req: Request, res: Response) => {
     if ('error' in testObj) {
       const testErrorCode = testObj.errorCode;
       if (testErrorCode === RESPONSE_ERROR_400) {
-        return res.status(RESPONSE_ERROR_400).json(response);
+        // return res.status(RESPONSE_ERROR_400).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_400)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
       } else if (testErrorCode === RESPONSE_ERROR_401) {
-        return res.status(RESPONSE_ERROR_401).json(response);
+        // return res.status(RESPONSE_ERROR_401).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_401)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
       } else if (testErrorCode === RESPONSE_ERROR_403) {
-        return res.status(RESPONSE_ERROR_403).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_403)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
+        // return res.status(RESPONSE_ERROR_403).json(response);
       }
     }
   }
-  res.json(response);
+  res.json(response.createQuizQuestionResponse);
 });
 
 app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {

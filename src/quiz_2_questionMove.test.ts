@@ -6,6 +6,7 @@ import {
   requestAdminQuizCreate,
   requestAdminQuizInfo,
   requestAdminRegister,
+  requestCreateQuestion,
 } from './library/route_testing_functions';
 import { QuestionBody } from './library/interfaces';
 import {
@@ -13,7 +14,7 @@ import {
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
 } from './library/constants';
-import { requestCreateQuestion } from './quiz_2_questionDelete.test';
+// import { requestCreateQuestion } from './quiz_2_questionDelete.test';
 import { Quizzes } from './dataStore';
 const port = config.port;
 const url = config.url;
@@ -25,10 +26,6 @@ interface QuizId {
 
 interface QuestionId {
   questionId: number;
-}
-
-interface CreateQuizQuestionReturn {
-  createQuizQuestionResponse: QuestionId;
 }
 
 export function requestAdminQuizQuestionMove(
@@ -83,7 +80,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionOne,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
       duration: 2,
@@ -98,7 +95,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
     const oldQuizInfo = requestAdminQuizInfo(token, newQuiz.quizId)
       .bodyString as Quizzes;
     const TimeBefore = expect(oldQuizInfo.timeLastEdited);
@@ -115,23 +112,23 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionThree,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
     requestAdminQuizQuestionMove(
       token,
       newQuiz.quizId,
-      questionTwo.createQuizQuestionResponse.questionId,
+      questionTwo.questionId,
       0
     );
     const newQuizInfo = requestAdminQuizInfo(token, newQuiz.quizId)
       .bodyString as Quizzes;
     expect(newQuizInfo.questions[0].questionId).toStrictEqual(
-      questionTwo.createQuizQuestionResponse.questionId
+      questionTwo.questionId
     );
     expect(newQuizInfo.questions[1].questionId).toStrictEqual(
-      questionOne.createQuizQuestionResponse.questionId
+      questionOne.questionId
     );
     expect(newQuizInfo.questions[2].questionId).toStrictEqual(
-      questionThree.createQuizQuestionResponse.questionId
+      questionThree.questionId
     );
     const TimeAfter = expect(newQuizInfo.timeLastEdited);
     expect(TimeBefore).not.toEqual(TimeAfter);
@@ -164,12 +161,12 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionOne,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
 
     const InvalidPositionNum = requestAdminQuizQuestionMove(
       token,
       newQuiz.quizId,
-      questionOne.createQuizQuestionResponse.questionId,
+      questionOne.questionId,
       -1
     );
     expect(InvalidPositionNum.statusCode).toBe(RESPONSE_ERROR_400);
@@ -204,12 +201,12 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionOne,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
 
     const InvalidPositionNum = requestAdminQuizQuestionMove(
       token,
       newQuiz.quizId,
-      questionOne.createQuizQuestionResponse.questionId,
+      questionOne.questionId,
       3
     );
 
@@ -252,12 +249,12 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionOne,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
 
     const InvalidPositionNum = requestAdminQuizQuestionMove(
       token,
       newQuiz.quizId,
-      questionOne.createQuizQuestionResponse.questionId,
+      questionOne.questionId,
       0
     );
     expect(InvalidPositionNum.statusCode).toBe(RESPONSE_ERROR_400);
@@ -296,7 +293,7 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
     requestCreateQuestion(token, validQuestionOne, newQuiz.quizId)
-      .bodyString as CreateQuizQuestionReturn;
+      .bodyString as QuestionId;
 
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
@@ -318,12 +315,12 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
 
     const invalidQuestionId = requestAdminQuizQuestionMove(
       token,
       newQuiz.quizId,
-      -1 * (999 + questionTwo.createQuizQuestionResponse.questionId),
+      -1 * (999 + questionTwo.questionId),
       0
     );
     expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_400);
@@ -362,7 +359,7 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
     requestCreateQuestion(token, validQuestionOne, newQuiz.quizId)
-      .bodyString as CreateQuizQuestionReturn;
+      .bodyString as QuestionId;
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
       duration: 2,
@@ -377,11 +374,11 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
     const invalidQuestionId = requestAdminQuizQuestionMove(
       'invalidToken#',
       newQuiz.quizId,
-      questionTwo.createQuizQuestionResponse.questionId,
+      questionTwo.questionId,
       0
     );
     expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_401);
@@ -415,7 +412,7 @@ describe('AdminQuizQuestionMove testing', () => {
     } as QuestionBody;
 
     requestCreateQuestion(token, validQuestionOne, newQuiz.quizId)
-      .bodyString as CreateQuizQuestionReturn;
+      .bodyString as QuestionId;
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
       duration: 2,
@@ -436,12 +433,12 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
 
     const invalidQuestionId = requestAdminQuizQuestionMove(
       '',
       newQuiz.quizId,
-      questionTwo.createQuizQuestionResponse.questionId,
+      questionTwo.questionId,
       0
     );
 
@@ -488,7 +485,7 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
     requestCreateQuestion(token, validQuestionOne, newQuiz.quizId)
-      .bodyString as CreateQuizQuestionReturn;
+      .bodyString as QuestionId;
 
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
@@ -510,12 +507,12 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as CreateQuizQuestionReturn;
+    ).bodyString as QuestionId;
 
     const invalidToken = requestAdminQuizQuestionMove(
       token2,
       newQuiz.quizId,
-      questionTwo.createQuizQuestionResponse.questionId,
+      questionTwo.questionId,
       0
     );
 
