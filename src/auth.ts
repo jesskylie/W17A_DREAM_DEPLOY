@@ -5,7 +5,7 @@ import {
   saveDataInFile,
   isTokenValid,
   getAuthUserIdUsingToken,
-} from './functions';
+} from './library/functions';
 import { uid } from 'uid';
 import { ErrorObjectWithCode } from './quiz';
 

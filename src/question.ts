@@ -8,7 +8,7 @@ import {
   countAllQuestions,
   countAllAnswers,
   returnRandomColour,
-} from './functions';
+} from './library/functions';
 
 import {
   RESPONSE_ERROR_400,
@@ -693,7 +693,8 @@ function deleteQuizQuestion(
 
 export { deleteQuizQuestion };
 
-export function adminQuizQuestionMove(token: string,
+export function adminQuizQuestionMove(
+  token: string,
   quizId: number,
   questionId: number,
   newPosition: number
