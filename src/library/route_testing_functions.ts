@@ -1,6 +1,3 @@
-// Do not delete this file _
-// All tests passing
-// All lint checks passing
 import request from 'sync-request-curl';
 import config from '../config.json';
 
@@ -28,15 +25,6 @@ export const requestClear = () => {
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
-
-// function requestDelete() {
-//   const res = request('DELETE', SERVER_URL + '/v1/clear');
-//   return {
-//     body: JSON.parse(res.body.toString()),
-//     status: res.statusCode,
-//     timeout: WAIT_TIME,
-//   };
-// }
 
 export const requestAdminQuizCreate = (
   token: string,

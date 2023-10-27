@@ -1,7 +1,6 @@
 import request from 'sync-request-curl';
 import config from './config.json';
-// import { requestAdminRegister } from './auth_2.test';
-// import { requestAdminQuizCreate, requestAdminQuizInfo, requestClear } from './quiz_2.test';
+
 import {
   requestClear,
   requestAdminQuizCreate,
