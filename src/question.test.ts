@@ -1,11 +1,16 @@
 import request from 'sync-request-curl';
 import config from './config.json';
 import { requestDelete, requestAdminRegister } from './auth_2.test';
+// import {
+//   requestAdminQuizCreate,
+//   requestAdminQuizInfo,
+//   requestAdminQuizInfoReturn,
+// } from './quiz_2.test';
+
 import {
   requestAdminQuizCreate,
   requestAdminQuizInfo,
-  requestAdminQuizInfoReturn,
-} from './quiz_2.test';
+} from './library/route_testing_functions';
 
 import {
   RESPONSE_OK_200,
@@ -15,7 +20,11 @@ import {
   WAIT_TIME,
 } from './library/constants';
 
-import { QuestionBody, CreateQuizQuestionReturn } from './library/interfaces';
+import {
+  QuestionBody,
+  CreateQuizQuestionReturn,
+  requestAdminQuizInfoReturn,
+} from './library/interfaces';
 
 // constants used throughout file - START
 
@@ -2082,9 +2091,18 @@ function requestDuplicateQuestion(
 describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', () => {
   test('Successful duplicate question', () => {
     requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
       const QuestionOne = {
@@ -2123,8 +2141,14 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       if ('questionId' in resultTwo.bodyString) {
         const questionId = resultTwo.bodyString.questionId as number;
         // duplicate second question
-        const duplicateResult = requestDuplicateQuestion(quizId, questionId, token);
-        expect(duplicateResult.bodyString).toStrictEqual({ newQuestionId: expect.any(Number) });
+        const duplicateResult = requestDuplicateQuestion(
+          quizId,
+          questionId,
+          token
+        );
+        expect(duplicateResult.bodyString).toStrictEqual({
+          newQuestionId: expect.any(Number),
+        });
         expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_OK_200);
         const result = requestAdminQuizInfo(token, quizId);
         if ('questions' in result.bodyString) {
@@ -2140,9 +2164,18 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
 
   test('QuestionId does not refer to valid question in this quiz - error code 400', () => {
     requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
       const QuestionOne = {
@@ -2162,16 +2195,27 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       } as QuestionBody;
       requestCreateQuestion(token, QuestionOne, quizId);
       const duplicateResult = requestDuplicateQuestion(quizId, -1, token);
-      expect(duplicateResult.bodyString).toStrictEqual({ error: expect.any(String) });
+      expect(duplicateResult.bodyString).toStrictEqual({
+        error: expect.any(String),
+      });
       expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_ERROR_400);
     }
   });
 
   test('Token is empty or invalid - error code 401', () => {
     requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
 
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
@@ -2197,11 +2241,19 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         const questionId = resultTwo.bodyString.questionId as number;
 
         const emptyToken = requestDuplicateQuestion(quizId, questionId, '');
-        expect(emptyToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        expect(emptyToken.bodyString).toStrictEqual({
+          error: expect.any(Number),
+        });
         expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
 
-        const invalidToken = requestDuplicateQuestion(quizId, questionId, 'abcfde');
-        expect(invalidToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        const invalidToken = requestDuplicateQuestion(
+          quizId,
+          questionId,
+          'abcfde'
+        );
+        expect(invalidToken.bodyString).toStrictEqual({
+          error: expect.any(Number),
+        });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
       }
     }
@@ -2209,11 +2261,25 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
 
   test('Valid token is provided, but user does not own quiz - error code 403', () => {
     requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
-    const newUserTwo = requestAdminRegister('annleee@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
+    const newUserTwo = requestAdminRegister(
+      'annleee@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
     const tokenTwo = newUserTwo.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
 
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
@@ -2239,7 +2305,9 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         const questionId = result.bodyString.questionId as number;
 
         const invalidToken = requestDuplicateQuestion(quizId, questionId, '');
-        expect(invalidToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        expect(invalidToken.bodyString).toStrictEqual({
+          error: expect.any(Number),
+        });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_403);
       }
     }
