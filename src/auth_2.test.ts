@@ -286,7 +286,12 @@ describe('Testing PUT /v1/admin/user/password', () => {
   });
 
   test('New password is less than 8 characters - with error code 400', () => {
-    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
+    const response = requestAdminRegister(
+      'abc@hotmail.com',
+      'abcde4284',
+      'Ann',
+      'Pie'
+    );
     const result = requestUpdatePassword(response.body.token, 'abcde4284', 'a');
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
@@ -296,8 +301,17 @@ describe('Testing PUT /v1/admin/user/password', () => {
   });
 
   test('New password does not contain at least one number and one letter - with error code 400', () => {
-    const response = requestAdminRegister('abc@hotmail.com', 'abcde4284', 'Ann', 'Pie');
-    const result = requestUpdatePassword(response.body.token, 'abcde4284', '12345678910');
+    const response = requestAdminRegister(
+      'abc@hotmail.com',
+      'abcde4284',
+      'Ann',
+      'Pie'
+    );
+    const result = requestUpdatePassword(
+      response.body.token,
+      'abcde4284',
+      '12345678910'
+    );
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
