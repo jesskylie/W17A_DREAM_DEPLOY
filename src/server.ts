@@ -140,9 +140,11 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 
   if ('error' in response) {
     if (response.errorCode === 400) {
-      return res.status(400).json(response);
+      // return res.status(400).json(response);
+      return res.status(400).json({ error: response.error });
     } else if (response.errorCode === 401) {
-      return res.status(401).json(response);
+      // return res.status(401).json(response);
+      return res.status(401).json({ error: response.error });
     }
   }
   res.json(response);
@@ -162,13 +164,19 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
     if ('error' in testObj) {
       const testStatusCode = testObj.errorCode;
       if (testStatusCode === 400) {
-        return res.status(400).json(response);
+        // return res.status(400).json(response);
+        return res
+          .status(400)
+          .json({ error: response.detailsUpdateResponse.error });
       } else if (testStatusCode === 401) {
-        return res.status(401).json(response);
+        // return res.status(401).json(response);
+        return res
+          .status(401)
+          .json({ error: response.detailsUpdateResponse.error });
       }
     }
   }
-  res.json(response);
+  res.json(response.detailsUpdateResponse);
 });
 
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
