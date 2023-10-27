@@ -1,6 +1,11 @@
 import request from 'sync-request-curl';
 import config from './config.json';
-import { requestDelete, requestAdminRegister } from './auth_2.test';
+// import { requestDelete, requestAdminRegister } from './auth_2.test';
+// import { requestAdminRegister } from './auth_2.test';
+import {
+  requestDelete,
+  requestAdminRegister,
+} from './library/route_testing_functions';
 // import {
 //   requestAdminQuizCreate,
 //   requestAdminQuizInfo,

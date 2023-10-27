@@ -29,6 +29,15 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export function requestDelete() {
+  const res = request('DELETE', SERVER_URL + '/v1/clear');
+  return {
+    body: JSON.parse(res.body.toString()),
+    status: res.statusCode,
+    timeout: WAIT_TIME,
+  };
+}
+
 export const requestAdminQuizCreate = (
   token: string,
   name: string,
@@ -67,3 +76,23 @@ export const requestAdminQuizInfo = (
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
+
+export function requestAdminRegister(
+  email: string,
+  password: string,
+  nameFirst: string,
+  nameLast: string
+) {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+    json: {
+      email: email,
+      password: password,
+      nameFirst: nameFirst,
+      nameLast: nameLast,
+    },
+  });
+  return {
+    body: JSON.parse(res.body.toString()),
+    status: res.statusCode,
+  };
+}
