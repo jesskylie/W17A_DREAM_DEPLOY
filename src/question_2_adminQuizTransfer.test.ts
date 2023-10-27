@@ -1,11 +1,15 @@
 import request from 'sync-request-curl';
 import config from './config.json';
-import { requestDelete, requestAdminRegister } from './auth_2.test';
+
+import {
+  requestClear,
+  requestAdminRegister,
+} from './library/route_testing_functions';
+
 import {
   requestAdminQuizCreate,
   requestAdminQuizList,
-  requestAdminQuizListReturn,
-} from './quiz_2.test';
+} from './library/route_testing_functions';
 
 import {
   RESPONSE_OK_200,
@@ -17,6 +21,7 @@ import {
 import {
   CreateQuizQuestionReturn,
   ErrorObjectWithCode,
+  requestAdminQuizListReturn,
 } from './library/interfaces';
 
 // constants used throughout file - START
@@ -112,7 +117,7 @@ function doesQuizExist(
 
 describe('Testing POST adminQuizTransfer', () => {
   test('Testing successful transferring a quiz - EXPECT SUCCESS 200', () => {
-    requestDelete();
+    requestClear();
 
     const user1Email = 'abc@hotmail.com';
     const user2Email = 'xyz@hotmail.com';
@@ -207,7 +212,7 @@ describe('Testing POST adminQuizTransfer', () => {
   });
 
   test('Testing transferee userEmail is not a real user - error code 400', () => {
-    requestDelete();
+    requestClear();
     const user1Email = 'abc@hotmail.com';
     const user2Email = 'xyz@hotmail.com';
 
@@ -258,7 +263,7 @@ describe('Testing POST adminQuizTransfer', () => {
   });
 
   test('Testing transferee userEmail is not a real user (invalid email) - error code 400', () => {
-    requestDelete();
+    requestClear();
     const user1Email = 'abc@hotmail';
     const user2Email = 'xyz@hotmail.com';
 
@@ -309,7 +314,7 @@ describe('Testing POST adminQuizTransfer', () => {
   });
 
   test('Testing userEmail is the current logged in user - error code 400', () => {
-    requestDelete();
+    requestClear();
     const user2Email = 'xyz@hotmail.com';
 
     // create user 2
@@ -359,7 +364,7 @@ describe('Testing POST adminQuizTransfer', () => {
   });
 
   test('Quiz ID refers to a quiz that has a name that is already used by the target user - error code 400', () => {
-    requestDelete();
+    requestClear();
 
     const user1Email = 'abc@hotmail.com';
     const user2Email = 'xyz@hotmail.com';
@@ -413,7 +418,7 @@ describe('Testing POST adminQuizTransfer', () => {
   });
 
   test('Token is empty or invalid (does not refer to valid logged in user session) - error code 401', () => {
-    requestDelete();
+    requestClear();
 
     const user2Email = 'xyz@hotmail.com';
 
@@ -465,7 +470,7 @@ describe('Testing POST adminQuizTransfer', () => {
   });
 
   test('Valid token is provided, but user is not an owner of this quiz - error code 403', () => {
-    requestDelete();
+    requestClear();
 
     const user1Email = 'abc@hotmail.com';
     const user2Email = 'xyz@hotmail.com';

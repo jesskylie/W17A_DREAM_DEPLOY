@@ -12,8 +12,12 @@ import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  WAIT_TIME,
 } from './library/constants';
+
+import {
+  requestClear,
+  requestAdminRegister,
+} from './library/route_testing_functions';
 
 // constants used throughout file - START
 
@@ -33,7 +37,7 @@ interface ErrorObject {
 
 // Functions to execute before each test is run - START
 beforeEach(() => {
-  requestDelete();
+  requestClear();
 });
 
 // Functions to execute before each test is run - END
@@ -63,26 +67,6 @@ describe('HTTP tests using Jest', () => {
     expect(bodyObj.error).toStrictEqual(expect.any(String));
   });
 });
-
-export function requestAdminRegister(
-  email: string,
-  password: string,
-  nameFirst: string,
-  nameLast: string
-) {
-  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-    json: {
-      email: email,
-      password: password,
-      nameFirst: nameFirst,
-      nameLast: nameLast,
-    },
-  });
-  return {
-    body: JSON.parse(res.body.toString()),
-    status: res.statusCode,
-  };
-}
 
 describe('Testing POST /v1/admin/auth/register - SUCCESS', () => {
   test('Test successful adminAuthRegister', () => {
@@ -240,10 +224,10 @@ describe('Testing PUT /v1/admin/user/password', () => {
       '123456abncdefff',
       'newpasswordCHange'
     );
+
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -262,7 +246,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -281,7 +264,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -296,7 +278,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -315,7 +296,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -325,7 +305,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_401);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 401,
     });
   });
 });
@@ -373,15 +352,6 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 });
 
-export function requestDelete() {
-  const res = request('DELETE', SERVER_URL + '/v1/clear');
-  return {
-    body: JSON.parse(res.body.toString()),
-    status: res.statusCode,
-    timeout: WAIT_TIME,
-  };
-}
-
 describe('Testing DELETE /v1/clear', () => {
   test('Test successful delete by searching for deleted users token', () => {
     const response = requestAdminRegister(
@@ -390,10 +360,10 @@ describe('Testing DELETE /v1/clear', () => {
       'Ann',
       'Pie'
     );
-    const deleteResponse = requestDelete();
+    const deleteResponse = requestClear();
     const user = requestUserDetails(response.body.token);
     expect(user.body).toStrictEqual({ error: expect.any(String) });
-    expect(deleteResponse.status).toStrictEqual(RESPONSE_OK_200);
+    expect(deleteResponse.statusCode).toStrictEqual(RESPONSE_OK_200);
   });
 
   test('Test successful delete by displaying users after deleting', () => {
@@ -415,7 +385,7 @@ describe('Testing DELETE /v1/clear', () => {
       'Ann',
       'Pie'
     );
-    const deleteResponse = requestDelete();
+    const deleteResponse = requestClear();
 
     const result = requestUserDetails(user1.body.token);
     expect(result.body).toStrictEqual({ error: expect.any(String) });
@@ -426,7 +396,7 @@ describe('Testing DELETE /v1/clear', () => {
     const result3 = requestUserDetails(user3.body.token);
     expect(result3.body).toStrictEqual({ error: expect.any(String) });
 
-    expect(deleteResponse.status).toStrictEqual(RESPONSE_OK_200);
+    expect(deleteResponse.statusCode).toStrictEqual(RESPONSE_OK_200);
   });
 });
 

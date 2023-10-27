@@ -8,7 +8,7 @@ import {
   countAllQuestions,
   countAllAnswers,
   returnRandomColour,
-} from './functions';
+} from './library/functions';
 
 import {
   RESPONSE_ERROR_400,
@@ -378,7 +378,11 @@ export function updateQuizQuestion(
 
   // 401 error token is invalid
   if (!isTokenValid(data, token)) {
-    return { error: 'Invalid token provided', errorCode: 401 };
+    return {
+      error:
+        'Token is empty or invalid (does not refer to valid logged in user session)',
+      errorCode: 401,
+    };
   }
 
   // 403 error - valid token provided but incorrect user
@@ -390,7 +394,8 @@ export function updateQuizQuestion(
     if (user.authUserId === authUserId) {
       if (!user.quizId.includes(quizId)) {
         return {
-          error: 'Valid token provided but incorrect user',
+          error:
+            'Valid token is provided, but user is unauthorised to complete this action',
           errorCode: 403,
         };
       }
@@ -693,7 +698,8 @@ function deleteQuizQuestion(
 
 export { deleteQuizQuestion };
 
-export function adminQuizQuestionMove(token: string,
+export function adminQuizQuestionMove(
+  token: string,
   quizId: number,
   questionId: number,
   newPosition: number

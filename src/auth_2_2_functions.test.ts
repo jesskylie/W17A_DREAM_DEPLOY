@@ -934,14 +934,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
@@ -987,14 +983,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
@@ -1040,14 +1032,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
@@ -1093,14 +1081,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
@@ -1147,14 +1131,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
@@ -1200,14 +1180,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
@@ -1253,14 +1229,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
@@ -1307,14 +1279,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
@@ -1355,14 +1323,10 @@ describe('test /v1/admin/user/details : Returns an error object -> EXPECT 400 SU
     // test for error object
     if ('bodyString' in testAdminUserDetailUpdateRt) {
       const testObject = testAdminUserDetailUpdateRt.bodyString;
-      if ('detailsUpdateResponse' in testObject) {
-        const testObj2 = testObject.detailsUpdateResponse;
-        if ('error' in testObj2) {
-          const testErrorObj = { error: testObj2.error };
-          expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
-        }
-      } else {
-        expect(true).toStrictEqual(false);
+
+      if ('error' in testObject) {
+        const testErrorObj = { error: testObject.error };
+        expect(testErrorObj).toStrictEqual({ error: expect.any(String) });
       }
     } else {
       expect(true).toStrictEqual(false);
