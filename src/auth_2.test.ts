@@ -12,8 +12,12 @@ import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  WAIT_TIME,
 } from './library/constants';
+
+import {
+  requestDelete,
+  requestAdminRegister,
+} from './library/route_testing_functions';
 
 // constants used throughout file - START
 
@@ -64,25 +68,25 @@ describe('HTTP tests using Jest', () => {
   });
 });
 
-export function requestAdminRegister(
-  email: string,
-  password: string,
-  nameFirst: string,
-  nameLast: string
-) {
-  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-    json: {
-      email: email,
-      password: password,
-      nameFirst: nameFirst,
-      nameLast: nameLast,
-    },
-  });
-  return {
-    body: JSON.parse(res.body.toString()),
-    status: res.statusCode,
-  };
-}
+// export function requestAdminRegister(
+//   email: string,
+//   password: string,
+//   nameFirst: string,
+//   nameLast: string
+// ) {
+//   const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
+//     json: {
+//       email: email,
+//       password: password,
+//       nameFirst: nameFirst,
+//       nameLast: nameLast,
+//     },
+//   });
+//   return {
+//     body: JSON.parse(res.body.toString()),
+//     status: res.statusCode,
+//   };
+// }
 
 describe('Testing POST /v1/admin/auth/register - SUCCESS', () => {
   test('Test successful adminAuthRegister', () => {
@@ -373,14 +377,14 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 });
 
-export function requestDelete() {
-  const res = request('DELETE', SERVER_URL + '/v1/clear');
-  return {
-    body: JSON.parse(res.body.toString()),
-    status: res.statusCode,
-    timeout: WAIT_TIME,
-  };
-}
+// export function requestDelete() {
+//   const res = request('DELETE', SERVER_URL + '/v1/clear');
+//   return {
+//     body: JSON.parse(res.body.toString()),
+//     status: res.statusCode,
+//     timeout: WAIT_TIME,
+//   };
+// }
 
 describe('Testing DELETE /v1/clear', () => {
   test('Test successful delete by searching for deleted users token', () => {

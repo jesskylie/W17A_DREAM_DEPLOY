@@ -1,10 +1,11 @@
 import request from 'sync-request-curl';
 import config from './config.json';
-import { requestAdminRegister } from './auth_2.test';
+// import { requestAdminRegister } from './auth_2.test';
 import {
   requestClear,
   requestAdminQuizCreate,
   requestAdminQuizInfo,
+  requestAdminRegister,
 } from './library/route_testing_functions';
 import { QuestionBody, TokenString } from './library/interfaces';
 import { ErrorObjectWithCode } from './quiz';
