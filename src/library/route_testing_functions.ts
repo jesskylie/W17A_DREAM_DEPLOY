@@ -7,6 +7,8 @@ import {
   requestAdminQuizCreateReturn,
   requestAdminQuizListReturn,
   requestAdminQuizInfoReturn,
+  QuestionBody,
+  requestCreateQuestionReturn,
 } from './interfaces';
 
 // constants used throughout file - START
@@ -82,5 +84,31 @@ export function requestAdminRegister(
   return {
     body: JSON.parse(res.body.toString()),
     status: res.statusCode,
+  };
+}
+
+export function requestCreateQuestion(
+  token: string,
+  question: QuestionBody,
+  quizId: number
+): requestCreateQuestionReturn {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question`,
+    {
+      json: {
+        token: token,
+        questionBody: {
+          question: question.question,
+          duration: question.duration,
+          points: question.points,
+          answers: question.answers as QuestionBody['answers'],
+        },
+      },
+    }
+  );
+  return {
+    bodyString: JSON.parse(res.body.toString()),
+    statusCode: res.statusCode,
   };
 }

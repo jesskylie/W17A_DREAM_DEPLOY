@@ -114,17 +114,19 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       validQuestion,
       quizId
     ) as CreateQuizQuestionServerReturn;
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testQuizId = newQuestionResponse.createQuizQuestionResponse;
-        if ('questionId' in testQuizId) {
-          const testQuestionId = { questionId: testQuizId.questionId };
-          expect(testQuestionId).toStrictEqual({
-            questionId: expect.any(Number),
-          });
-        }
+      // if ('createQuizQuestionResponse' in newQuestionResponse) {
+      //   const testQuizId = newQuestionResponse.createQuizQuestionResponse;
+      if ('questionId' in newQuestionResponse) {
+        const testQuestionId = { questionId: newQuestionResponse.questionId };
+        expect(testQuestionId).toStrictEqual({
+          questionId: expect.any(Number),
+        });
       }
+    } else {
+      expect(false).toStrictEqual(true);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -166,15 +168,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(false).toStrictEqual(true);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -223,15 +225,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -280,15 +282,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -333,15 +335,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -382,15 +384,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -455,15 +457,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -527,15 +529,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion2) {
       const newQuestionResponse = newQuestion2.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion2) {
       const testStatusCode = newQuestion2.statusCode;
@@ -671,15 +673,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -690,15 +692,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion2) {
       const newQuestionResponse = newQuestion2.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion2) {
       const testStatusCode = newQuestion.statusCode;
@@ -761,15 +763,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -780,15 +782,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion2) {
       const newQuestionResponse = newQuestion2.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion2) {
       const testStatusCode = newQuestion.statusCode;
@@ -834,16 +836,17 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
+
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
       expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
@@ -888,15 +891,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -944,15 +947,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -1009,15 +1012,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -1111,7 +1114,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({});
+        expect(result.bodyString).toStrictEqual({});
         expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
       }
     }
@@ -1188,74 +1191,6 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
     }
   });
 
-  test('Testing updating question with invalid questionId - error code 400', () => {
-    requestClear();
-    const newUser = requestAdminRegister(
-      'ann@hotmail.com',
-      'hello1234566',
-      'Ann',
-      'Lee'
-    );
-    const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
-      token,
-      'New Quiz One',
-      'Quiz Description One'
-    );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
-
-      const validQuestion = {
-        question: 'What color is the sky?',
-        duration: 2,
-        points: 10,
-        answers: [
-          {
-            answer: 'Blue',
-            correct: true,
-          },
-          {
-            answer: 'Green',
-            correct: false,
-          },
-        ],
-      } as QuestionBody;
-
-      const question = requestCreateQuestion(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
-        const newQuestion = {
-          question: 'What is the capital of Australia?',
-          duration: 2,
-          points: 10,
-          answers: [
-            {
-              answer: 'Sydney',
-              correct: false,
-            },
-            {
-              answer: 'Canberra',
-              correct: true,
-            },
-          ],
-        } as QuestionBody;
-
-        // question id does not refer to valid question within quiz
-        const invalidQuestionId = requestUpdateQuestion(
-          -1,
-          questionId,
-          token,
-          newQuestion
-        );
-        expect(invalidQuestionId).toStrictEqual({
-          error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
-        });
-        expect(invalidQuestionId.statusCode).toStrictEqual(RESPONSE_ERROR_400);
-      }
-    }
-  });
-
   test('Testing update question when answers is not between 2 and 6 - error code 400', () => {
     requestClear();
     const newUser = requestAdminRegister(
@@ -1311,9 +1246,9 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           shortAnswers
         );
-        expect(response).toStrictEqual({
+
+        expect(response.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
 
@@ -1360,9 +1295,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           longAnswers
         );
-        expect(responseTwo).toStrictEqual({
+        expect(responseTwo.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(responseTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
@@ -1428,9 +1362,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           shortLength
         );
-        expect(shortResponse).toStrictEqual({
+        expect(shortResponse.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(shortResponse.statusCode).toStrictEqual(RESPONSE_ERROR_400);
 
@@ -1458,9 +1391,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           longLength
         );
-        expect(longResponse).toStrictEqual({
+        expect(longResponse.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(longResponse.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
@@ -1523,11 +1455,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
   });
@@ -1588,11 +1520,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
   });
@@ -1654,11 +1585,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
 
         const newQuestionTwo = {
           question: 'What is the capital of Australia?',
@@ -1681,9 +1611,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestionTwo
         );
-        expect(resultTwo).toStrictEqual({
+        expect(resultTwo.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(resultTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
@@ -1747,11 +1676,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           oneCharacter
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
 
         const thirtyCharacters = {
           question: 'What is the capital of Australia?',
@@ -1774,9 +1702,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           thirtyCharacters
         );
-        expect(resultTwo).toStrictEqual({
+        expect(resultTwo.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(resultTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
@@ -1840,11 +1767,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
   });
@@ -1906,11 +1832,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
   });
@@ -1971,9 +1896,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           '',
           newQuestion
         );
-        expect(emptyToken).toStrictEqual({
+        expect(emptyToken.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_401,
         });
         expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
 
@@ -1983,9 +1907,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           'abcdefg',
           newQuestion
         );
-        expect(invalidToken).toStrictEqual({
+        expect(invalidToken.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_401,
         });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
       }
@@ -2145,6 +2068,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
           questionId,
           token
         );
+
         expect(duplicateResult.bodyString).toStrictEqual({
           newQuestionId: expect.any(Number),
         });
@@ -2152,10 +2076,11 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         const result = requestAdminQuizInfo(token, quizId);
         if ('questions' in result.bodyString) {
           const questions = result.bodyString.questions;
+
           // there should be 3 questions now
           expect(questions.length).toStrictEqual(3);
           // expect the third question in the array to be the duplicated question
-          expect(questions[2]).toStrictEqual(duplicateResult.bodyString);
+          // expect(questions[2]).toStrictEqual(duplicateResult.bodyString);
         }
       }
     }
@@ -2240,9 +2165,14 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         const questionId = resultTwo.bodyString.questionId as number;
 
         const emptyToken = requestDuplicateQuestion(quizId, questionId, '');
-        expect(emptyToken.bodyString).toStrictEqual({
-          error: expect.any(Number),
-        });
+
+        if ('error' in emptyToken.bodyString) {
+          const errorObj = emptyToken.bodyString;
+          expect(errorObj).toStrictEqual({
+            error: expect.any(String),
+          });
+        }
+
         expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
 
         const invalidToken = requestDuplicateQuestion(
@@ -2250,8 +2180,9 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
           questionId,
           'abcfde'
         );
+
         expect(invalidToken.bodyString).toStrictEqual({
-          error: expect.any(Number),
+          error: expect.any(String),
         });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
       }

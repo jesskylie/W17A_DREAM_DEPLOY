@@ -224,10 +224,10 @@ describe('Testing PUT /v1/admin/user/password', () => {
       '123456abncdefff',
       'newpasswordCHange'
     );
+
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -246,7 +246,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -265,7 +264,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -280,7 +278,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -299,7 +296,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_400);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 400,
     });
   });
 
@@ -309,7 +305,6 @@ describe('Testing PUT /v1/admin/user/password', () => {
     expect(result.status).toStrictEqual(RESPONSE_ERROR_401);
     expect(result.body).toStrictEqual({
       error: expect.any(String),
-      errorCode: 401,
     });
   });
 });
