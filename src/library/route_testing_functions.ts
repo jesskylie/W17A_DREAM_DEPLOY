@@ -29,14 +29,14 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export function requestDelete() {
-  const res = request('DELETE', SERVER_URL + '/v1/clear');
-  return {
-    body: JSON.parse(res.body.toString()),
-    status: res.statusCode,
-    timeout: WAIT_TIME,
-  };
-}
+// function requestDelete() {
+//   const res = request('DELETE', SERVER_URL + '/v1/clear');
+//   return {
+//     body: JSON.parse(res.body.toString()),
+//     status: res.statusCode,
+//     timeout: WAIT_TIME,
+//   };
+// }
 
 export const requestAdminQuizCreate = (
   token: string,

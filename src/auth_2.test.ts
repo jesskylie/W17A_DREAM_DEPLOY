@@ -15,7 +15,8 @@ import {
 } from './library/constants';
 
 import {
-  requestDelete,
+  // requestClear,
+  requestClear,
   requestAdminRegister,
 } from './library/route_testing_functions';
 
@@ -37,7 +38,7 @@ interface ErrorObject {
 
 // Functions to execute before each test is run - START
 beforeEach(() => {
-  requestDelete();
+  requestClear();
 });
 
 // Functions to execute before each test is run - END
@@ -377,7 +378,7 @@ describe('Testing GET /v1/admin/user/details', () => {
   });
 });
 
-// export function requestDelete() {
+// export function requestClear() {
 //   const res = request('DELETE', SERVER_URL + '/v1/clear');
 //   return {
 //     body: JSON.parse(res.body.toString()),
@@ -394,10 +395,10 @@ describe('Testing DELETE /v1/clear', () => {
       'Ann',
       'Pie'
     );
-    const deleteResponse = requestDelete();
+    const deleteResponse = requestClear();
     const user = requestUserDetails(response.body.token);
     expect(user.body).toStrictEqual({ error: expect.any(String) });
-    expect(deleteResponse.status).toStrictEqual(RESPONSE_OK_200);
+    expect(deleteResponse.statusCode).toStrictEqual(RESPONSE_OK_200);
   });
 
   test('Test successful delete by displaying users after deleting', () => {
@@ -419,7 +420,7 @@ describe('Testing DELETE /v1/clear', () => {
       'Ann',
       'Pie'
     );
-    const deleteResponse = requestDelete();
+    const deleteResponse = requestClear();
 
     const result = requestUserDetails(user1.body.token);
     expect(result.body).toStrictEqual({ error: expect.any(String) });
@@ -430,7 +431,7 @@ describe('Testing DELETE /v1/clear', () => {
     const result3 = requestUserDetails(user3.body.token);
     expect(result3.body).toStrictEqual({ error: expect.any(String) });
 
-    expect(deleteResponse.status).toStrictEqual(RESPONSE_OK_200);
+    expect(deleteResponse.statusCode).toStrictEqual(RESPONSE_OK_200);
   });
 });
 
