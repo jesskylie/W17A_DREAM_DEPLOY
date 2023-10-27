@@ -9,8 +9,14 @@ import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-  WAIT_TIME,
 } from './library/constants';
+
+import {
+  requestClear,
+  requestAdminQuizCreate,
+  requestAdminQuizList,
+  requestAdminQuizInfo,
+} from './library/route_testing_functions';
 
 import { TokenString, ErrorObjectWithCode } from './library/interfaces';
 
@@ -35,11 +41,6 @@ interface requestAdminRegisterReturn {
 interface requestAdminAuthLoginReturn {
   statusCode?: number;
   bodyString: TokenString | ErrorObject;
-}
-
-interface requestAdminQuizCreateReturn {
-  statusCode?: number;
-  bodyString: QuizId | ErrorObject;
 }
 
 export interface requestAdminQuizInfoReturn {
@@ -72,14 +73,14 @@ const SERVER_URL = `${url}:${port}`;
 
 // constants used throughout file - END
 
-export const requestClear = () => {
-  const res = request('DELETE', SERVER_URL + '/v1/clear', {
-    timeout: WAIT_TIME,
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-  return { statusCode, bodyString };
-};
+// export const requestClear = () => {
+//   const res = request('DELETE', SERVER_URL + '/v1/clear', {
+//     timeout: WAIT_TIME,
+//   });
+//   const bodyString = JSON.parse(res.body.toString());
+//   const statusCode = res.statusCode;
+//   return { statusCode, bodyString };
+// };
 
 function requestAdminRegister(
   email: string,
@@ -142,34 +143,34 @@ const requestAdminAuthLogin = (
 
 // // Helper functions:
 
-export const requestAdminQuizCreate = (
-  token: string,
-  name: string,
-  description: string
-): requestAdminQuizCreateReturn => {
-  const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
-    json: { token, name, description },
-    timeout: WAIT_TIME,
-  });
-  return {
-    statusCode: res.statusCode,
-    bodyString: JSON.parse(res.body.toString()),
-  };
-};
+// export const requestAdminQuizCreate = (
+//   token: string,
+//   name: string,
+//   description: string
+// ): requestAdminQuizCreateReturn => {
+//   const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+//     json: { token, name, description },
+//     timeout: WAIT_TIME,
+//   });
+//   return {
+//     statusCode: res.statusCode,
+//     bodyString: JSON.parse(res.body.toString()),
+//   };
+// };
 
-export const requestAdminQuizInfo = (
-  token: string,
-  quizid: number
-): requestAdminQuizInfoReturn => {
-  const res = request('GET', SERVER_URL + `/v1/admin/quiz/${quizid}`, {
-    qs: {
-      token,
-      quizid,
-    },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
+// export const requestAdminQuizInfo = (
+//   token: string,
+//   quizid: number
+// ): requestAdminQuizInfoReturn => {
+//   const res = request('GET', SERVER_URL + `/v1/admin/quiz/${quizid}`, {
+//     qs: {
+//       token,
+//       quizid,
+//     },
+//   });
+//   const bodyString = JSON.parse(res.body.toString());
+//   return { statusCode: res.statusCode, bodyString: bodyString };
+// };
 
 const requestAdminQuizRemove = (
   token: string,
@@ -182,15 +183,15 @@ const requestAdminQuizRemove = (
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
 
-export const requestAdminQuizList = (
-  token: string
-): requestAdminQuizListReturn => {
-  const res = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
-    qs: { token },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
+// export const requestAdminQuizList = (
+//   token: string
+// ): requestAdminQuizListReturn => {
+//   const res = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
+//     qs: { token },
+//   });
+//   const bodyString = JSON.parse(res.body.toString());
+//   return { statusCode: res.statusCode, bodyString: bodyString };
+// };
 
 // ***********************************************************************************
 // tests:
