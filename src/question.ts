@@ -498,7 +498,9 @@ export function updateQuizQuestion(
         const quiz = data.quizzes.find((q) => q.quizId === quizId);
         for (let i = 0; i < quiz.questions.length; i++) {
           if (questionId === quiz.questions[i].questionId) {
-            newdata.quizzes.find((q) => q.quizId === quizId).questions.splice(i, 1);
+            newdata.quizzes
+              .find((q) => q.quizId === quizId)
+              .questions.splice(i, 1);
           }
         }
         if (quiz !== undefined) {
@@ -535,7 +537,7 @@ export function updateQuizQuestion(
   //       }
   //     }
   //   }
-    
+
   // }
 
   saveDataInFile(newdata);
@@ -694,7 +696,8 @@ export { deleteQuizQuestion };
 export function adminQuizQuestionMove(token: string,
   quizId: number,
   questionId: number,
-  newPosition: number): ErrorObjectWithCode | Record<string, never> {
+  newPosition: number
+): ErrorObjectWithCode | Record<string, never> {
   const data = retrieveDataFromFile();
   const authUserIdString = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -723,7 +726,10 @@ export function adminQuizQuestionMove(token: string,
     return { error: 'QuizId is invalid', errorCode: RESPONSE_ERROR_400 };
   }
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    return { error: 'QuestionId is not refer to a valid question within this quiz', errorCode: RESPONSE_ERROR_400 };
+    return {
+      error: 'QuestionId is not refer to a valid question within this quiz',
+      errorCode: RESPONSE_ERROR_400,
+    };
   }
 
   const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);

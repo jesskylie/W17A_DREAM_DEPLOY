@@ -248,7 +248,10 @@ export function updatePassword(
   const data: DataStore = retrieveDataFromFile();
   // token is empty/invalid - return 401 error
   if (!isTokenValid(data, token)) {
-    return { error: 'Token is empty or invalid', errorCode: RESPONSE_ERROR_401 };
+    return {
+      error: 'Token is empty or invalid',
+      errorCode: RESPONSE_ERROR_401,
+    };
   }
 
   // new password must be more than 8 characters, and have letters and numbers
@@ -260,7 +263,7 @@ export function updatePassword(
   for (const user of data.users) {
     if (user.token.includes(token)) {
       // token is found
-      if (newPassword === user.password || user.oldPasswords.includes(newPassword)) {
+      if (newPassword === user.password) {
         // check if new password is equal to old password
         // check if it exists in old passwords array
         return {
@@ -273,11 +276,16 @@ export function updatePassword(
           error: 'Old password does not match old password',
           errorCode: RESPONSE_ERROR_400,
         };
+      } else if (user.oldPasswords.includes(newPassword)) {
+        // check if old password exists in old password array
+        return {
+          error: 'New password has already been used by this user',
+          errorCode: RESPONSE_ERROR_400,
+        };
       } else {
         // move current password to old passwords array
         // update new password
-        const password = user.password;
-        user.oldPasswords.push(password);
+        user.oldPasswords.push(oldPassword);
         user.password = newPassword;
         saveDataInFile(data);
         return {};
