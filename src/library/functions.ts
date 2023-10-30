@@ -13,6 +13,8 @@ const DATASTORE_FILENAME = 'database.json';
 // import types from src/dataStore
 
 import { DataStore } from '../dataStore';
+import { ONE_MILLION } from './constants';
+
 
 interface getDataReturnObject {
   result: boolean;
@@ -248,8 +250,8 @@ export function countAllAnswers(data: DataStore): number {
  * @returns {number} - the random number generated
  * between 0 and up to but not including max
  */
-function getRandomInt(max: number): number {
-  return Math.floor(Math.random() * max);
+export function getRandomInt(): number {
+  return Math.random() * (ONE_MILLION - 0);
 }
 
 /**

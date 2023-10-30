@@ -6,6 +6,7 @@ import {
   isTokenValid,
   getAuthUserIdUsingToken,
   createCurrentTimeStamp,
+  getRandomInt,
 } from './library/functions';
 
 import {
@@ -250,14 +251,11 @@ function adminQuizCreate(
 
   // determine new quizId
   // Inspiration taken from adminAuthRegister() in auth.js
-  const length = data.quizzes.length;
-  let newQuizId;
-  if (length === 0) {
-    newQuizId = 0;
-  } else {
-    newQuizId = data.quizzes[length - 1].quizId + 1;
+  let newQuizId = getRandomInt();
+  while (isQuizIdInTrash(data, newQuizId) || isQuizIdValid(data, newQuizId)) {
+    newQuizId = getRandomInt();
   }
-
+  
   data.quizzes.push({
     quizId: newQuizId,
     name,

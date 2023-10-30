@@ -292,6 +292,7 @@ export function updatePassword(
       }
     }
   }
+  return {};
 }
 
 // Iteration 2 functions
@@ -482,3 +483,5 @@ function isValidPassword(password: string): boolean {
     return false;
   }
 }
+
+
