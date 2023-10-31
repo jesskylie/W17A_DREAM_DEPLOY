@@ -3,6 +3,7 @@ import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
 import cors from 'cors';
+import errorHandler from 'middleware-http-errors';
 import YAML from 'yaml';
 import sui from 'swagger-ui-express';
 import fs from 'fs';
@@ -72,11 +73,7 @@ const HOST: string = process.env.IP || 'localhost';
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
-  const ret = echo(data);
-  if ('error' in ret) {
-    res.status(400);
-  }
-  return res.json(ret);
+  return res.json(echo(data));
 });
 
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
@@ -185,9 +182,11 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 
   if ('error' in response) {
     if (response.errorCode === 400) {
-      return res.status(400).json(response);
+      // return res.status(400).json(response);
+      return res.status(400).json({ error: response.error });
     } else if (response.errorCode === 401) {
-      return res.status(401).json(response);
+      // return res.status(401).json(response);
+      return res.status(401).json({ error: response.error });
     }
   }
   res.json(response);
@@ -301,15 +300,30 @@ app.post('/v1/admin/quiz/:quizId/question', (req: Request, res: Response) => {
     if ('error' in testObj) {
       const testErrorCode = testObj.errorCode;
       if (testErrorCode === RESPONSE_ERROR_400) {
-        return res.status(RESPONSE_ERROR_400).json(response);
+        // return res.status(RESPONSE_ERROR_400).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_400)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
       } else if (testErrorCode === RESPONSE_ERROR_401) {
-        return res.status(RESPONSE_ERROR_401).json(response);
+        // return res.status(RESPONSE_ERROR_401).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_401)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
       } else if (testErrorCode === RESPONSE_ERROR_403) {
-        return res.status(RESPONSE_ERROR_403).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_403)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
+        // return res.status(RESPONSE_ERROR_403).json(response);
       }
     }
   }
-  res.json(response);
+  res.json(response.createQuizQuestionResponse);
 });
 
 app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
@@ -472,6 +486,9 @@ app.use((req: Request, res: Response) => {
   `;
   res.status(404).json({ error });
 });
+
+// For handling errors
+app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {

@@ -59,3 +59,8 @@ export interface requestAdminQuizInfoReturn {
   statusCode?: number;
   bodyString: Quizzes | ErrorObject;
 }
+
+export interface requestCreateQuestionReturn {
+  statusCode?: number;
+  bodyString: QuestionId | ErrorObjectWithCode;
+}
