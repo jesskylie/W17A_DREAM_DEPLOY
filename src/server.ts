@@ -3,6 +3,7 @@ import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
 import cors from 'cors';
+import errorHandler from 'middleware-http-errors';
 import YAML from 'yaml';
 import sui from 'swagger-ui-express';
 import fs from 'fs';
@@ -72,11 +73,7 @@ const HOST: string = process.env.IP || 'localhost';
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
-  const ret = echo(data);
-  if ('error' in ret) {
-    res.status(400);
-  }
-  return res.json(ret);
+  return res.json(echo(data));
 });
 
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
@@ -139,11 +136,12 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const response = adminQuizCreate(token, name, description);
 
   if ('error' in response) {
-    console.log('error in response 1');
     if (response.errorCode === 400) {
-      return res.status(400).json(response);
+      // return res.status(400).json(response);
+      return res.status(400).json({ error: response.error });
     } else if (response.errorCode === 401) {
-      return res.status(401).json(response);
+      // return res.status(401).json(response);
+      return res.status(401).json({ error: response.error });
     }
   }
   res.json(response);
@@ -163,25 +161,32 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
     if ('error' in testObj) {
       const testStatusCode = testObj.errorCode;
       if (testStatusCode === 400) {
-        return res.status(400).json(response);
+        // return res.status(400).json(response);
+        return res
+          .status(400)
+          .json({ error: response.detailsUpdateResponse.error });
       } else if (testStatusCode === 401) {
-        return res.status(401).json(response);
+        // return res.status(401).json(response);
+        return res
+          .status(401)
+          .json({ error: response.detailsUpdateResponse.error });
       }
     }
   }
-  res.json(response);
+  res.json(response.detailsUpdateResponse);
 });
 
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
-  const { token, newPassword, oldPassword } = req.body;
-  const response = updatePassword(token, newPassword, oldPassword);
+  const { token, oldPassword, newPassword } = req.body;
+  const response = updatePassword(token, oldPassword, newPassword);
 
   if ('error' in response) {
-    console.log('error in response 2');
     if (response.errorCode === 400) {
-      return res.status(400).json(response);
+      // return res.status(400).json(response);
+      return res.status(400).json({ error: response.error });
     } else if (response.errorCode === 401) {
-      return res.status(401).json(response);
+      // return res.status(401).json(response);
+      return res.status(401).json({ error: response.error });
     }
   }
   res.json(response);
@@ -210,7 +215,6 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const quizIds = quizids.map(Number);
   const result = adminTrashQuizEmpty(token, quizIds);
   if ('error' in result) {
-    console.log('error in response 5');
     if (result.errorCode === RESPONSE_ERROR_400) {
       return res.status(RESPONSE_ERROR_400).json({ error: result.error });
     } else if (result.errorCode === RESPONSE_ERROR_401) {
@@ -238,7 +242,6 @@ app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const result = adminQuizInfo(token, quizId);
 
   if ('error' in result) {
-    console.log('error in response 3');
     if (result.errorCode === RESPONSE_ERROR_400) {
       return res.status(RESPONSE_ERROR_400).json({ error: result.error });
     } else if (result.errorCode === RESPONSE_ERROR_401) {
@@ -286,7 +289,7 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
 
 app.post('/v1/admin/quiz/:quizId/question', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizId);
-  console.log(quizId);
+
   const { token, questionBody } = req.body;
 
   const response = createQuizQuestion(token, questionBody, quizId);
@@ -297,15 +300,30 @@ app.post('/v1/admin/quiz/:quizId/question', (req: Request, res: Response) => {
     if ('error' in testObj) {
       const testErrorCode = testObj.errorCode;
       if (testErrorCode === RESPONSE_ERROR_400) {
-        return res.status(RESPONSE_ERROR_400).json(response);
+        // return res.status(RESPONSE_ERROR_400).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_400)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
       } else if (testErrorCode === RESPONSE_ERROR_401) {
-        return res.status(RESPONSE_ERROR_401).json(response);
+        // return res.status(RESPONSE_ERROR_401).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_401)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
       } else if (testErrorCode === RESPONSE_ERROR_403) {
-        return res.status(RESPONSE_ERROR_403).json(response);
+        if ('error' in response.createQuizQuestionResponse) {
+          return res
+            .status(RESPONSE_ERROR_403)
+            .json({ error: response.createQuizQuestionResponse.error });
+        }
+        // return res.status(RESPONSE_ERROR_403).json(response);
       }
     }
   }
-  res.json(response);
+  res.json(response.createQuizQuestionResponse);
 });
 
 app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
@@ -313,7 +331,6 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   const result = adminTrashQuizRestore(token, quizId);
   if ('error' in result) {
-    console.log('error in response 4');
     if (result.errorCode === RESPONSE_ERROR_400) {
       return res.status(RESPONSE_ERROR_400).json({ error: result.error });
     } else if (result.errorCode === RESPONSE_ERROR_401) {
@@ -331,7 +348,6 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   const result = adminQuizTransfer(token, userEmail, quizId);
   if ('error' in result) {
-    console.log('error in response 4');
     if (result.errorCode === RESPONSE_ERROR_400) {
       return res.status(RESPONSE_ERROR_400).json({ error: result.error });
     } else if (result.errorCode === RESPONSE_ERROR_401) {
@@ -388,22 +404,25 @@ app.put(
   }
 );
 
-app.post('/v1/admin/quiz/:quizId/question/:questionId/duplicate', (req: Request, res: Response) => {
-  const { token } = req.body;
-  const quizId = parseInt(req.params.quizId);
-  const questionId = parseInt(req.params.questionId);
-  const response = duplicateQuestion(quizId, questionId, token);
-  if ('error' in response) {
-    if (response.errorCode === RESPONSE_ERROR_400) {
-      return res.status(RESPONSE_ERROR_400).json({ error: response.error });
-    } else if (response.errorCode === RESPONSE_ERROR_401) {
-      return res.status(RESPONSE_ERROR_401).json({ error: response.error });
-    } else if (response.errorCode === RESPONSE_ERROR_403) {
-      return res.status(RESPONSE_ERROR_403).json({ error: response.error });
+app.post(
+  '/v1/admin/quiz/:quizId/question/:questionId/duplicate',
+  (req: Request, res: Response) => {
+    const { token } = req.body;
+    const quizId = parseInt(req.params.quizId);
+    const questionId = parseInt(req.params.questionId);
+    const response = duplicateQuestion(quizId, questionId, token);
+    if ('error' in response) {
+      if (response.errorCode === RESPONSE_ERROR_400) {
+        return res.status(RESPONSE_ERROR_400).json({ error: response.error });
+      } else if (response.errorCode === RESPONSE_ERROR_401) {
+        return res.status(RESPONSE_ERROR_401).json({ error: response.error });
+      } else if (response.errorCode === RESPONSE_ERROR_403) {
+        return res.status(RESPONSE_ERROR_403).json({ error: response.error });
+      }
     }
+    res.status(RESPONSE_OK_200).json(response);
   }
-  res.status(RESPONSE_OK_200).json(response);
-});
+);
 // ***********************************************************************
 
 app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
@@ -423,23 +442,31 @@ app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   res.status(RESPONSE_OK_200).json(response);
 });
 
-app.put('/v1/admin/quiz/:quizId/question/:questionId/move', (req: Request, res: Response) => {
-  const quizId = parseInt(req.params.quizId);
-  const questionId = parseInt(req.params.questionId);
-  const { token, newPosition } = req.body;
-  const response = adminQuizQuestionMove(token, quizId, questionId, newPosition);
+app.put(
+  '/v1/admin/quiz/:quizId/question/:questionId/move',
+  (req: Request, res: Response) => {
+    const quizId = parseInt(req.params.quizId);
+    const questionId = parseInt(req.params.questionId);
+    const { token, newPosition } = req.body;
+    const response = adminQuizQuestionMove(
+      token,
+      quizId,
+      questionId,
+      newPosition
+    );
 
-  if ('error' in response) {
-    if (response.errorCode === RESPONSE_ERROR_400) {
-      return res.status(RESPONSE_ERROR_400).json({ error: response.error });
-    } else if (response.errorCode === RESPONSE_ERROR_401) {
-      return res.status(RESPONSE_ERROR_401).json({ error: response.error });
-    } else if (response.errorCode === RESPONSE_ERROR_403) {
-      return res.status(RESPONSE_ERROR_403).json({ error: response.error });
+    if ('error' in response) {
+      if (response.errorCode === RESPONSE_ERROR_400) {
+        return res.status(RESPONSE_ERROR_400).json({ error: response.error });
+      } else if (response.errorCode === RESPONSE_ERROR_401) {
+        return res.status(RESPONSE_ERROR_401).json({ error: response.error });
+      } else if (response.errorCode === RESPONSE_ERROR_403) {
+        return res.status(RESPONSE_ERROR_403).json({ error: response.error });
+      }
     }
+    res.status(RESPONSE_OK_200).json(response);
   }
-  res.status(RESPONSE_OK_200).json(response);
-});
+);
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
@@ -459,6 +486,9 @@ app.use((req: Request, res: Response) => {
   `;
   res.status(404).json({ error });
 });
+
+// For handling errors
+app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {

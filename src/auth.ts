@@ -5,7 +5,7 @@ import {
   saveDataInFile,
   isTokenValid,
   getAuthUserIdUsingToken,
-} from './functions';
+} from './library/functions';
 import { uid } from 'uid';
 import { ErrorObjectWithCode } from './quiz';
 
@@ -212,7 +212,6 @@ export function adminAuthLogin(
   let token;
   for (const arr of data.users) {
     if (arr.email === email && arr.password === password) {
-      console.log('arr ->', arr);
       token = arr.token[0];
       arr.numSuccessfulLogins++;
       arr.numFailedPasswordsSinceLastLogin = 0;
@@ -243,49 +242,56 @@ export function adminAuthLogin(
 
 export function updatePassword(
   token: string,
-  newPassword: string,
-  oldPassword: string
+  oldPassword: string,
+  newPassword: string
 ): Record<string, never> | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+  // token is empty/invalid - return 401 error
+  if (!isTokenValid(data, token)) {
+    return {
+      error: 'Token is empty or invalid',
+      errorCode: RESPONSE_ERROR_401,
+    };
+  }
+
   // new password must be more than 8 characters, and have letters and numbers
   if (!isValidPassword(newPassword)) {
-    return { error: 'Invalid password', errorCode: 401 };
+    return { error: 'Invalid password', errorCode: RESPONSE_ERROR_400 };
   }
 
   // loop through datastore to find the token
-  const data: DataStore = retrieveDataFromFile();
   for (const user of data.users) {
     if (user.token.includes(token)) {
       // token is found
-      if (newPassword === user.password || newPassword === oldPassword) {
+      if (newPassword === user.password) {
         // check if new password is equal to old password
+        // check if it exists in old passwords array
         return {
           error: 'New password can not be the same as old password',
-          errorCode: 401,
+          errorCode: RESPONSE_ERROR_400,
         };
       } else if (oldPassword !== user.password) {
         // old password does not match old password
         return {
           error: 'Old password does not match old password',
-          errorCode: 401,
+          errorCode: RESPONSE_ERROR_400,
         };
       } else if (user.oldPasswords.includes(newPassword)) {
         // check if old password exists in old password array
         return {
           error: 'New password has already been used by this user',
-          errorCode: 401,
+          errorCode: RESPONSE_ERROR_400,
         };
       } else {
         // move current password to old passwords array
         // update new password
-        const password = user.password;
-        user.oldPasswords.push(password);
+        user.oldPasswords.push(oldPassword);
         user.password = newPassword;
+        saveDataInFile(data);
         return {};
       }
     }
   }
-  saveDataInFile(data);
-  return { error: 'Token is empty or invalid', errorCode: 400 };
 }
 
 // Iteration 2 functions

@@ -1,9 +1,6 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import {
-  CONVERT_MSECS_TO_SECS,
-  RANDOM_COLOURS_ARRAY,
-} from './library/constants';
+import { CONVERT_MSECS_TO_SECS, RANDOM_COLOURS_ARRAY } from './constants';
 
 // import libraries
 // import fs from 'fs';
@@ -15,7 +12,7 @@ const DATASTORE_FILENAME = 'database.json';
 
 // import types from src/dataStore
 
-import { DataStore } from './dataStore';
+import { DataStore } from '../dataStore';
 
 interface getDataReturnObject {
   result: boolean;

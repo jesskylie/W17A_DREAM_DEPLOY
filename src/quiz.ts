@@ -6,7 +6,7 @@ import {
   isTokenValid,
   getAuthUserIdUsingToken,
   createCurrentTimeStamp,
-} from './functions';
+} from './library/functions';
 
 import {
   RESPONSE_ERROR_400,

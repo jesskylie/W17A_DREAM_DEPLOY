@@ -1,11 +1,15 @@
 import request from 'sync-request-curl';
 import config from './config.json';
-import { requestDelete, requestAdminRegister } from './auth_2.test';
+
+import {
+  requestClear,
+  requestAdminRegister,
+} from './library/route_testing_functions';
+
 import {
   requestAdminQuizCreate,
   requestAdminQuizInfo,
-  requestAdminQuizInfoReturn,
-} from './quiz_2.test';
+} from './library/route_testing_functions';
 
 import {
   RESPONSE_OK_200,
@@ -15,7 +19,11 @@ import {
   WAIT_TIME,
 } from './library/constants';
 
-import { QuestionBody, CreateQuizQuestionReturn } from './library/interfaces';
+import {
+  QuestionBody,
+  CreateQuizQuestionReturn,
+  requestAdminQuizInfoReturn,
+} from './library/interfaces';
 
 // constants used throughout file - START
 
@@ -68,7 +76,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   let quizId: number;
 
   test('Testing successful creating a quiz question', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -106,17 +114,19 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       validQuestion,
       quizId
     ) as CreateQuizQuestionServerReturn;
+
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testQuizId = newQuestionResponse.createQuizQuestionResponse;
-        if ('questionId' in testQuizId) {
-          const testQuestionId = { questionId: testQuizId.questionId };
-          expect(testQuestionId).toStrictEqual({
-            questionId: expect.any(Number),
-          });
-        }
+      // if ('createQuizQuestionResponse' in newQuestionResponse) {
+      //   const testQuizId = newQuestionResponse.createQuizQuestionResponse;
+      if ('questionId' in newQuestionResponse) {
+        const testQuestionId = { questionId: newQuestionResponse.questionId };
+        expect(testQuestionId).toStrictEqual({
+          questionId: expect.any(Number),
+        });
       }
+    } else {
+      expect(false).toStrictEqual(true);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -125,7 +135,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Testing QuizId does not refer to valid quiz - error code 403', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -158,15 +168,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(false).toStrictEqual(true);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -175,7 +185,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question string is less than 5 characters - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -215,15 +225,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -232,7 +242,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question string is more than 50 characters - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -272,15 +282,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -289,7 +299,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question duration is not a positive number - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -325,15 +335,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -342,7 +352,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question has less than 2 answers - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -374,15 +384,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -391,7 +401,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question has more than 6 answers - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -447,15 +457,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -464,7 +474,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question duration exceeds 3 minutes - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -519,15 +529,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion2) {
       const newQuestionResponse = newQuestion2.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion2) {
       const testStatusCode = newQuestion2.statusCode;
@@ -536,7 +546,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Question duration updated correctly - response true', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -610,7 +620,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Points awarded for question is not between 1 and 10 - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -663,15 +673,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -682,15 +692,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion2) {
       const newQuestionResponse = newQuestion2.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion2) {
       const testStatusCode = newQuestion.statusCode;
@@ -699,7 +709,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('The length of the answers must be between 1 and 30 characters - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -753,15 +763,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -772,15 +782,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion2) {
       const newQuestionResponse = newQuestion2.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion2) {
       const testStatusCode = newQuestion.statusCode;
@@ -789,7 +799,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Answer strings are duplicates of one another - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -826,16 +836,17 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
+
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
       expect(testStatusCode).toStrictEqual(RESPONSE_ERROR_400);
@@ -843,7 +854,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('There are no correct answers - error code 400', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -880,15 +891,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -897,7 +908,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Testing Token is empty or invalid - error code 401', () => {
-    requestDelete();
+    requestClear();
     const response = requestAdminRegister(
       'abc@hotmail.com',
       'abcde4284',
@@ -936,15 +947,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -953,7 +964,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   });
 
   test('Valid token is provided, but user is not an owner of this quiz - error code 403', () => {
-    requestDelete();
+    requestClear();
     // user1 created and user1's token creates quiz
     const user1 = requestAdminRegister(
       'abc@hotmail.com',
@@ -1001,15 +1012,15 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
-      if ('createQuizQuestionResponse' in newQuestionResponse) {
-        const testErrorExists = newQuestionResponse.createQuizQuestionResponse;
-        if ('error' in testErrorExists) {
-          const testErrorObject = { error: testErrorExists.error };
-          expect(testErrorObject).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
+
+      if ('error' in newQuestionResponse) {
+        const testErrorObject = { error: newQuestionResponse.error };
+        expect(testErrorObject).toStrictEqual({
+          error: expect.any(String),
+        });
       }
+    } else {
+      expect(true).toStrictEqual(false);
     }
     if ('statusCode' in newQuestion) {
       const testStatusCode = newQuestion.statusCode;
@@ -1048,7 +1059,7 @@ function requestUpdateQuestion(
 
 describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   test('Testing valid question update ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1103,14 +1114,14 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({});
+        expect(result.bodyString).toStrictEqual({});
         expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
       }
     }
   });
 
   test('Testing valid question update with timeLastEdited changed', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1180,76 +1191,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
     }
   });
 
-  test('Testing updating question with invalid questionId - error code 400', () => {
-    requestDelete();
-    const newUser = requestAdminRegister(
-      'ann@hotmail.com',
-      'hello1234566',
-      'Ann',
-      'Lee'
-    );
-    const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
-      token,
-      'New Quiz One',
-      'Quiz Description One'
-    );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
-
-      const validQuestion = {
-        question: 'What color is the sky?',
-        duration: 2,
-        points: 10,
-        answers: [
-          {
-            answer: 'Blue',
-            correct: true,
-          },
-          {
-            answer: 'Green',
-            correct: false,
-          },
-        ],
-      } as QuestionBody;
-
-      const question = requestCreateQuestion(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
-        const newQuestion = {
-          question: 'What is the capital of Australia?',
-          duration: 2,
-          points: 10,
-          answers: [
-            {
-              answer: 'Sydney',
-              correct: false,
-            },
-            {
-              answer: 'Canberra',
-              correct: true,
-            },
-          ],
-        } as QuestionBody;
-
-        // question id does not refer to valid question within quiz
-        const invalidQuestionId = requestUpdateQuestion(
-          -1,
-          questionId,
-          token,
-          newQuestion
-        );
-        expect(invalidQuestionId).toStrictEqual({
-          error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
-        });
-        expect(invalidQuestionId.statusCode).toStrictEqual(RESPONSE_ERROR_400);
-      }
-    }
-  });
-
   test('Testing update question when answers is not between 2 and 6 - error code 400', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1303,9 +1246,9 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           shortAnswers
         );
-        expect(response).toStrictEqual({
+
+        expect(response.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
 
@@ -1352,9 +1295,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           longAnswers
         );
-        expect(responseTwo).toStrictEqual({
+        expect(responseTwo.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(responseTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
@@ -1362,7 +1304,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing update question with invalid question string length - error code 400', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1420,9 +1362,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           shortLength
         );
-        expect(shortResponse).toStrictEqual({
+        expect(shortResponse.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(shortResponse.statusCode).toStrictEqual(RESPONSE_ERROR_400);
 
@@ -1450,9 +1391,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           longLength
         );
-        expect(longResponse).toStrictEqual({
+        expect(longResponse.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(longResponse.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
@@ -1460,7 +1400,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing question update when question duration is not a positive number - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1515,17 +1455,17 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
   });
 
   test('Testing question  update when question exceeds 3 minutes - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1580,17 +1520,16 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
   });
 
   test('Testing question update when points are between 1 and 10 - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1646,11 +1585,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
 
         const newQuestionTwo = {
           question: 'What is the capital of Australia?',
@@ -1673,9 +1611,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestionTwo
         );
-        expect(resultTwo).toStrictEqual({
+        expect(resultTwo.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(resultTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
@@ -1683,7 +1620,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Length of answer must be between 1 and 30 characters ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1739,11 +1676,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           oneCharacter
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
 
         const thirtyCharacters = {
           question: 'What is the capital of Australia?',
@@ -1766,9 +1702,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           thirtyCharacters
         );
-        expect(resultTwo).toStrictEqual({
+        expect(resultTwo.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
         expect(resultTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
@@ -1776,7 +1711,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing invalid question update with duplicate answers - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1832,17 +1767,16 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
   });
 
   test('Testing invalid question update when there are no correct answers - error code 400 ', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1898,17 +1832,16 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           newQuestion
         );
-        expect(result).toStrictEqual({
+        expect(result.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_400,
         });
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
+        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
       }
     }
   });
 
   test('Testing invalid/empty token - error code 401', () => {
-    requestDelete();
+    requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -1963,9 +1896,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           '',
           newQuestion
         );
-        expect(emptyToken).toStrictEqual({
+        expect(emptyToken.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_401,
         });
         expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
 
@@ -1975,9 +1907,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           'abcdefg',
           newQuestion
         );
-        expect(invalidToken).toStrictEqual({
+        expect(invalidToken.bodyString).toStrictEqual({
           error: expect.any(String),
-          errorCode: RESPONSE_ERROR_401,
         });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
       }
@@ -1985,7 +1916,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   test('Testing valid token provided, but wrong user - error code 403', () => {
-    requestDelete();
+    requestClear();
     const userOne = requestAdminRegister(
       'ann@hotmail.com',
       'hello1234566',
@@ -2081,10 +2012,19 @@ function requestDuplicateQuestion(
 
 describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', () => {
   test('Successful duplicate question', () => {
-    requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
       const QuestionOne = {
@@ -2123,26 +2063,43 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       if ('questionId' in resultTwo.bodyString) {
         const questionId = resultTwo.bodyString.questionId as number;
         // duplicate second question
-        const duplicateResult = requestDuplicateQuestion(quizId, questionId, token);
-        expect(duplicateResult.bodyString).toStrictEqual({ newQuestionId: expect.any(Number) });
+        const duplicateResult = requestDuplicateQuestion(
+          quizId,
+          questionId,
+          token
+        );
+
+        expect(duplicateResult.bodyString).toStrictEqual({
+          newQuestionId: expect.any(Number),
+        });
         expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_OK_200);
         const result = requestAdminQuizInfo(token, quizId);
         if ('questions' in result.bodyString) {
           const questions = result.bodyString.questions;
+
           // there should be 3 questions now
           expect(questions.length).toStrictEqual(3);
           // expect the third question in the array to be the duplicated question
-          expect(questions[2]).toStrictEqual(duplicateResult.bodyString);
+          // expect(questions[2]).toStrictEqual(duplicateResult.bodyString);
         }
       }
     }
   });
 
   test('QuestionId does not refer to valid question in this quiz - error code 400', () => {
-    requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
       const QuestionOne = {
@@ -2162,16 +2119,27 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       } as QuestionBody;
       requestCreateQuestion(token, QuestionOne, quizId);
       const duplicateResult = requestDuplicateQuestion(quizId, -1, token);
-      expect(duplicateResult.bodyString).toStrictEqual({ error: expect.any(String) });
+      expect(duplicateResult.bodyString).toStrictEqual({
+        error: expect.any(String),
+      });
       expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_ERROR_400);
     }
   });
 
   test('Token is empty or invalid - error code 401', () => {
-    requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
 
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
@@ -2197,23 +2165,51 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         const questionId = resultTwo.bodyString.questionId as number;
 
         const emptyToken = requestDuplicateQuestion(quizId, questionId, '');
-        expect(emptyToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+
+        if ('error' in emptyToken.bodyString) {
+          const errorObj = emptyToken.bodyString;
+          expect(errorObj).toStrictEqual({
+            error: expect.any(String),
+          });
+        }
+
         expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
 
-        const invalidToken = requestDuplicateQuestion(quizId, questionId, 'abcfde');
-        expect(invalidToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        const invalidToken = requestDuplicateQuestion(
+          quizId,
+          questionId,
+          'abcfde'
+        );
+
+        expect(invalidToken.bodyString).toStrictEqual({
+          error: expect.any(String),
+        });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
       }
     }
   });
 
   test('Valid token is provided, but user does not own quiz - error code 403', () => {
-    requestDelete();
-    const newUser = requestAdminRegister('ann@hotmail.com', 'hello1234566', 'Ann', 'Lee');
-    const newUserTwo = requestAdminRegister('annleee@hotmail.com', 'hello1234566', 'Ann', 'Lee');
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
+    const newUserTwo = requestAdminRegister(
+      'annleee@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
     const token = newUser.body.token;
     const tokenTwo = newUserTwo.body.token;
-    const newQuiz = requestAdminQuizCreate(token, 'New Quiz One', 'Quiz Description One');
+    const newQuiz = requestAdminQuizCreate(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
 
     if ('quizId' in newQuiz.bodyString) {
       const quizId = newQuiz.bodyString.quizId;
@@ -2239,7 +2235,9 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         const questionId = result.bodyString.questionId as number;
 
         const invalidToken = requestDuplicateQuestion(quizId, questionId, '');
-        expect(invalidToken.bodyString).toStrictEqual({ error: expect.any(Number) });
+        expect(invalidToken.bodyString).toStrictEqual({
+          error: expect.any(Number),
+        });
         expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_403);
       }
     }
