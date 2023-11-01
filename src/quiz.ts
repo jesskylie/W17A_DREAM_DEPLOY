@@ -6,6 +6,7 @@ import {
   isTokenValid,
   getAuthUserIdUsingToken,
   createCurrentTimeStamp,
+  getRandomInt,
 } from './library/functions';
 
 import {
@@ -16,6 +17,7 @@ import {
   MAX_QUIZ_NAME_LENGTH,
   MAX_DESCRIPTION_LENGTH,
   CONVERT_MSECS_TO_SECS,
+  ONE_MILLION,
 } from './library/constants';
 
 import { AuthUserId } from './library/interfaces';
@@ -250,12 +252,9 @@ function adminQuizCreate(
 
   // determine new quizId
   // Inspiration taken from adminAuthRegister() in auth.js
-  const length = data.quizzes.length;
-  let newQuizId;
-  if (length === 0) {
-    newQuizId = 0;
-  } else {
-    newQuizId = data.quizzes[length - 1].quizId + 1;
+  let newQuizId = getRandomInt(ONE_MILLION);
+  while (isQuizIdInTrash(data, newQuizId) || isQuizIdValid(data, newQuizId)) {
+    newQuizId = getRandomInt(ONE_MILLION);
   }
 
   data.quizzes.push({

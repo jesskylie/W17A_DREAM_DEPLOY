@@ -1,6 +1,6 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import { CONVERT_MSECS_TO_SECS, RANDOM_COLOURS_ARRAY } from './constants';
+import { CONVERT_MSECS_TO_SECS, ONE_MILLION, RANDOM_COLOURS_ARRAY } from './constants';
 
 // import libraries
 // import fs from 'fs';
@@ -248,7 +248,7 @@ export function countAllAnswers(data: DataStore): number {
  * @returns {number} - the random number generated
  * between 0 and up to but not including max
  */
-function getRandomInt(max: number): number {
+export function getRandomInt(max: number): number {
   return Math.floor(Math.random() * max);
 }
 
@@ -265,3 +265,7 @@ export function returnRandomColour(): string {
   const randomNumber = getRandomInt(RANDOM_COLOURS_ARRAY.length);
   return RANDOM_COLOURS_ARRAY[randomNumber];
 }
+
+// export function getRandomInteger(): number {
+//   return Math.random() * (ONE_MILLION - 0);
+// }
