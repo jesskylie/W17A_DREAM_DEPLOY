@@ -85,6 +85,14 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   res.json(response);
 });
 
+// ============================================================================
+// ===================ITERATION 3 ROUTES BELOW THIS LINE=======================
+// ============================================================================
+
+// ============================================================================
+// ===================ITERATION 3 ROUTES ABOVE THIS LINE=======================
+// ============================================================================
+
 // POST request to route /v1/admin/auth/login
 // From swagger.yaml:
 // Takes in information about an admin user to
