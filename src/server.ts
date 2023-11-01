@@ -3,6 +3,7 @@ import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
 import cors from 'cors';
+import errorHandler from 'middleware-http-errors';
 import YAML from 'yaml';
 import sui from 'swagger-ui-express';
 import fs from 'fs';
@@ -72,11 +73,7 @@ const HOST: string = process.env.IP || 'localhost';
 // Example get request
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
-  const ret = echo(data);
-  if ('error' in ret) {
-    res.status(400);
-  }
-  return res.json(ret);
+  return res.json(echo(data));
 });
 
 app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
@@ -214,8 +211,8 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
 app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  const quizids = req.query.quizids as string[];
-  const quizIds = quizids.map(Number);
+  const quizids = req.query.quizIds as string;
+  const quizIds = JSON.parse(quizids);
   const result = adminTrashQuizEmpty(token, quizIds);
   if ('error' in result) {
     if (result.errorCode === RESPONSE_ERROR_400) {
@@ -489,6 +486,9 @@ app.use((req: Request, res: Response) => {
   `;
   res.status(404).json({ error });
 });
+
+// For handling errors
+app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {

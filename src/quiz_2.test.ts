@@ -692,10 +692,10 @@ describe('adminTrashQuizRestore testing', () => {
 
 const requestAdminTrashQuizEmpty = (
   token: string,
-  quizids: number[]
+  quizids: string
 ): requestAdminQuizRemoveReturn => {
   const res = request('DELETE', SERVER_URL + '/v1/admin/quiz/trash/empty', {
-    qs: { quizids: quizids, token: token },
+    qs: { quizIds: quizids, token: token },
   });
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
@@ -726,7 +726,8 @@ describe('adminTrashQuizEmpty testing', () => {
     ).bodyString as QuizId;
     requestAdminQuizRemove(testToken, QuizOne.quizId);
     requestAdminQuizRemove(testToken, QuizTwo.quizId);
-    requestAdminTrashQuizEmpty(testToken, [QuizOne.quizId, QuizTwo.quizId]);
+    const array = [QuizOne.quizId, QuizTwo.quizId];
+    requestAdminTrashQuizEmpty(testToken, JSON.stringify(array));
     const quizOneRestoredfail = requestAdminTrashQuizRestore(
       testToken,
       QuizOne.quizId
@@ -756,7 +757,7 @@ describe('adminTrashQuizEmpty testing', () => {
     ) as TokenString;
 
     const testToken = returnTokenObj.token;
-    const quizIdIsInvalid = requestAdminTrashQuizEmpty(testToken, [-1 * 1531]);
+    const quizIdIsInvalid = requestAdminTrashQuizEmpty(testToken, JSON.stringify([-1 * 1531]));
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -779,9 +780,9 @@ describe('adminTrashQuizEmpty testing', () => {
       'Quiz 1',
       'this is my first quiz'
     ).bodyString as QuizId;
-    const quizIdNotInTrash = requestAdminTrashQuizEmpty(testToken, [
+    const quizIdNotInTrash = requestAdminTrashQuizEmpty(testToken, JSON.stringify([
       quiz1.quizId,
-    ]);
+    ]));
     expect(quizIdNotInTrash.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdNotInTrash.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -804,7 +805,7 @@ describe('adminTrashQuizEmpty testing', () => {
       'Quiz a',
       'this is my first quiz'
     ).bodyString as QuizId;
-    const emptyToken = requestAdminTrashQuizEmpty('', [Quiz.quizId]);
+    const emptyToken = requestAdminTrashQuizEmpty('', JSON.stringify([Quiz.quizId]));
     expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(emptyToken.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -827,7 +828,7 @@ describe('adminTrashQuizEmpty testing', () => {
       'Quiz b',
       'this is my second quiz'
     ).bodyString as QuizId;
-    const invalidToken = requestAdminTrashQuizEmpty('invalid', [Quiz.quizId]);
+    const invalidToken = requestAdminTrashQuizEmpty('invalid', JSON.stringify([Quiz.quizId]));
     expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
     expect(invalidToken.bodyString).toStrictEqual({
       error: expect.any(String),
@@ -859,9 +860,9 @@ describe('adminTrashQuizEmpty testing', () => {
       requestAdminTrashQuizRestore(testToken, TonyQuiz.quizId).statusCode
     ).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
-    const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(testToken, [
+    const quizIdNotReferToUser1 = requestAdminTrashQuizEmpty(testToken, JSON.stringify([
       TonyQuiz.quizId,
-    ]);
+    ]));
     expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
 
     expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
