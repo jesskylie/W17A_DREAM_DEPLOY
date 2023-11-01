@@ -209,10 +209,10 @@ export function adminAuthLogin(
   // return authUserId of logged in user
   // as email exists && password matches
   // increments successful login, numFailed login resets to 0
-  let token;
+  const newToken = uid();
   for (const arr of data.users) {
     if (arr.email === email && arr.password === password) {
-      token = arr.token[0];
+      arr.token.push(newToken);
       arr.numSuccessfulLogins++;
       arr.numFailedPasswordsSinceLastLogin = 0;
     }
@@ -225,7 +225,7 @@ export function adminAuthLogin(
   // setData(data);
 
   return {
-    token: token,
+    token: newToken,
   };
 }
 
