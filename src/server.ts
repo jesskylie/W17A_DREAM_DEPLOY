@@ -211,8 +211,8 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
 app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  const quizids = req.query.quizids as string[];
-  const quizIds = quizids.map(Number);
+  const quizids = req.query.quizIds as string;
+  const quizIds = JSON.parse(quizids);
   const result = adminTrashQuizEmpty(token, quizIds);
   if ('error' in result) {
     if (result.errorCode === RESPONSE_ERROR_400) {
