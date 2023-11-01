@@ -990,6 +990,9 @@ function adminTrashQuizEmpty(
   for (const quizId of quizIds) {
     newdata.trash = data.trash.filter((quiz) => quiz.quizId === quizId);
   }
+  if (quizIds.length === 1 && quizIds[0] === newdata.trash[0].quizId) {
+    newdata.trash = [];
+  }
   // for (const checkQuiz of newdata.trash) {
   //   const indexToRemove = quizIds.indexOf(checkQuiz.quizId);
   //   if (indexToRemove !== -1) {
