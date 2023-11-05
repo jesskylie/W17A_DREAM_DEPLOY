@@ -1,5 +1,5 @@
 import isEmail from 'validator/lib/isEmail.js';
-import httpError from 'http-errors';
+import HTTPError from 'http-errors';
 import { DataStore, Question, State } from './dataStore';
 import {
   retrieveDataFromFile,
@@ -80,7 +80,7 @@ export function adminQuizCreateV2(
   const isTokenValidTest = isTokenValid(data, token);
 
   if (!isTokenValidTest) {
-    throw httpError(401, 'Token is empty or invalid');
+    throw HTTPError(401, 'Token is empty or invalid');
   }
 
   // checks valid authUserId
@@ -92,12 +92,12 @@ export function adminQuizCreateV2(
   );
 
   if (!isQuizNameValidTest.result) {
-    throw httpError(400, 'Quiz name is invalid');
+    throw HTTPError(400, 'Quiz name is invalid');
   }
 
   // description is not more than 100 characters in length - error 400
   if (description.length > MAX_DESCRIPTION_LENGTH) {
-    throw httpError(400, 'Description is more than 100 characters in length');
+    throw HTTPError(400, 'Description is more than 100 characters in length');
   }
 
   // determine new quizId
@@ -143,19 +143,19 @@ export function adminQuizRemoveV2(
     quizId
   );
   if (!isAuthUserIdMatchQuizIdTest && isTokenValidTest && isQuizIdValidTest) {
-    throw httpError(403, 'QuizId does not match authUserId');
+    throw HTTPError(403, 'QuizId does not match authUserId');
   }
   if (!token) {
-    throw httpError(401, 'Token is empty');
+    throw HTTPError(401, 'Token is empty');
   }
   if (!isTokenValidTest) {
-    throw httpError(401, 'Token is invalid');
+    throw HTTPError(401, 'Token is invalid');
   }
-
+  
   // All sessions for this quiz must be in end state
   const state = getState();
   if (!state.has(State.END)) {
-    throw httpError(400, 'All sessions for this quiz must be in END State');
+    throw HTTPError(400, 'All sessions for this quiz must be in END State');
   }
 
   const newdata = data;
