@@ -129,9 +129,9 @@ export function adminAuthRegister(
   if (!isValidPassword(password)) {
     return { error: 'Invalid password' };
   }
-  
+
   const hashedPassword = getHashOf(password);
-  
+
   const newUser: UserData = {
     authUserId: data.users.length,
     nameFirst: nameFirst,
@@ -266,7 +266,7 @@ export function updatePassword(
   for (const user of data.users) {
     if (user.token.includes(token)) {
       // token is found
-      if (hashedNewPassword  === user.password) {
+      if (hashedNewPassword === user.password) {
         // check if new password is equal to old password
         // check if it exists in old passwords array
         return {
@@ -492,7 +492,8 @@ function isValidPassword(password: string): boolean {
  * @param {string} password - user's password
  * @returns {string} returns a hexademical representation of the hashed password
  */
+
 function getHashOf(password: string): string {
   const crypto = require('crypto');
   return crypto.createHash('sha256').update(password).digest('hex');
- }
+}
