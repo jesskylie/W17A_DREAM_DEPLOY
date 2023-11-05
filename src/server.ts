@@ -29,7 +29,8 @@ import {
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
   adminQuizTransfer,
-  adminQuizCreateV2
+  adminQuizCreateV2,
+  adminQuizRemoveV2,
 } from './quiz';
 import {
   createQuizQuestion,
@@ -85,6 +86,13 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   const { name, description } = req.body;
   res.json(adminQuizCreateV2(token, name, description));
 });
+
+app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  res.json(adminQuizRemoveV2(token, quizId));
+});
+
 // ============================================================================
 // ===================ITERATION 3 ROUTES ABOVE THIS LINE=======================
 // ============================================================================
