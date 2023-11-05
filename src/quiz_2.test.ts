@@ -1,9 +1,6 @@
 // Do not delete this file _
 // All tests passing
 // All lint checks passing
-import request from 'sync-request-curl';
-import config from './config.json';
-
 import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
@@ -16,100 +13,15 @@ import {
   requestAdminQuizCreate,
   requestAdminQuizList,
   requestAdminQuizInfo,
+  requestAdminQuizRemove,
+  requestAdminRegister,
+  requestAdminAuthLogin,
+  requestQuizCreateCombined,
+  requestAdminTrashQuizRestore,
+  requestAdminTrashQuizEmpty,
 } from './library/route_testing_functions';
 
-import { TokenString, ErrorObjectWithCode } from './library/interfaces';
-
-import { Quizzes } from './dataStore';
-
-// interfaces used throughout file - START
-
-interface ErrorObject {
-  error: string;
-}
-
-interface QuizId {
-  quizId: number;
-}
-
-interface requestAdminRegisterReturn {
-  token: string;
-}
-
-interface requestAdminAuthLoginReturn {
-  statusCode?: number;
-  bodyString: TokenString | ErrorObject;
-}
-
-export interface requestAdminQuizInfoReturn {
-  statusCode?: number;
-  bodyString: Quizzes | ErrorObject;
-}
-
-export interface requestAdminQuizListReturn {
-  statusCode?: number;
-  bodyString: Quizzes[] | ErrorObject;
-}
-
-interface requestAdminQuizRemoveReturn {
-  statusCode?: number;
-  bodyString: Record<string, never> | ErrorObject;
-}
-
-interface requestAdminTrashQuizRestoreReturn {
-  statusCode?: number;
-  bodyString: Record<string, never> | ErrorObject;
-}
-
-// interfaces used throughout file - END
-
-// constants used throughout file - START
-
-const port = config.port;
-const url = config.url;
-const SERVER_URL = `${url}:${port}`;
-
-// constants used throughout file - END
-
-function requestAdminRegister(
-  email: string,
-  password: string,
-  nameFirst: string,
-  nameLast: string
-): requestAdminRegisterReturn {
-  const res = request('POST', SERVER_URL + '/v1/admin/auth/register', {
-    json: {
-      email: email,
-      password: password,
-      nameFirst: nameFirst,
-      nameLast: nameLast,
-    },
-  });
-  return JSON.parse(res.body.toString());
-}
-
-const requestAdminAuthLogin = (
-  email: string,
-  password: string
-): requestAdminAuthLoginReturn => {
-  const res = request('POST', SERVER_URL + '/v1/admin/auth/login', {
-    json: { email, password },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
-
-const requestAdminQuizRemove = (
-  token: string,
-  quizid: number
-): requestAdminQuizRemoveReturn => {
-  const res = request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizid}`, {
-    qs: { quizid, token },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
+import { TokenString, QuizId } from './library/interfaces';
 
 // ***********************************************************************************
 // tests:
@@ -132,7 +44,7 @@ describe('adminQuizInfo testing', () => {
       'Harlow'
     );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
 
     const QuizOne = requestAdminQuizCreate(
       testToken,
@@ -179,9 +91,9 @@ describe('adminQuizInfo testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const quizIdIsInvalid = requestAdminQuizInfo(testToken, -1 * 1531);
 
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
@@ -198,9 +110,9 @@ describe('adminQuizInfo testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const Quiz = requestAdminQuizCreate(
       testToken,
       'Quiz 1',
@@ -221,9 +133,9 @@ describe('adminQuizInfo testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const Quiz = requestAdminQuizCreate(
       testToken,
       'Quiz 2',
@@ -244,18 +156,18 @@ describe('adminQuizInfo testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     // create user 2
     const returnTokenObj2 = requestAdminRegister(
       'tony@hotmail.com',
       'ab123456b',
       'Tony',
       'Stark'
-    ) as TokenString;
+    );
 
-    const testToken2 = returnTokenObj2.token;
+    const testToken2 = returnTokenObj2.body.token;
 
     // Create quiz using jack@hotmail.com token
     const JackQuiz = requestAdminQuizCreate(
@@ -288,9 +200,9 @@ describe('Testing adminQuizRemove', () => {
       '123456ab',
       'Jess',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
 
     const QuizOne = requestAdminQuizCreate(
       testToken,
@@ -316,9 +228,9 @@ describe('Testing adminQuizRemove', () => {
       '123456ab',
       'Jess',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const quizIdIsInvalid = requestAdminQuizRemove(testToken, -1 * 1531);
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
@@ -334,9 +246,9 @@ describe('Testing adminQuizRemove', () => {
       '123456ab',
       'Jess',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const Quiz = requestAdminQuizCreate(
       testToken,
       'Quiz a',
@@ -357,9 +269,9 @@ describe('Testing adminQuizRemove', () => {
       '123456ab',
       'Jess',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const Quiz = requestAdminQuizCreate(
       testToken,
       'Quiz b',
@@ -380,9 +292,9 @@ describe('Testing adminQuizRemove', () => {
       '123456ab',
       'Jess',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     requestAdminRegister('peter@hotmail.com', 'pass123456', 'Peter', 'Parker');
     const returnToken2 = requestAdminAuthLogin(
       'peter@hotmail.com',
@@ -418,9 +330,9 @@ describe('adminQuizList testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
 
     const QuizOne = requestAdminQuizCreate(
       testToken,
@@ -470,18 +382,6 @@ describe('adminQuizList testing', () => {
 // tests (Iteration Part 2):
 
 // adminTrashQuizRestore
-
-const requestAdminTrashQuizRestore = (
-  token: string,
-  quizId: number
-): requestAdminTrashQuizRestoreReturn => {
-  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/restore`, {
-    json: { token, quizId },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
-
 describe('adminTrashQuizRestore testing', () => {
   test('StatusCode 200: Valid input', () => {
     requestClear();
@@ -491,9 +391,9 @@ describe('adminTrashQuizRestore testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
 
     const QuizOne = requestAdminQuizCreate(
       testToken,
@@ -541,9 +441,9 @@ describe('adminTrashQuizRestore testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
 
     const quizIdIsInvalid = requestAdminTrashQuizRestore(testToken, -1 * 1531);
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
@@ -560,9 +460,9 @@ describe('adminTrashQuizRestore testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const quiz1 = requestAdminQuizCreate(
       testToken,
       'Quiz 1',
@@ -588,9 +488,9 @@ describe('adminTrashQuizRestore testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const quiz1 = requestAdminQuizCreate(
       testToken,
       'Quiz 1',
@@ -614,9 +514,9 @@ describe('adminTrashQuizRestore testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const Quiz = requestAdminQuizCreate(
       testToken,
       'Quiz test 1',
@@ -637,9 +537,9 @@ describe('adminTrashQuizRestore testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const Quiz = requestAdminQuizCreate(
       testToken,
       'Quiz test 2',
@@ -660,9 +560,9 @@ describe('adminTrashQuizRestore testing', () => {
       '123456ab',
       'Jack',
       'Harlow'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
 
     requestAdminRegister('tony2@hotmail.com', 'ab123456b', 'Tony', 'Stark');
     const returnToken2 = requestAdminAuthLogin('tony2@hotmail.com', 'ab123456b')
@@ -689,18 +589,6 @@ describe('adminTrashQuizRestore testing', () => {
 });
 
 // adminTrashQuizEmpty
-
-const requestAdminTrashQuizEmpty = (
-  token: string,
-  quizids: string
-): requestAdminQuizRemoveReturn => {
-  const res = request('DELETE', SERVER_URL + '/v1/admin/quiz/trash/empty', {
-    qs: { quizIds: quizids, token: token },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
-
 describe('adminTrashQuizEmpty testing', () => {
   test('StatusCode 200: Valid input', () => {
     requestClear();
@@ -710,9 +598,9 @@ describe('adminTrashQuizEmpty testing', () => {
       '123456ab',
       'Emma',
       'Homes'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
 
     const QuizOne = requestAdminQuizCreate(
       testToken,
@@ -754,9 +642,9 @@ describe('adminTrashQuizEmpty testing', () => {
       '123456ab',
       'Emma',
       'Homes'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const quizIdIsInvalid = requestAdminTrashQuizEmpty(testToken, JSON.stringify([-1 * 1531]));
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
@@ -772,9 +660,9 @@ describe('adminTrashQuizEmpty testing', () => {
       '123456ab',
       'Emma',
       'Homes'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const quiz1 = requestAdminQuizCreate(
       testToken,
       'Quiz 1',
@@ -797,9 +685,9 @@ describe('adminTrashQuizEmpty testing', () => {
       '123456ab',
       'Emma',
       'Homes'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const Quiz = requestAdminQuizCreate(
       testToken,
       'Quiz a',
@@ -820,9 +708,9 @@ describe('adminTrashQuizEmpty testing', () => {
       '123456ab',
       'Emma',
       'Homes'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     const Quiz = requestAdminQuizCreate(
       testToken,
       'Quiz b',
@@ -843,9 +731,9 @@ describe('adminTrashQuizEmpty testing', () => {
       '123456ab',
       'Emma',
       'Homes'
-    ) as TokenString;
+    );
 
-    const testToken = returnTokenObj.token;
+    const testToken = returnTokenObj.body.token;
     requestAdminRegister('ricky1@hotmail.com', 'ab123456b', 'Tony', 'Stark');
     const returnToken2 = requestAdminAuthLogin(
       'ricky1@hotmail.com',
@@ -884,33 +772,6 @@ describe('adminTrashQuizEmpty testing', () => {
 
 // All tests in this suite passed Tuesday 17-Oct23 12:05
 
-interface AdminQuizCreateReturn {
-  quizId: number;
-}
-
-interface HTTPResponse {
-  statusCode: number;
-}
-
-interface AdminQuizCreateReturnCombined {
-  resBody: AdminQuizCreateReturn | ErrorObjectWithCode;
-}
-
-const requestQuizCreateCombined = (
-  token: string,
-  name: string,
-  description: string
-): AdminQuizCreateReturnCombined | HTTPResponse => {
-  const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
-    json: { token, name, description },
-  });
-
-  const resBody = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-
-  return { resBody, statusCode };
-};
-
 // Tests
 // Passed Wednesday 18-Oct-23 14:20
 describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS AND STATUSCODE 200', () => {
@@ -929,7 +790,7 @@ describe('test 1: /v1/admin/quiz -> EXPECT SUCCESS AND STATUSCODE 200', () => {
     const description = 'This is the first quiz';
 
     const testrequestQuizCreate = requestQuizCreateCombined(
-      tokenObj.token,
+      tokenObj.body.token,
       name,
       description
     );
@@ -974,7 +835,7 @@ describe('test 2: /v1/admin/quiz : Name contains invalid characters -> EXPECT ER
     const descriptionOne = 'This is the first quiz';
 
     const test1Obj = requestQuizCreateCombined(
-      tokenObj.token,
+      tokenObj.body.token,
       INVALID_NAME,
       descriptionOne
     );
@@ -1025,7 +886,7 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
     const description1 = 'This is the first quiz';
 
     const test1Obj = requestQuizCreateCombined(
-      tokenObj.token,
+      tokenObj.body.token,
       INVALID_NAME_TOO_SHORT,
       description1
     );
@@ -1074,7 +935,7 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
 
     const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
     const test2Obj = requestQuizCreateCombined(
-      tokenObj.token,
+      tokenObj.body.token,
       INVALID_NAME_TOO_LONG,
       description3
     );
@@ -1121,9 +982,9 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
     const description1 = 'This is the first quiz';
 
     const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
-    requestQuizCreateCombined(tokenObj.token, VALID_NAME, description1);
+    requestQuizCreateCombined(tokenObj.body.token, VALID_NAME, description1);
     const test4Obj = requestQuizCreateCombined(
-      tokenObj.token,
+      tokenObj.body.token,
       VALID_NAME,
       description1
     );
@@ -1173,7 +1034,7 @@ describe('test 3: /v1/admin/quiz : Errors with quiz name or description', () => 
 
     const tokenObj = requestAdminRegister(email, password, nameFirst, nameLast);
     const test5Obj = requestQuizCreateCombined(
-      tokenObj.token,
+      tokenObj.body.token,
       VALID_NAME2,
       INVALID_DESCRIPTION
     );
