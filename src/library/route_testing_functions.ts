@@ -15,6 +15,12 @@ import {
   HTTPResponse,
 } from './interfaces';
 
+import {
+  RESPONSE_ERROR_400,
+  RESPONSE_ERROR_401,
+  RESPONSE_OK_200,
+} from './constants';
+
 import HTTPError from 'http-errors';
 // constants used throughout file - START
 
@@ -43,12 +49,14 @@ export const requestAdminQuizCreateV2 = (
     json: { name, description },
     timeout: WAIT_TIME,
   });
-  if (res.statusCode === 200) {
-    return JSON.parse(res.body.toString());
-  } else if (res.statusCode === 401) {
-    throw HTTPError(401);
-  } else if (res.statusCode === 400) {
-    throw HTTPError(400);
+
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
   }
 };
 
