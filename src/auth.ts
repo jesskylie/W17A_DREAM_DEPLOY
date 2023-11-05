@@ -129,13 +129,15 @@ export function adminAuthRegister(
   if (!isValidPassword(password)) {
     return { error: 'Invalid password' };
   }
-
+  
+  const hashedPassword = getHashOf(password);
+  
   const newUser: UserData = {
     authUserId: data.users.length,
     nameFirst: nameFirst,
     nameLast: nameLast,
     email: email,
-    password: password,
+    password: hashedPassword,
     oldPasswords: [],
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
@@ -191,7 +193,7 @@ export function adminAuthLogin(
   // test for correct password
   let passwordIsCorrectBool = false;
   for (const arr of data.users) {
-    if (arr.password === password) {
+    if (arr.password === getHashOf(password)) {
       passwordIsCorrectBool = true;
     }
   }
@@ -199,7 +201,7 @@ export function adminAuthLogin(
   // increments failed login attempts
   if (!passwordIsCorrectBool) {
     for (const arr of data.users) {
-      if (arr.email === email && arr.password !== password) {
+      if (arr.email === email && arr.password !== getHashOf(password)) {
         arr.numFailedPasswordsSinceLastLogin++;
         return { error: 'Password is not correct for the given email' };
       }
@@ -211,7 +213,7 @@ export function adminAuthLogin(
   // increments successful login, numFailed login resets to 0
   const newToken = uid();
   for (const arr of data.users) {
-    if (arr.email === email && arr.password === password) {
+    if (arr.email === email && arr.password === getHashOf(password)) {
       arr.token.push(newToken);
       arr.numSuccessfulLogins++;
       arr.numFailedPasswordsSinceLastLogin = 0;
@@ -246,6 +248,7 @@ export function updatePassword(
   newPassword: string
 ): Record<string, never> | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
+  const hashedNewPassword = getHashOf(newPassword);
   // token is empty/invalid - return 401 error
   if (!isTokenValid(data, token)) {
     return {
@@ -255,7 +258,7 @@ export function updatePassword(
   }
 
   // new password must be more than 8 characters, and have letters and numbers
-  if (!isValidPassword(newPassword)) {
+  if (!isValidPassword(getHashOf(newPassword))) {
     return { error: 'Invalid password', errorCode: RESPONSE_ERROR_400 };
   }
 
@@ -263,20 +266,20 @@ export function updatePassword(
   for (const user of data.users) {
     if (user.token.includes(token)) {
       // token is found
-      if (newPassword === user.password) {
+      if (hashedNewPassword  === user.password) {
         // check if new password is equal to old password
         // check if it exists in old passwords array
         return {
           error: 'New password can not be the same as old password',
           errorCode: RESPONSE_ERROR_400,
         };
-      } else if (oldPassword !== user.password) {
+      } else if (getHashOf(oldPassword) !== user.password) {
         // old password does not match old password
         return {
           error: 'Old password does not match old password',
           errorCode: RESPONSE_ERROR_400,
         };
-      } else if (user.oldPasswords.includes(newPassword)) {
+      } else if (user.oldPasswords.includes(hashedNewPassword)) {
         // check if old password exists in old password array
         return {
           error: 'New password has already been used by this user',
@@ -286,7 +289,7 @@ export function updatePassword(
         // move current password to old passwords array
         // update new password
         user.oldPasswords.push(oldPassword);
-        user.password = newPassword;
+        user.password = hashedNewPassword;
         saveDataInFile(data);
         return {};
       }
@@ -482,3 +485,13 @@ function isValidPassword(password: string): boolean {
     return false;
   }
 }
+
+/**
+ * Generates a SHA256 hash of the given password
+ * @param {string} password - user's password
+ * @returns {string} returns a hexademical representation of the hashed password
+ */
+function getHashOf(password: string): string {
+  const crypto = require('crypto');
+  return crypto.createHash('sha256').update(password).digest('hex');
+ }
