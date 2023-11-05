@@ -252,11 +252,17 @@ function adminQuizCreate(
 
   // determine new quizId
   // Inspiration taken from adminAuthRegister() in auth.js
+<<<<<<< HEAD
   let newQuizId = getRandomInt(ONE_MILLION);
   while (isQuizIdInTrash(data, newQuizId) || isQuizIdValid(data, newQuizId)) {
     newQuizId = getRandomInt(ONE_MILLION);
+=======
+  let newQuizId = getRandomInt();
+  while (isQuizIdInTrash(data, newQuizId) || isQuizIdValid(data, newQuizId)) {
+    newQuizId = getRandomInt();
+>>>>>>> 53b44abaa128ece5756fac726ff1ea43ee9bf0e9
   }
-
+  
   data.quizzes.push({
     quizId: newQuizId,
     name,

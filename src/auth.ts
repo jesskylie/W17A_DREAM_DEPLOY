@@ -295,6 +295,7 @@ export function updatePassword(
       }
     }
   }
+  return {};
 }
 
 // Iteration 2 functions
