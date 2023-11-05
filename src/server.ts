@@ -12,10 +12,14 @@ import process from 'process';
 import {
   adminAuthRegister,
   adminUserDetails,
+  adminUserDetailsV2,
   adminAuthLogin,
   updatePassword,
+  updatePasswordV2,
   adminAuthLogout,
+  adminAuthLogoutV2,
   adminUserDetailUpdate,
+  adminUserDetailUpdateV2,
 } from './auth';
 import { newClear } from './other';
 import {
@@ -34,10 +38,15 @@ import {
 } from './quiz';
 import {
   createQuizQuestion,
+  createQuizQuestionV2,
   deleteQuizQuestion,
   updateQuizQuestion,
   adminQuizQuestionMove,
   duplicateQuestion,
+  updateQuizQuestionV2,
+  duplicateQuestionV2,
+  adminQuizQuestionMoveV2,
+  deleteQuizQuestionV2,
 } from './question';
 import {
   RESPONSE_OK_200,
@@ -81,6 +90,25 @@ app.get('/echo', (req: Request, res: Response) => {
 // ============================================================================
 // ===================ITERATION 3 ROUTES BELOW THIS LINE=======================
 // ============================================================================
+
+// --------------------------- POST REQUESTS - START --------------------------
+
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  res.json(adminAuthLogoutV2(token));
+});
+
+app.post('/v2/admin/quiz/:quizId/question', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  const quizId = parseInt(req.params.quizId);
+
+  const { questionBody } = req.body;
+
+  res.json(createQuizQuestionV2(token, questionBody, quizId));
+});
+
 app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   const token = req.headers.token as string;
   const { name, description } = req.body;
@@ -92,6 +120,89 @@ app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   res.json(adminQuizRemoveV2(token, quizId));
 });
+
+app.post(
+  '/v2/admin/quiz/:quizId/question/:questionId/duplicate',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizId);
+    const questionId = parseInt(req.params.questionId);
+    res.json(duplicateQuestionV2(quizId, questionId, token));
+  }
+);
+// --------------------------- POST REQUESTS - END ----------------------------
+
+// --------------------------- GET REQUESTS - START ---------------------------
+
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  res.json(adminUserDetailsV2(token));
+});
+
+// --------------------------- GET REQUESTS - END -----------------------------
+
+// --------------------------- PUT REQUESTS - START ---------------------------
+
+app.put('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { email, nameFirst, nameLast } = req.body;
+
+  res.json(adminUserDetailUpdateV2(token, email, nameFirst, nameLast));
+});
+
+app.put('/v2/admin/user/password', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { oldPassword, newPassword } = req.body;
+
+  res.json(updatePasswordV2(token, oldPassword, newPassword));
+});
+
+app.put(
+  '/v2/admin/quiz/:quizId/question/:questionId',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const questionBody = req.body;
+    const quizId = parseInt(req.params.quizId);
+    const questionId = parseInt(req.params.questionId);
+
+    res.json(updateQuizQuestionV2(
+      quizId,
+      questionId,
+      token,
+      questionBody
+    ));
+  }
+);
+
+app.put(
+  '/v2/admin/quiz/:quizId/question/:questionId/move',
+  (req: Request, res: Response) => {
+    const quizId = parseInt(req.params.quizId);
+    const questionId = parseInt(req.params.questionId);
+    const token = req.headers.token as string;
+    const newPosition = req.body;
+    res.json(adminQuizQuestionMoveV2(
+      token,
+      quizId,
+      questionId,
+      newPosition
+    ));
+  }
+);
+// --------------------------- PUT REQUESTS - END -----------------------------
+
+// --------------------------- DELETE REQUESTS - START ------------------------
+app.delete(
+  '/v2/admin/quiz/:quizid/question/:questionid',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizid);
+    const questionId = parseInt(req.params.questionid);
+    res.json(deleteQuizQuestionV2(token, quizId, questionId));
+  }
+);
+// --------------------------- DELETE REQUESTS - END --------------------------
 
 // ============================================================================
 // ===================ITERATION 3 ROUTES ABOVE THIS LINE=======================

@@ -11,6 +11,14 @@ export interface QuestionBody {
     answerId: number;
   }[];
 }
+export interface TransferQuizReturn {
+  transferQuizResponse: Record<string, never> | ErrorObjectWithCode;
+}
+
+export interface TransferQuizServerReturn {
+  bodyString: TransferQuizReturn;
+  statusCode: number;
+}
 
 export interface AuthUserId {
   authUserId: number;
@@ -94,4 +102,9 @@ export interface HTTPResponse {
 
 export interface AdminQuizCreateReturnCombined {
   resBody: AdminQuizCreateReturn | ErrorObjectWithCode;
+}
+
+export interface RequestDeleteQuizQuestionReturn {
+  statusCode?: number;
+  bodyString: Record<string, never> | ErrorObject;
 }

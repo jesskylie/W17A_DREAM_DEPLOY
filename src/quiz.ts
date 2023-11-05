@@ -71,8 +71,11 @@ interface QuizListReturn {
 
 // TypeScript interfaces - END
 
-export function adminQuizCreateV2(token: string, name: string, description: string)
-: QuizId | ErrorObjectWithCode {
+export function adminQuizCreateV2(
+  token: string,
+  name: string,
+  description: string
+): QuizId | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
   const isTokenValidTest = isTokenValid(data, token);
 
@@ -114,7 +117,7 @@ export function adminQuizCreateV2(token: string, name: string, description: stri
     questions: [],
     numQuestions: 0,
     duration: 0,
-    state: State.LOBBY
+    state: State.LOBBY,
   });
 
   // Add quizId to quizId[] array in data.users
@@ -148,7 +151,7 @@ export function adminQuizRemoveV2(
   if (!isTokenValidTest) {
     throw httpError(401, 'Token is invalid');
   }
-  
+
   // All sessions for this quiz must be in end state
   const state = getState();
   if (!state.has(State.END)) {

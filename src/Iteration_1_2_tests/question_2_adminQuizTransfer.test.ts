@@ -22,10 +22,14 @@ import {
   CreateQuizQuestionReturn,
   ErrorObjectWithCode,
   requestAdminQuizListReturn,
+  TransferQuizReturn,
+  TransferQuizServerReturn
 } from '../library/interfaces';
 
 // constants used throughout file - START
-
+import {
+  requestTransferQuestion
+} from '../library/route_testing_functions';
 const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;
@@ -41,43 +45,9 @@ export interface CreateQuizQuestionServerReturn {
   statusCode: number;
 }
 
-export interface TransferQuizReturn {
-  transferQuizResponse: Record<string, never> | ErrorObjectWithCode;
-}
-
-interface TransferQuizServerReturn {
-  bodyString: TransferQuizReturn;
-  statusCode: number;
-}
-
 // interfaces used throughout file - END
 
 // functions to call server routes used in this file - START
-
-function requestTransferQuestion(
-  token: string,
-  userEmail: string,
-  quizId: number
-): TransferQuizServerReturn {
-  const res = request(
-    'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`,
-    {
-      json: {
-        token,
-        userEmail,
-      },
-    }
-  );
-
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-
-  return {
-    bodyString,
-    statusCode,
-  };
-}
 
 // functions to call server routes used in this file - END
 

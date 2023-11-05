@@ -66,7 +66,7 @@ describe.only('Testing /v2/admin/quiz', () => {
     requestClear();
     const result = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
     const quizId = requestAdminQuizCreateV2(result.body.token, 'QuizOne', 'Quiz description');
-		requestAdminQuizCreateV2(result.body.token, 'QuizTwo', 'Quiz description');
+    requestAdminQuizCreateV2(result.body.token, 'QuizTwo', 'Quiz description');
     expect(requestAdminQuizRemoveV2(result.body.token, quizId.quizId)).toStrictEqual({});
   });
 });

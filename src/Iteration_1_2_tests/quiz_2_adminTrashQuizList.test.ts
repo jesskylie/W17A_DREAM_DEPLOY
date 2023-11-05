@@ -6,6 +6,7 @@ import { RESPONSE_ERROR_401, WAIT_TIME } from '../library/constants';
 import {
   requestClear,
   requestAdminQuizCreate,
+  requestAdminTrashQuizList
 } from '../library/route_testing_functions';
 
 import { TokenString } from '../library/interfaces';
@@ -75,16 +76,6 @@ const requestAdminQuizRemove = (
 // ***********************************************************************************
 
 // adminTrashQuizList - testing start
-
-const requestAdminTrashQuizList = (
-  token: string
-): requestAdminQuizListReturn => {
-  const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
-    qs: { token },
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
 
 describe('adminTrashQuizList testing', () => {
   test('Status Code 200: valid input', () => {
