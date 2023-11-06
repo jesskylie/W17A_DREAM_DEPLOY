@@ -95,3 +95,8 @@ export interface HTTPResponse {
 export interface AdminQuizCreateReturnCombined {
   resBody: AdminQuizCreateReturn | ErrorObjectWithCode;
 }
+
+export interface RequestDeleteQuizQuestionReturn {
+  statusCode?: number;
+  bodyString: Record<string, never> | ErrorObject;
+}
