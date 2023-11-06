@@ -14,7 +14,14 @@ import {
   AdminQuizCreateReturnCombined,
   HTTPResponse,
   RequestDeleteQuizQuestionReturn,
+  TransferQuizServerReturn
 } from './interfaces';
+
+import {
+  RESPONSE_ERROR_400,
+  RESPONSE_ERROR_401,
+  RESPONSE_OK_200,
+} from './constants';
 
 import HTTPError from 'http-errors';
 // constants used throughout file - START
@@ -44,12 +51,14 @@ export const requestAdminQuizCreateV2 = (
     json: { name, description },
     timeout: WAIT_TIME,
   });
-  if (res.statusCode === 200) {
-    return JSON.parse(res.body.toString());
-  } else if (res.statusCode === 401) {
-    throw HTTPError(401);
-  } else if (res.statusCode === 400) {
-    throw HTTPError(400);
+
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
   }
 };
 
@@ -248,11 +257,11 @@ export const requestAdminTrashQuizRestoreV2 = (
   if (res.statusCode === 200) {
     return bodyString;
   } else if (res.statusCode === 401) {
-    throw HTTPError(401);
+    throw HTTPError(RESPONSE_ERROR_401);
   } else if (res.statusCode === 400) {
-    throw HTTPError(400);
+    throw HTTPError(RESPONSE_ERROR_400);
   } else if (res.statusCode === 403) {
-    throw HTTPError(403);
+    throw HTTPError(RESPONSE_ERROR_403);
   }
 };
 //**************************************************************
@@ -478,11 +487,11 @@ export const requestAdminTrashQuizEmptyV2 = (
   if (res.statusCode === 200) {
     return bodyString;
   } else if (res.statusCode === 401) {
-    throw HTTPError(401);
+    throw HTTPError(RESPONSE_ERROR_400);
   } else if (res.statusCode === 400) {
-    throw HTTPError(400);
+    throw HTTPError(RESPONSE_ERROR_400);
   } else if (res.statusCode === 403) {
-    throw HTTPError(403);
+    throw HTTPError(RESPONSE_ERROR_403);
   } 
 };
 //**************************************************************
@@ -501,13 +510,67 @@ export const requestAdminTrashQuizListV2 = (
   token: string
 ): requestAdminQuizListReturn => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
+    headers: { token },
     qs: { token },
   });
   const bodyString = JSON.parse(res.body.toString());
   if (res.statusCode === 200) {
     return bodyString;
   } else if (res.statusCode === 401) {
-    throw HTTPError(401);
+    throw HTTPError(RESPONSE_ERROR_401);
   } 
 };
+
+//**************************************************************
+export function requestTransferQuestion(
+  token: string,
+  userEmail: string,
+  quizId: number
+): TransferQuizServerReturn {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`,
+    {
+      json: {
+        token,
+        userEmail,
+      },
+    }
+  );
+
+  const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+
+  return {
+    bodyString,
+    statusCode,
+  };
+}
+
+//**************************************************************
+export function requestTransferQuestionV2(
+  token: string,
+  userEmail: string,
+  quizId: number
+): TransferQuizServerReturn {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`,
+    {
+      headers: { token },
+      json: {token,userEmail},
+    }
+  );
+
+  const bodyString = JSON.parse(res.body.toString());
+  if (res.statusCode === 200) {
+    return bodyString;
+  } else if (res.statusCode === 401) {
+    throw HTTPError(RESPONSE_ERROR_400);
+  } else if (res.statusCode === 400) {
+    throw HTTPError(RESPONSE_ERROR_400);
+  } else if (res.statusCode === 403) {
+    throw HTTPError(RESPONSE_ERROR_403);
+  } 
+}
 //**************************************************************
