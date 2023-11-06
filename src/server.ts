@@ -24,6 +24,7 @@ import {
 import { newClear } from './other';
 import {
   adminQuizCreate,
+  adminQuizCreateV2,
   adminQuizInfo,
   adminQuizList,
   adminQuizRemove,
@@ -101,6 +102,12 @@ app.post('/v2/admin/quiz/:quizId/question', (req: Request, res: Response) => {
   const { questionBody } = req.body;
 
   res.json(createQuizQuestionV2(token, questionBody, quizId));
+});
+
+app.post('/v2/admin/quiz', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { name, description } = req.body;
+  res.json(adminQuizCreateV2(token, name, description));
 });
 
 // --------------------------- POST REQUESTS - END ----------------------------

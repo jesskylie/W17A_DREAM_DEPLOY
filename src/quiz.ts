@@ -1,4 +1,5 @@
 import isEmail from 'validator/lib/isEmail.js';
+import httpError from 'http-errors';
 import { DataStore, Question } from './dataStore';
 import {
   retrieveDataFromFile,
@@ -68,6 +69,63 @@ interface QuizListReturn {
 }
 
 // TypeScript interfacts - END
+
+export function adminQuizCreateV2(
+  token: string,
+  name: string,
+  description: string
+): QuizId | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+  const isTokenValidTest = isTokenValid(data, token);
+
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is empty or invalid');
+  }
+
+  // checks valid authUserId
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isQuizNameValidTest = isQuizNameValid(
+    data,
+    name,
+    authUserId.authUserId
+  );
+
+  if (!isQuizNameValidTest.result) {
+    throw httpError(400, 'Quiz name is invalid');
+  }
+
+  // description is not more than 100 characters in length - error 400
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
+    throw httpError(400, 'Description is more than 100 characters in length');
+  }
+
+  // determine new quizId
+  // Inspiration taken from adminAuthRegister() in auth.js
+  let newQuizId = getRandomInt(ONE_MILLION);
+  while (isQuizIdInTrash(data, newQuizId) || isQuizIdValid(data, newQuizId)) {
+    newQuizId = getRandomInt(ONE_MILLION);
+  }
+
+  data.quizzes.push({
+    quizId: newQuizId,
+    name,
+    description,
+    timeCreated: createCurrentTimeStamp(),
+    timeLastEdited: createCurrentTimeStamp(),
+    userId: [authUserId.authUserId],
+    questions: [],
+    numQuestions: 0,
+    duration: 0,
+  });
+
+  // Add quizId to quizId[] array in data.users
+  pushNewQuizIdToUserArray(data, authUserId.authUserId, newQuizId);
+  saveDataInFile(data);
+
+  return {
+    quizId: newQuizId,
+  };
+}
 
 /**
  * Printing out the the quiz information (added new object for iteration 2)
