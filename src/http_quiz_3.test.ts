@@ -8,15 +8,26 @@ import {
 describe('Testing /v2/admin/quiz', () => {
   test('Success - valid input', () => {
     requestClear();
-    const result = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
-    expect(requestAdminQuizCreateV2(result.body.token, 'New Quiz', 'Quiz description')).toStrictEqual({ quizId: expect.any(Number) });
+    const result = requestAdminRegister(
+      'jess@hotmail.com',
+      '12345abced',
+      'Jess',
+      'Tran'
+    );
+    expect(
+      requestAdminQuizCreateV2(
+        result.body.token,
+        'New Quiz',
+        'Quiz description'
+      )
+    ).toStrictEqual({ quizId: expect.any(Number) });
   });
-  
-	test('Token is empty or invalid ', () => {
+
+  test('Token is empty or invalid ', () => {
     requestClear();
     requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
-    expect(() => requestAdminQuizCreateV2('', 'New Quiz', 'Quiz description')).toThrow(HTTPError[401]);
+    expect(() =>
+      requestAdminQuizCreateV2('', 'New Quiz', 'Quiz description')
+    ).toThrow(HTTPError[401]);
   });
-	
-	
 });

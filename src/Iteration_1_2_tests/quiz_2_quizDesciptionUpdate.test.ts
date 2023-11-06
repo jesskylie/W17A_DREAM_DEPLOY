@@ -1,23 +1,23 @@
 // Do not delete this file _
 import request from 'sync-request-curl';
-import config from './config.json';
+import config from '../config.json';
 
 import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './library/constants';
+} from '../library/constants';
 
-import { TokenString } from './library/interfaces';
+import { TokenString } from '../library/interfaces';
 
-import { Quizzes } from './dataStore';
+import { Quizzes } from '../dataStore';
 
 import {
   requestClear,
   requestAdminQuizCreate,
   requestAdminQuizInfo,
-} from './library/route_testing_functions';
+} from '../library/route_testing_functions';
 
 function requestAdminRegister(
   email: string,

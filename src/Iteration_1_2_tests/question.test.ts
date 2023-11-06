@@ -1,15 +1,15 @@
 import request from 'sync-request-curl';
-import config from './config.json';
+import config from '../config.json';
 
 import {
   requestClear,
   requestAdminRegister,
-} from './library/route_testing_functions';
+} from '../library/route_testing_functions';
 
 import {
   requestAdminQuizCreate,
   requestAdminQuizInfo,
-} from './library/route_testing_functions';
+} from '../library/route_testing_functions';
 
 import {
   RESPONSE_OK_200,
@@ -17,13 +17,13 @@ import {
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
   WAIT_TIME,
-} from './library/constants';
+} from '../library/constants';
 
 import {
   QuestionBody,
   CreateQuizQuestionReturn,
   requestAdminQuizInfoReturn,
-} from './library/interfaces';
+} from '../library/interfaces';
 
 // constants used throughout file - START
 
