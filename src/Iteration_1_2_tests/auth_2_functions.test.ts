@@ -1,8 +1,8 @@
 // This is a test message for pull everything in testMaster to local vscode
 // New tests for functions for iteration 2
-import { adminAuthRegister, updatePassword } from './auth';
+import { adminAuthRegister, updatePassword } from '../auth';
 
-import { newClear } from './other';
+import { newClear } from '../other';
 
 interface TokenString {
   token: string;

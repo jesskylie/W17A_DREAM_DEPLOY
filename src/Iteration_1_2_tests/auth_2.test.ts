@@ -6,18 +6,18 @@
 // ####################################
 
 import request from 'sync-request-curl';
-import config from './config.json';
+import config from '../config.json';
 
 import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-} from './library/constants';
+} from '../library/constants';
 
 import {
   requestClear,
   requestAdminRegister,
-} from './library/route_testing_functions';
+} from '../library/route_testing_functions';
 
 // constants used throughout file - START
 

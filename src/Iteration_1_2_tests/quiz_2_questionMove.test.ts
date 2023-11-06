@@ -1,5 +1,5 @@
 import request from 'sync-request-curl';
-import config from './config.json';
+import config from '../config.json';
 
 import {
   requestClear,
@@ -7,15 +7,15 @@ import {
   requestAdminQuizInfo,
   requestAdminRegister,
   requestCreateQuestion,
-} from './library/route_testing_functions';
-import { QuestionBody } from './library/interfaces';
+} from '../library/route_testing_functions';
+import { QuestionBody } from '../library/interfaces';
 import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './library/constants';
+} from '../library/constants';
 // import { requestCreateQuestion } from './quiz_2_questionDelete.test';
-import { Quizzes } from './dataStore';
+import { Quizzes } from '../dataStore';
 const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;

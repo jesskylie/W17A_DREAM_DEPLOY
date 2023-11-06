@@ -1,15 +1,15 @@
 // Do not delete this file _
 import request from 'sync-request-curl';
-import config from './config.json';
+import config from '../config.json';
 
 import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   WAIT_TIME,
-} from './library/constants';
+} from '../library/constants';
 
-import { TokenString } from './library/interfaces';
+import { TokenString } from '../library/interfaces';
 
 import {
   adminAuthRegister,
@@ -17,7 +17,7 @@ import {
   adminAuthLogout,
   UserInfo,
   adminUserDetailUpdate,
-} from './auth';
+} from '../auth';
 
 // interfaces used throughout file - START
 
