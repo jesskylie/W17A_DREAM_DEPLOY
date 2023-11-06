@@ -34,7 +34,6 @@ import {
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
   adminQuizTransfer,
-  adminQuizCreateV2
 } from './quiz';
 import {
   createQuizQuestion,
@@ -43,6 +42,10 @@ import {
   updateQuizQuestion,
   adminQuizQuestionMove,
   duplicateQuestion,
+  updateQuizQuestionV2,
+  duplicateQuestionV2,
+  adminQuizQuestionMoveV2,
+  deleteQuizQuestionV2,
 } from './question';
 import {
   RESPONSE_OK_200,
@@ -111,6 +114,15 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   res.json(adminQuizCreateV2(token, name, description));
 });
 
+app.post(
+  '/v2/admin/quiz/:quizId/question/:questionId/duplicate',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizId);
+    const questionId = parseInt(req.params.questionId);
+    res.json(duplicateQuestionV2(quizId, questionId, token));
+  }
+);
 // --------------------------- POST REQUESTS - END ----------------------------
 
 // --------------------------- GET REQUESTS - START ---------------------------
@@ -139,10 +151,50 @@ app.put('/v2/admin/user/password', (req: Request, res: Response) => {
   res.json(updatePasswordV2(token, oldPassword, newPassword));
 });
 
+app.put(
+  '/v2/admin/quiz/:quizId/question/:questionId',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const questionBody = req.body;
+    const quizId = parseInt(req.params.quizId);
+    const questionId = parseInt(req.params.questionId);
+
+    res.json(updateQuizQuestionV2(
+      quizId,
+      questionId,
+      token,
+      questionBody
+    ));
+  }
+);
+
+app.put(
+  '/v2/admin/quiz/:quizId/question/:questionId/move',
+  (req: Request, res: Response) => {
+    const quizId = parseInt(req.params.quizId);
+    const questionId = parseInt(req.params.questionId);
+    const token = req.headers.token as string;
+    const newPosition = req.body;
+    res.json(adminQuizQuestionMoveV2(
+      token,
+      quizId,
+      questionId,
+      newPosition
+    ));
+  }
+);
 // --------------------------- PUT REQUESTS - END -----------------------------
 
 // --------------------------- DELETE REQUESTS - START ------------------------
-
+app.delete(
+  '/v2/admin/quiz/:quizid/question/:questionid',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizid);
+    const questionId = parseInt(req.params.questionid);
+    res.json(deleteQuizQuestionV2(token, quizId, questionId));
+  }
+);
 // --------------------------- DELETE REQUESTS - END --------------------------
 
 // ============================================================================
