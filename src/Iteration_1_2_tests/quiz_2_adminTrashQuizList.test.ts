@@ -1,17 +1,17 @@
 // Do not delete this file _
 import request from 'sync-request-curl';
-import config from './config.json';
+import config from '../config.json';
 
-import { RESPONSE_ERROR_401, WAIT_TIME } from './library/constants';
+import { RESPONSE_ERROR_401, WAIT_TIME } from '../library/constants';
 import {
   requestClear,
   requestAdminQuizCreate,
-} from './library/route_testing_functions';
+} from '../library/route_testing_functions';
 
-import { TokenString } from './library/interfaces';
+import { TokenString } from '../library/interfaces';
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
-import { Quizzes } from './dataStore';
+import { Quizzes } from '../dataStore';
 
 function requestAdminRegister(
   email: string,
