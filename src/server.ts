@@ -29,6 +29,7 @@ import {
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
   adminQuizTransfer,
+  adminQuizCreateV2
 } from './quiz';
 import {
   createQuizQuestion,
@@ -79,7 +80,11 @@ app.get('/echo', (req: Request, res: Response) => {
 // ============================================================================
 // ===================ITERATION 3 ROUTES BELOW THIS LINE=======================
 // ============================================================================
-
+app.post('/v2/admin/quiz', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { name, description } = req.body;
+  res.json(adminQuizCreateV2(token, name, description));
+});
 // ============================================================================
 // ===================ITERATION 3 ROUTES ABOVE THIS LINE=======================
 // ============================================================================
