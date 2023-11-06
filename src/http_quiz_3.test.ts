@@ -4,8 +4,7 @@ import {
   requestAdminRegister,
   requestClear,
   requestAdminQuizRemoveV2,
-	requestAdminQuizInfoV2,
-	requestCreateQuestionV2
+  requestAdminQuizInfoV2,
 } from './library/route_testing_functions';
 
 describe('Testing POST /v2/admin/quiz', () => {
@@ -91,35 +90,35 @@ describe('Testing DELETE /v2/admin/quiz', () => {
 });
 
 describe('Testing GET /v2/admin/quiz/:quizid', () => {
-	test('Successfully displays current quiz', () => {
-		requestClear();
-		const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
-		const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
-		const returnObject = {
-			quizId: quizId.quizId,
-			duration: 0,
-			name: "QuizOne",
-			timeCreated: expect.any(Number),
-			timeLastEdited: expect.any(Number),
-			description: "Quiz description",
-			numQuestions: 0,
-			questions: expect.arrayContaining([]),
-		};
-		expect(requestAdminQuizInfoV2(userOne.body.token, quizId.quizId)).toStrictEqual(returnObject);
-	});
-	test('Token is empty/invalid - 400 error', () => {
-		requestClear();
-		const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
-		const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
-		expect(() => requestAdminQuizInfoV2('', quizId.quizId)).toThrow(HTTPError[401]);
-		expect(() => requestAdminQuizInfoV2('abcdef', quizId.quizId)).toThrow(HTTPError[401]);
-	});
-	test('Valid token is provided but user is not owner of quiz - error 403', () => {
+  test('Successfully displays current quiz', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    const returnObject = {
+      quizId: quizId.quizId,
+      duration: 0,
+      name: 'QuizOne',
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: 'Quiz description',
+      numQuestions: 0,
+      questions: expect.arrayContaining([]),
+    };
+    expect(requestAdminQuizInfoV2(userOne.body.token, quizId.quizId)).toStrictEqual(returnObject);
+  });
+  test('Token is empty/invalid - 400 error', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(() => requestAdminQuizInfoV2('', quizId.quizId)).toThrow(HTTPError[401]);
+    expect(() => requestAdminQuizInfoV2('abcdef', quizId.quizId)).toThrow(HTTPError[401]);
+  });
+  test('Valid token is provided but user is not owner of quiz - error 403', () => {
     requestClear();
     const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
     const userTwo = requestAdminRegister('katie@hotmail.com', '12345abced', 'Jess', 'Tran');
     const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
     requestAdminQuizCreateV2(userOne.body.token, 'QuizTwo', 'Quiz description');
-    expect(() => requestAdminQuizInfoV2(userTwo.body.token, quizId.quizId)).toThrow(HTTPError[403]);	
+    expect(() => requestAdminQuizInfoV2(userTwo.body.token, quizId.quizId)).toThrow(HTTPError[403]);
   });
 });

@@ -1,5 +1,4 @@
 import isEmail from 'validator/lib/isEmail.js';
-import HTTPError from 'http-errors';
 import { DataStore, Question, State } from './dataStore';
 import {
   retrieveDataFromFile,
@@ -8,7 +7,6 @@ import {
   getAuthUserIdUsingToken,
   createCurrentTimeStamp,
   getRandomInt,
-  getState,
 } from './library/functions';
 
 import {
@@ -26,7 +24,7 @@ import { AuthUserId } from './library/interfaces';
 
 // TypeScript interfacts - START
 
-interface QuizId {
+export interface QuizId {
   quizId: number;
 }
 
@@ -40,7 +38,7 @@ interface IsQuizNameValidReturnObject {
   error?: string;
 }
 
-interface QuizInfoReturn {
+export interface QuizInfoReturn {
   quizId: number;
   name: string;
   timeCreated: number;
@@ -70,115 +68,6 @@ interface QuizListReturn {
 }
 
 // TypeScript interfaces - END
-
-export function adminQuizCreateV2(
-  token: string,
-  name: string,
-  description: string
-): QuizId | ErrorObjectWithCode {
-  const data: DataStore = retrieveDataFromFile();
-  const isTokenValidTest = isTokenValid(data, token);
-
-  if (!isTokenValidTest) {
-    throw HTTPError(401, 'Token is empty or invalid');
-  }
-
-  // checks valid authUserId
-  const authUserId = getAuthUserIdUsingToken(data, token);
-  const isQuizNameValidTest = isQuizNameValid(
-    data,
-    name,
-    authUserId.authUserId
-  );
-
-  if (!isQuizNameValidTest.result) {
-    throw HTTPError(400, 'Quiz name is invalid');
-  }
-
-  // description is not more than 100 characters in length - error 400
-  if (description.length > MAX_DESCRIPTION_LENGTH) {
-    throw HTTPError(400, 'Description is more than 100 characters in length');
-  }
-
-  // determine new quizId
-  // Inspiration taken from adminAuthRegister() in auth.js
-  let newQuizId = getRandomInt(ONE_MILLION);
-  while (isQuizIdInTrash(data, newQuizId) || isQuizIdValid(data, newQuizId)) {
-    newQuizId = getRandomInt(ONE_MILLION);
-  }
-
-  data.quizzes.push({
-    quizId: newQuizId,
-    name,
-    description,
-    timeCreated: createCurrentTimeStamp(),
-    timeLastEdited: createCurrentTimeStamp(),
-    userId: [authUserId.authUserId],
-    questions: [],
-    numQuestions: 0,
-    duration: 0,
-    state: State.LOBBY,
-  });
-
-  // Add quizId to quizId[] array in data.users
-  pushNewQuizIdToUserArray(data, authUserId.authUserId, newQuizId);
-  saveDataInFile(data);
-
-  return {
-    quizId: newQuizId,
-  };
-}
-
-export function adminQuizRemoveV2(
-  token: string,
-  quizId: number
-): Record<string, never> | ErrorObjectWithCode {
-  const data: DataStore = retrieveDataFromFile();
-  const authUserId = getAuthUserIdUsingToken(data, token);
-  const isQuizIdValidTest = isQuizIdValid(data, quizId);
-  const isTokenValidTest = isTokenValid(data, token);
-  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
-    data,
-    authUserId.authUserId,
-    quizId
-  );
-  if (!isAuthUserIdMatchQuizIdTest && isTokenValidTest && isQuizIdValidTest) {
-    throw HTTPError(403, 'QuizId does not match authUserId');
-  }
-  if (!token) {
-    throw HTTPError(401, 'Token is empty');
-  }
-  if (!isTokenValidTest) {
-    throw HTTPError(401, 'Token is invalid');
-  }
-  
-  // All sessions for this quiz must be in end state
-  const state = getState();
-  if (!state.has(State.END)) {
-    throw HTTPError(400, 'All sessions for this quiz must be in END State');
-  }
-
-  const newdata = data;
-  const userToUpdata = data.users.find(
-    (user) => user.authUserId === authUserId.authUserId
-  );
-  const quizToTrash = data.quizzes.filter((quiz) => quiz.quizId === quizId);
-  data.quizzes = data.quizzes.filter((quiz) => quiz.quizId !== quizId);
-  if (userToUpdata) {
-    const indexToRemove = userToUpdata.quizId.indexOf(quizId);
-    if (indexToRemove !== -1) {
-      userToUpdata.quizId.splice(indexToRemove, 1);
-    }
-  }
-  for (let check of newdata.users) {
-    if (check.authUserId === authUserId.authUserId) {
-      check = userToUpdata;
-    }
-  }
-  newdata.trash.push(quizToTrash[0]);
-  saveDataInFile(newdata);
-  return {};
-}
 
 /**
  * Printing out the the quiz information (added new object for iteration 2)
@@ -1136,7 +1025,7 @@ export { adminTrashQuizEmpty };
  *
  * @returns {boolean} - true if authId is valid / false if authId is not valid
  */
-function isQuizNameValid(
+export function isQuizNameValid(
   data: DataStore,
   name: string,
   userId: number
@@ -1208,7 +1097,7 @@ function isQuizNameValid(
  *
  * @returns {} - nil return; the existing array is mutated
  */
-function pushNewQuizIdToUserArray(
+export function pushNewQuizIdToUserArray(
   data: DataStore,
   authUserId: number,
   quizId: number
@@ -1234,7 +1123,7 @@ function pushNewQuizIdToUserArray(
  *
  * @returns {boolean} - true if authId is valid / false if authId is not valid
  */
-function isQuizIdValid(data: DataStore, quizId: number): boolean {
+export function isQuizIdValid(data: DataStore, quizId: number): boolean {
   // 1. test for quizId is integer or less than 0
   if (!Number.isInteger(quizId) || quizId < 0) {
     return false;
@@ -1290,7 +1179,7 @@ export function isAuthUserIdMatchQuizId(
   return false;
 }
 
-function isQuizIdInTrash(data: DataStore, quizId: number): boolean {
+export function isQuizIdInTrash(data: DataStore, quizId: number): boolean {
   if (!Number.isInteger(quizId) || quizId < 0) {
     return false;
   }
