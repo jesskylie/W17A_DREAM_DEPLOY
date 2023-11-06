@@ -12,14 +12,19 @@ import process from 'process';
 import {
   adminAuthRegister,
   adminUserDetails,
+  adminUserDetailsV2,
   adminAuthLogin,
   updatePassword,
+  updatePasswordV2,
   adminAuthLogout,
+  adminAuthLogoutV2,
   adminUserDetailUpdate,
+  adminUserDetailUpdateV2,
 } from './auth';
 import { newClear } from './other';
 import {
   adminQuizCreate,
+  adminQuizCreateV2,
   adminQuizInfo,
   adminQuizList,
   adminQuizRemove,
@@ -33,6 +38,7 @@ import {
 } from './quiz';
 import {
   createQuizQuestion,
+  createQuizQuestionV2,
   deleteQuizQuestion,
   updateQuizQuestion,
   adminQuizQuestionMove,
@@ -80,11 +86,65 @@ app.get('/echo', (req: Request, res: Response) => {
 // ============================================================================
 // ===================ITERATION 3 ROUTES BELOW THIS LINE=======================
 // ============================================================================
+
+// --------------------------- POST REQUESTS - START --------------------------
+
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  res.json(adminAuthLogoutV2(token));
+});
+
+app.post('/v2/admin/quiz/:quizId/question', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  const quizId = parseInt(req.params.quizId);
+
+  const { questionBody } = req.body;
+
+  res.json(createQuizQuestionV2(token, questionBody, quizId));
+});
+
 app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   const token = req.headers.token as string;
   const { name, description } = req.body;
   res.json(adminQuizCreateV2(token, name, description));
 });
+
+// --------------------------- POST REQUESTS - END ----------------------------
+
+// --------------------------- GET REQUESTS - START ---------------------------
+
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+
+  res.json(adminUserDetailsV2(token));
+});
+
+// --------------------------- GET REQUESTS - END -----------------------------
+
+// --------------------------- PUT REQUESTS - START ---------------------------
+
+app.put('/v2/admin/user/details', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { email, nameFirst, nameLast } = req.body;
+
+  res.json(adminUserDetailUpdateV2(token, email, nameFirst, nameLast));
+});
+
+app.put('/v2/admin/user/password', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { oldPassword, newPassword } = req.body;
+
+  res.json(updatePasswordV2(token, oldPassword, newPassword));
+});
+
+// --------------------------- PUT REQUESTS - END -----------------------------
+
+// --------------------------- DELETE REQUESTS - START ------------------------
+
+// --------------------------- DELETE REQUESTS - END --------------------------
+
 // ============================================================================
 // ===================ITERATION 3 ROUTES ABOVE THIS LINE=======================
 // ============================================================================
