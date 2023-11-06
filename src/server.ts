@@ -34,6 +34,7 @@ import {
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
   adminQuizTransfer,
+  adminQuizCreateV2
 } from './quiz';
 import {
   createQuizQuestion,
