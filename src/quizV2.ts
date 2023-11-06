@@ -13,6 +13,8 @@ import {
 import {
   MAX_DESCRIPTION_LENGTH,
   ONE_MILLION,
+  MIN_QUIZ_NAME_LENGTH,
+  MAX_QUIZ_NAME_LENGTH,
 } from './library/constants';
 
 import {
@@ -209,4 +211,110 @@ export function adminQuizInfoV2(token: string, quizId: number): QuizInfoReturn |
       };
     }
   }
+}
+
+/**
+ * Update the name of the relevant quiz - Modified for iteration 3
+ *
+ * @param {string} token - the token of the person want to update quiz's name - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being change - must exist / be valid / be unique
+ * @param {string} name - the new name of the quiz - must be valid / unique
+ * ...
+ *
+ * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
+export function adminQuizNameUpdateV2(
+  token: string,
+  quizId: number,
+  name: string
+): Record<string, never> | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+
+  const authUserIdObj = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdObj.authUserId;
+  // invalid quiz name characters - error 400
+  const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
+  if (!isQuizNameValidTest.result) {
+    throw HTTPError(400, 'Name contains invalid characters or has already been used');
+  }
+  // quiz name is not between 3-30 characters - error 400
+  if (name.length < MIN_QUIZ_NAME_LENGTH || name.length > MAX_QUIZ_NAME_LENGTH) {
+    throw HTTPError(400, 'Name is not between 3 and 30 characters');
+  }
+  // Token is empty/invalid - 401 error
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+  if (!isTokenValidTest) {
+    throw HTTPError(401, 'Token is empty or invalid');
+  }
+  // Valid token is provided but user is now an owner of the quiz - erorr 403
+  const userArr = data.users;
+  let userOwnsQuizBool = false;
+  for (const user of userArr) {
+    if (user.authUserId === authUserId && user.quizId.includes(quizId)) {
+      userOwnsQuizBool = true;
+    }
+  }
+  if (!userOwnsQuizBool) {
+    throw HTTPError(403, 'Valid token is provided, but user is not an owner of this quiz');
+  }
+  for (const quiz of data.quizzes) {
+    if (quiz.quizId === quizId) {
+      quiz.name = name;
+      quiz.timeLastEdited = createCurrentTimeStamp();
+    }
+  }
+  saveDataInFile(data);
+  return {};
+}
+
+/**
+ * Update the description of the relevant quiz - Modified for iteration 3
+ *
+ * @param {string} token - the token of the person want to update quiz's description - must exist / be valid / be unique
+ * @param {number} quizId - the id of the quiz being update - must exist / be valid / be unique
+ * @param {string} description - the new description of the quiz
+ * ...
+ *
+ * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
+ * @returns {} - return nothing
+ */
+export function adminQuizDescriptionUpdateV2(
+  token: string,
+  quizId: number,
+  description: string
+): Record<string, never> | ErrorObjectWithCode {
+  // const data = getData();
+  const data: DataStore = retrieveDataFromFile();
+  const authUserIdObj = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdObj.authUserId;
+  // description is more than 100 characters - error 400
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
+    throw HTTPError(400, 'Description is more than 100 characters');
+  }
+  // Token is empty/invalid - error 401
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+  if (!isTokenValidTest) {
+    throw HTTPError(401, 'Token is empty or invalid');
+  }
+  // Valid token provided but user does not own quiz
+  const userArr = data.users;
+  let userOwnsQuizBool = false;
+  for (const user of userArr) {
+    if (user.authUserId === authUserId && user.quizId.includes(quizId)) {
+      userOwnsQuizBool = true;
+    }
+  }
+  if (!userOwnsQuizBool) {
+    throw HTTPError(403, 'Valid token is provided, but user is not an owner of this quiz');
+  }
+  const quizArr = data.quizzes;
+  for (const quiz of quizArr) {
+    if (quiz.quizId === quizId) {
+      quiz.description = description;
+      quiz.timeLastEdited = createCurrentTimeStamp();
+    }
+  }
+  saveDataInFile(data);
+  return {};
 }
