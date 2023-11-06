@@ -14,6 +14,7 @@ import {
   AdminQuizCreateReturnCombined,
   HTTPResponse,
   RequestDeleteQuizQuestionReturn,
+  TransferQuizServerReturn
 } from './interfaces';
 
 import {
@@ -76,6 +77,7 @@ export const requestAdminQuizCreate = (
   };
 };
 
+//**************************************************************
 export const requestAdminQuizList = (
   token: string
 ): requestAdminQuizListReturn => {
@@ -85,7 +87,22 @@ export const requestAdminQuizList = (
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
-
+//**************************************************************
+export const requestAdminQuizListV2 = (
+  token: string
+): requestAdminQuizListReturn => {
+  const res = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
+    headers: { token },
+    qs: { token },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  if (res.statusCode === 200) {
+    return bodyString;
+  } else if (res.statusCode === 401) {
+    throw HTTPError(401);
+  }
+};
+//**************************************************************
 export const requestAdminQuizInfo = (
   token: string,
   quizid: number
@@ -216,7 +233,8 @@ export const requestQuizCreateCombined = (
 
   return { resBody, statusCode };
 };
-
+//**************************************************************
+//**************************************************************
 export const requestAdminTrashQuizRestore = (
   token: string,
   quizId: number
@@ -227,7 +245,27 @@ export const requestAdminTrashQuizRestore = (
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
-
+//**************************************************************
+export const requestAdminTrashQuizRestoreV2 = (
+  token: string,
+  quizId: number
+): requestAdminTrashQuizRestoreReturn => {
+  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/restore`, {
+    json: { token, quizId },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  if (res.statusCode === 200) {
+    return bodyString;
+  } else if (res.statusCode === 401) {
+    throw HTTPError(RESPONSE_ERROR_401);
+  } else if (res.statusCode === 400) {
+    throw HTTPError(RESPONSE_ERROR_400);
+  } else if (res.statusCode === 403) {
+    throw HTTPError(RESPONSE_ERROR_403);
+  }
+};
+//**************************************************************
+//**************************************************************
 export const requestAdminTrashQuizEmpty = (
   token: string,
   quizids: string
@@ -436,3 +474,103 @@ export function requestDuplicateQuestion(
     statusCode,
   };
 }
+//**************************************************************
+export const requestAdminTrashQuizEmptyV2 = (
+  token: string,
+  quizids: string
+): requestAdminQuizRemoveReturn => {
+  const res = request('DELETE', SERVER_URL + '/v2/admin/quiz/trash/empty', {
+    headers: { token },
+    qs: { quizIds: quizids, token: token }
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  if (res.statusCode === 200) {
+    return bodyString;
+  } else if (res.statusCode === 401) {
+    throw HTTPError(RESPONSE_ERROR_400);
+  } else if (res.statusCode === 400) {
+    throw HTTPError(RESPONSE_ERROR_400);
+  } else if (res.statusCode === 403) {
+    throw HTTPError(RESPONSE_ERROR_403);
+  } 
+};
+//**************************************************************
+//**************************************************************
+export const requestAdminTrashQuizList = (
+  token: string
+): requestAdminQuizListReturn => {
+  const res = request('GET', SERVER_URL + '/v1/admin/quiz/trash', {
+    qs: { token },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  return { statusCode: res.statusCode, bodyString: bodyString };
+};
+//**************************************************************
+export const requestAdminTrashQuizListV2 = (
+  token: string
+): requestAdminQuizListReturn => {
+  const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
+    headers: { token },
+    qs: { token },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  if (res.statusCode === 200) {
+    return bodyString;
+  } else if (res.statusCode === 401) {
+    throw HTTPError(RESPONSE_ERROR_401);
+  } 
+};
+
+//**************************************************************
+export function requestTransferQuestion(
+  token: string,
+  userEmail: string,
+  quizId: number
+): TransferQuizServerReturn {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`,
+    {
+      json: {
+        token,
+        userEmail,
+      },
+    }
+  );
+
+  const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+
+  return {
+    bodyString,
+    statusCode,
+  };
+}
+
+//**************************************************************
+export function requestTransferQuestionV2(
+  token: string,
+  userEmail: string,
+  quizId: number
+): TransferQuizServerReturn {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`,
+    {
+      headers: { token },
+      json: {token,userEmail},
+    }
+  );
+
+  const bodyString = JSON.parse(res.body.toString());
+  if (res.statusCode === 200) {
+    return bodyString;
+  } else if (res.statusCode === 401) {
+    throw HTTPError(RESPONSE_ERROR_400);
+  } else if (res.statusCode === 400) {
+    throw HTTPError(RESPONSE_ERROR_400);
+  } else if (res.statusCode === 403) {
+    throw HTTPError(RESPONSE_ERROR_403);
+  } 
+}
+//**************************************************************
