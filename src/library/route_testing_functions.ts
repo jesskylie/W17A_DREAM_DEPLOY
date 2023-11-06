@@ -1,6 +1,6 @@
 import request from 'sync-request-curl';
+import HTTPError from 'http-errors';
 import config from '../config.json';
-import { RESPONSE_ERROR_403, WAIT_TIME } from './constants';
 
 import {
   requestAdminQuizCreateReturn,
@@ -14,16 +14,17 @@ import {
   AdminQuizCreateReturnCombined,
   HTTPResponse,
   RequestDeleteQuizQuestionReturn,
-  TransferQuizServerReturn
+  TransferQuizServerReturn,
 } from './interfaces';
 
 import {
+  RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
-  RESPONSE_OK_200,
+  RESPONSE_ERROR_403,
+  WAIT_TIME,
 } from './constants';
 
-import HTTPError from 'http-errors';
 // constants used throughout file - START
 
 const port = config.port;
@@ -481,7 +482,7 @@ export const requestAdminTrashQuizEmptyV2 = (
 ): requestAdminQuizRemoveReturn => {
   const res = request('DELETE', SERVER_URL + '/v2/admin/quiz/trash/empty', {
     headers: { token },
-    qs: { quizIds: quizids, token: token }
+    qs: { quizIds: quizids, token: token },
   });
   const bodyString = JSON.parse(res.body.toString());
   if (res.statusCode === 200) {
@@ -492,7 +493,7 @@ export const requestAdminTrashQuizEmptyV2 = (
     throw HTTPError(RESPONSE_ERROR_400);
   } else if (res.statusCode === 403) {
     throw HTTPError(RESPONSE_ERROR_403);
-  } 
+  }
 };
 //**************************************************************
 //**************************************************************
@@ -518,7 +519,7 @@ export const requestAdminTrashQuizListV2 = (
     return bodyString;
   } else if (res.statusCode === 401) {
     throw HTTPError(RESPONSE_ERROR_401);
-  } 
+  }
 };
 
 //**************************************************************
@@ -558,7 +559,7 @@ export function requestTransferQuestionV2(
     SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`,
     {
       headers: { token },
-      json: {token,userEmail},
+      json: { token, userEmail },
     }
   );
 
@@ -571,6 +572,6 @@ export function requestTransferQuestionV2(
     throw HTTPError(RESPONSE_ERROR_400);
   } else if (res.statusCode === 403) {
     throw HTTPError(RESPONSE_ERROR_403);
-  } 
+  }
 }
 //**************************************************************
