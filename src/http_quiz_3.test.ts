@@ -5,6 +5,8 @@ import {
   requestClear,
   requestAdminQuizRemoveV2,
   requestAdminQuizInfoV2,
+  requestUpdateQuizNameV2,
+  requestAdminQuizDescriptionUpdateV2,
 } from './library/route_testing_functions';
 
 describe('Testing POST /v2/admin/quiz', () => {
@@ -120,5 +122,79 @@ describe('Testing GET /v2/admin/quiz/:quizid', () => {
     const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
     requestAdminQuizCreateV2(userOne.body.token, 'QuizTwo', 'Quiz description');
     expect(() => requestAdminQuizInfoV2(userTwo.body.token, quizId.quizId)).toThrow(HTTPError[403]);
+  });
+});
+
+describe('Testing PUT /v2/admin/quiz/:quizid/name', () => {
+  test('Success name update', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(requestUpdateQuizNameV2(userOne.body.token, quizId.quizId, 'New Name')).toStrictEqual({});
+  });
+  test('Testing name contains invalid characters - 400 error', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(() => requestUpdateQuizNameV2(userOne.body.token, quizId.quizId, '$$$$$$$e')).toThrow(HTTPError[400]);
+  });
+  test('Testing name not between 3 and 30 characters - 400 error', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(() => requestUpdateQuizNameV2(userOne.body.token, quizId.quizId, 'a')).toThrow(HTTPError[400]);
+    expect(() => requestUpdateQuizNameV2(userOne.body.token, quizId.quizId, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toThrow(HTTPError[400]);
+  });
+  test('Testing name is already used for another quiz - 400 error', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(() => requestUpdateQuizNameV2(userOne.body.token, quizId.quizId, 'QuizOne')).toThrow(HTTPError[400]);
+  });
+
+  test('Token is empty/invalid - 400 error', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(() => requestUpdateQuizNameV2('', quizId.quizId, 'New Quiz Name')).toThrow(HTTPError[401]);
+    expect(() => requestUpdateQuizNameV2('abcdef', quizId.quizId, 'New Quiz Name')).toThrow(HTTPError[401]);
+  });
+  test('Valid token is provided but user is not owner of quiz - error 403', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const userTwo = requestAdminRegister('katie@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    requestAdminQuizCreateV2(userOne.body.token, 'QuizTwo', 'Quiz description');
+    expect(() => requestUpdateQuizNameV2(userTwo.body.token, quizId.quizId, 'New Quiz Name')).toThrow(HTTPError[403]);
+  });
+});
+
+describe.only('Testing PUT /v2/admin/quiz/:quizid/description', () => {
+  test('Successfully updates quiz description name', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(requestAdminQuizDescriptionUpdateV2(userOne.body.token, quizId.quizId, 'New Description Name')).toStrictEqual({});
+  });
+  test('Description is more than 100 characters - 400 error', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(() => requestAdminQuizDescriptionUpdateV2(userOne.body.token, quizId.quizId, '1234567891011121314151617181920212324256272829303132333435636839465051525354556575859606162636465667689710')).toThrow(HTTPError[400]);
+  });
+  test('Token is empty/invalid - 401 error', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    expect(() => requestAdminQuizDescriptionUpdateV2('', quizId.quizId, 'New Quiz Name')).toThrow(HTTPError[401]);
+    expect(() => requestAdminQuizDescriptionUpdateV2('abcdef', quizId.quizId, 'New Quiz Description')).toThrow(HTTPError[401]);
+  });
+  test('Valid token is provided but user is not owner of quiz - error 403', () => {
+    requestClear();
+    const userOne = requestAdminRegister('jess@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const userTwo = requestAdminRegister('katie@hotmail.com', '12345abced', 'Jess', 'Tran');
+    const quizId = requestAdminQuizCreateV2(userOne.body.token, 'QuizOne', 'Quiz description');
+    requestAdminQuizCreateV2(userOne.body.token, 'QuizTwo', 'Quiz description');
+    expect(() => requestAdminQuizDescriptionUpdateV2(userTwo.body.token, quizId.quizId, 'New Quiz Description')).toThrow(HTTPError[403]);
   });
 });
