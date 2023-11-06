@@ -1,3 +1,4 @@
+import httpError from 'http-errors';
 import { DataStore } from './dataStore';
 import {
   retrieveDataFromFile,
@@ -890,3 +891,283 @@ function isValidDuration(
   return true;
 }
 // HELPER FUNCTIONS - END
+
+// Iteration 3 functions - START
+
+/**
+ * Printing out the the quiz information
+ * From swagger.yaml
+ * Create a new stub question for a particular quiz.
+ * When this route is called, and a question is created,
+ * the timeLastEdited is set as the same as the created time,
+ * and the colours of all answers of that question are randomly generated.
+ *
+ * @param {string} token - the token of the person want to print quiz - must exist / be valid / be unique
+ * @param {Question} question - the new question: new type Question
+ * @param {quizId} number
+ * ...
+ *
+ * @returns {{error: string}} - an error object if an error occurs
+ * @returns {{questionId}} - an object of the questionId, a unique number
+ */
+export function createQuizQuestionV2(
+  token: string,
+  question: QuestionBody,
+  quizId: number
+): CreateQuizQuestionReturn {
+  const data: DataStore = retrieveDataFromFile();
+
+  // Step 1: Check for 401 errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+
+  if (!isTokenValid(data, token)) {
+    throw httpError(
+      RESPONSE_ERROR_401,
+      'Token is empty or invalid (does not refer to valid logged in user session)'
+    );
+  }
+
+  // Step 1: Check for 401 errors - END
+
+  // Step 2: Check for 403 errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+  // Need:
+  // a. authUserId
+  // b. quizId
+  // Then:
+  // x. iterate over data.users
+  // y. find user array that corresponds with authUserId
+  // z. check in that user's quizid array to test whether quizId is included
+
+  // a. get authUserId number
+  const authUserIdString = getAuthUserIdUsingToken(data, token) as AuthUserId;
+  const authUserId = authUserIdString.authUserId;
+
+  // x
+  const userArr = data.users;
+
+  let userOwnsQuizBool = false;
+
+  for (const user of userArr) {
+    if (user.authUserId === authUserId && user.quizId.includes(quizId)) {
+      userOwnsQuizBool = true;
+    }
+  }
+
+  if (!userOwnsQuizBool) {
+    throw httpError(
+      RESPONSE_ERROR_403,
+      'Valid token is provided, but user is not an owner of this quiz'
+    );
+  }
+
+  // Step 2: Check for 403 errors - END
+
+  // Step 3: Check for 400 errors - START
+
+  // Step 3a: Quiz ID does not refer to a valid quiz
+
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+
+  if (!isQuizIdValidTest) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'Quiz ID does not refer to a valid quiz'
+    );
+  }
+
+  // Step 3b: Question string is less than 5 characters in length or greater than 50 characters in length
+  if (
+    question.question.length < MIN_QUESTION_STRING_LENGTH ||
+    question.question.length > MAX_QUESTION_STRING_LENGTH
+  ) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'Question string is less than 5 characters in length or greater than 50 characters in length'
+    );
+  }
+
+  // Step 3c: The question has more than 6 answers or less than 2 answers
+
+  const questionAnswerArray = question.answers;
+  if (
+    questionAnswerArray.length < MIN_NUM_ANSWERS ||
+    questionAnswerArray.length > MAX_NUM_ANSWERS
+  ) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The question has more than 6 answers or less than 2 answers'
+    );
+  }
+
+  // Step 3d: The question duration is not a positive number
+
+  if (question.duration < POSITIVE_NUMBER_UPPER_LIMIT) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The question duration is not a positive number'
+    );
+  }
+
+  // Step 3e: The sum of the question durations in the quiz
+  // exceeds 3 minutes (180 seconds: durations are listed in seconds)
+  if (!isValidDurationCreate(data, quizId, question.duration)) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The sum of the question durations in the quiz exceeds 3 minutes'
+    );
+  }
+
+  // Step 3f: The points awarded for the question are less than 1 or greater than 10
+
+  const pointsAwarded = question.points;
+
+  if (
+    pointsAwarded < MIN_QUESTION_POINTS_AWARDED ||
+    pointsAwarded > MAX_QUESTION_POINTS_AWARDED
+  ) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The points awarded for the question are less than 1 or greater than 10'
+    );
+  }
+
+  // Step 3g: The length of any answer is shorter than 1 character long, or longer than 30 characters long
+
+  for (const questn of questionAnswerArray) {
+    const answerLength = questn.answer.length;
+
+    if (answerLength < MIN_ANSWER_LENGTH || answerLength > MAX_ANSWER_LENGTH) {
+      throw httpError(
+        RESPONSE_ERROR_400,
+        'The length of any answer is shorter than 1 character long, or longer than 30 characters long'
+      );
+    }
+  }
+
+  // Step 3h: Any answer strings are duplicates of one another (within the same question)
+
+  const answerStringArray = [];
+  for (const questn of questionAnswerArray) {
+    answerStringArray.push(questn.answer);
+  }
+  // Create set of answerStringArray
+  const answerStringArraySet = new Set(answerStringArray);
+
+  // if size/length of original array is greater than set of that array
+  // there must be duplicates, so return error
+
+  if (answerStringArray.length > answerStringArraySet.size) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'Any answer strings are duplicates of one another (within the same question)'
+    );
+  }
+
+  // Step 3i: There are no correct answers
+
+  let correctAnswersExistBool = false;
+
+  for (const questn of questionAnswerArray) {
+    if (questn.correct === true) {
+      correctAnswersExistBool = true;
+    }
+  }
+
+  if (!correctAnswersExistBool) {
+    throw httpError(RESPONSE_ERROR_400, 'There are no correct answers');
+  }
+
+  // Step 3: Check for 400 errors - END
+
+  // Step 4: all error conditions have passed
+  // now, add the new question to the quiz
+
+  // checks if it exists before accessing
+
+  // Need to add:
+
+  // To data.quizzes relevant object:
+  // 1. change 'timeLastEdited' to time of creation of question [now] - done
+  // 2. add numQuestions: the number of questions in this quiz (count) - done
+
+  // To questions array:
+  // 3. questionId: count all other questions across entire data.quizzes and add 1 - done
+  const numQuestionsNow = (countAllQuestions(data) + 1) as number;
+
+  // To specific answers:
+  // 4. answerId: count all other answers across entire data.quizzes and add 1
+  const newAnswerId = countAllAnswers(data);
+  // 5. colour: pick random colour from constant array
+  // function returnRandomColour()
+
+  // Update question duration (total duration of all questions in quiz)
+  // equals the existing duration plus the new duration
+
+  // get current duration in all quizzes in the question
+
+  const arrQuiz = data.quizzes;
+  let existingDuration = 0;
+  for (const quiz of arrQuiz) {
+    if (quiz.quizId === quizId) {
+      const questnArr = quiz.questions;
+      for (const quest of questnArr) {
+        existingDuration += quest.duration;
+      }
+    }
+  }
+
+  const updatedDuration = existingDuration + question.duration;
+
+  const tempAnswerArray = question.answers;
+  let tempCounter = 0;
+
+  for (const ansArr of tempAnswerArray) {
+    ansArr.answerId = newAnswerId + tempCounter;
+    tempCounter++;
+    ansArr.colour = returnRandomColour();
+  }
+
+  let newQuestion;
+  if (question && question.question) {
+    newQuestion = {
+      question: question.question,
+      duration: question.duration,
+      points: question.points,
+      answers: question.answers,
+      questionId: numQuestionsNow,
+    };
+  }
+
+  let questionIdNumber;
+  // loop through to find the correct authUserId
+  for (const users of data.users) {
+    if (users.authUserId === authUserId) {
+      if (users.quizId.includes(quizId)) {
+        // found correct quiz
+        const quiz = data.quizzes.find((q) => q.quizId === quizId);
+        if (quiz !== undefined) {
+          // update timeLastEdited
+          // initially incorrect - timeLastEdited does not change
+          // with creation of a question 25Oct23 19:05
+          // quiz.timeLastEdited = createCurrentTimeStamp() as number;
+          // update numQuestions
+          const currentQuestions = quiz.numQuestions;
+          quiz.numQuestions = currentQuestions + 1;
+
+          // update question duration
+          quiz.duration = updatedDuration;
+
+          // push new question to quizzes
+          quiz.questions.push(newQuestion);
+          questionIdNumber = quiz.questions.length;
+        }
+      }
+    }
+  }
+
+  saveDataInFile(data);
+  return {
+    createQuizQuestionResponse: { questionId: questionIdNumber },
+  };
+}
