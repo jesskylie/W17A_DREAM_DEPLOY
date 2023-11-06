@@ -64,3 +64,34 @@ export interface requestCreateQuestionReturn {
   statusCode?: number;
   bodyString: QuestionId | ErrorObjectWithCode;
 }
+
+export interface requestAdminRegisterReturn {
+  token: string;
+}
+
+export interface requestAdminAuthLoginReturn {
+  statusCode?: number;
+  bodyString: TokenString | ErrorObject;
+}
+
+export interface requestAdminQuizRemoveReturn {
+  statusCode?: number;
+  bodyString: Record<string, never> | ErrorObject;
+}
+
+export interface requestAdminTrashQuizRestoreReturn {
+  statusCode?: number;
+  bodyString: Record<string, never> | ErrorObject;
+}
+
+export interface AdminQuizCreateReturn {
+  quizId: number;
+}
+
+export interface HTTPResponse {
+  statusCode: number;
+}
+
+export interface AdminQuizCreateReturnCombined {
+  resBody: AdminQuizCreateReturn | ErrorObjectWithCode;
+}

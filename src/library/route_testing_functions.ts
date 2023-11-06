@@ -1,6 +1,5 @@
 import request from 'sync-request-curl';
 import config from '../config.json';
-
 import { WAIT_TIME } from './constants';
 
 import {
@@ -9,8 +8,14 @@ import {
   requestAdminQuizInfoReturn,
   QuestionBody,
   requestCreateQuestionReturn,
+  requestAdminAuthLoginReturn,
+  requestAdminTrashQuizRestoreReturn,
+  requestAdminQuizRemoveReturn,
+  AdminQuizCreateReturnCombined,
+  HTTPResponse,
 } from './interfaces';
 
+import HTTPError from 'http-errors';
 // constants used throughout file - START
 
 const port = config.port;
@@ -28,6 +33,25 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export const requestAdminQuizCreateV2 = (
+  token: string,
+  name: string,
+  description: string
+) => {
+  const res = request('POST', SERVER_URL + '/v2/admin/quiz', {
+    headers: { token },
+    json: { name, description },
+    timeout: WAIT_TIME,
+  });
+  if (res.statusCode === 200) {
+    return JSON.parse(res.body.toString());
+  } else if (res.statusCode === 401) {
+    throw HTTPError(401);
+  } else if (res.statusCode === 400) {
+    throw HTTPError(400);
+  }
+};
+
 export const requestAdminQuizCreate = (
   token: string,
   name: string,
@@ -43,6 +67,7 @@ export const requestAdminQuizCreate = (
   };
 };
 
+//**************************************************************
 export const requestAdminQuizList = (
   token: string
 ): requestAdminQuizListReturn => {
@@ -52,7 +77,22 @@ export const requestAdminQuizList = (
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
+//**************************************************************
+export const requestAdminQuizListV2 = (
+  token: string
+): requestAdminQuizListReturn => {
+  const res = request('GET', SERVER_URL + '/v1/admin/quiz/list', {
+    headers: { token },
+    qs: { token },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  if (res.statusCode === 200) {
+    return { statusCode: res.statusCode, bodyString: bodyString };
+  } else if (res.statusCode === 401) {
+    throw HTTPError(401);
 
+};
+//**************************************************************
 export const requestAdminQuizInfo = (
   token: string,
   quizid: number
@@ -112,3 +152,63 @@ export function requestCreateQuestion(
     statusCode: res.statusCode,
   };
 }
+
+export const requestAdminQuizRemove = (
+  token: string,
+  quizid: number
+): requestAdminQuizRemoveReturn => {
+  const res = request('DELETE', SERVER_URL + `/v1/admin/quiz/${quizid}`, {
+    qs: { quizid, token },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  return { statusCode: res.statusCode, bodyString: bodyString };
+};
+
+export const requestAdminAuthLogin = (
+  email: string,
+  password: string
+): requestAdminAuthLoginReturn => {
+  const res = request('POST', SERVER_URL + '/v1/admin/auth/login', {
+    json: { email, password },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+
+  return { statusCode: res.statusCode, bodyString: bodyString };
+};
+
+export const requestQuizCreateCombined = (
+  token: string,
+  name: string,
+  description: string
+): AdminQuizCreateReturnCombined | HTTPResponse => {
+  const res = request('POST', SERVER_URL + '/v1/admin/quiz', {
+    json: { token, name, description },
+  });
+
+  const resBody = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+
+  return { resBody, statusCode };
+};
+
+export const requestAdminTrashQuizRestore = (
+  token: string,
+  quizId: number
+): requestAdminTrashQuizRestoreReturn => {
+  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/restore`, {
+    json: { token, quizId },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  return { statusCode: res.statusCode, bodyString: bodyString };
+};
+
+export const requestAdminTrashQuizEmpty = (
+  token: string,
+  quizids: string
+): requestAdminQuizRemoveReturn => {
+  const res = request('DELETE', SERVER_URL + '/v1/admin/quiz/trash/empty', {
+    qs: { quizIds: quizids, token: token },
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  return { statusCode: res.statusCode, bodyString: bodyString };
+};

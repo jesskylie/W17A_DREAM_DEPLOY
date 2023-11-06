@@ -76,14 +76,13 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(echo(data));
 });
 
-app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
-  const { email, password, nameFirst, nameLast } = req.body;
-  const response = adminAuthRegister(email, password, nameFirst, nameLast);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
-  res.json(response);
-});
+// ============================================================================
+// ===================ITERATION 3 ROUTES BELOW THIS LINE=======================
+// ============================================================================
+
+// ============================================================================
+// ===================ITERATION 3 ROUTES ABOVE THIS LINE=======================
+// ============================================================================
 
 // POST request to route /v1/admin/auth/login
 // From swagger.yaml:
@@ -92,6 +91,15 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
 // This route is not relevant to guests who want to
 // play a particular quiz, but is used for the
 // creation of accounts of people who manage quizzes.
+
+app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
+  const { email, password, nameFirst, nameLast } = req.body;
+  const response = adminAuthRegister(email, password, nameFirst, nameLast);
+  if ('error' in response) {
+    return res.status(400).json(response);
+  }
+  res.json(response);
+});
 
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   const { email, password } = req.body;

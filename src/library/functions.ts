@@ -1,6 +1,6 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import { CONVERT_MSECS_TO_SECS, ONE_MILLION, RANDOM_COLOURS_ARRAY } from './constants';
+import { CONVERT_MSECS_TO_SECS, RANDOM_COLOURS_ARRAY } from './constants';
 
 // import libraries
 // import fs from 'fs';
