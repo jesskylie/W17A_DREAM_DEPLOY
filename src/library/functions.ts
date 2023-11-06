@@ -12,7 +12,7 @@ const DATASTORE_FILENAME = 'database.json';
 
 // import types from src/dataStore
 
-import { DataStore } from '../dataStore';
+import { DataStore, State } from '../dataStore';
 
 interface getDataReturnObject {
   result: boolean;
@@ -269,3 +269,21 @@ export function returnRandomColour(): string {
 // export function getRandomInteger(): number {
 //   return Math.random() * (ONE_MILLION - 0);
 // }
+
+export function getState(): Set<State> {
+  const state = new Set<State>();
+  if (isQuizInEndState) {
+    state.add(State.END);
+  }
+  return state;
+}
+
+// checks if quiz is in end state
+function isQuizInEndState(data: DataStore): boolean {
+  for (const quiz of data.quizzes) {
+    if (quiz.state === State.END) {
+      return true;
+    }
+  }
+  return false;
+}

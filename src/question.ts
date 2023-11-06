@@ -318,7 +318,6 @@ export function adminQuizQuestionMoveV2(
 
   const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
   if (!quizToUpdate.questions.some((quiz) => quiz.questionId === questionId)) {
-
     throw httpError(RESPONSE_ERROR_400, 'Question Id does not refer to a valid question within this quiz');
   }
   if (newPosition < 0) {

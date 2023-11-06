@@ -1,6 +1,6 @@
 import isEmail from 'validator/lib/isEmail.js';
 import httpError from 'http-errors';
-import { DataStore, Question } from './dataStore';
+import { DataStore, Question, State } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -8,6 +8,7 @@ import {
   getAuthUserIdUsingToken,
   createCurrentTimeStamp,
   getRandomInt,
+  getState,
 } from './library/functions';
 
 import {
@@ -116,6 +117,7 @@ export function adminQuizCreateV2(
     questions: [],
     numQuestions: 0,
     duration: 0,
+    state: State.LOBBY,
   });
 
   // Add quizId to quizId[] array in data.users
@@ -125,6 +127,57 @@ export function adminQuizCreateV2(
   return {
     quizId: newQuizId,
   };
+}
+
+export function adminQuizRemoveV2(
+  token: string,
+  quizId: number
+): Record<string, never> | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isTokenValidTest = isTokenValid(data, token);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
+    data,
+    authUserId.authUserId,
+    quizId
+  );
+  if (!isAuthUserIdMatchQuizIdTest && isTokenValidTest && isQuizIdValidTest) {
+    throw httpError(403, 'QuizId does not match authUserId');
+  }
+  if (!token) {
+    throw httpError(401, 'Token is empty');
+  }
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is invalid');
+  }
+
+  // All sessions for this quiz must be in end state
+  const state = getState();
+  if (!state.has(State.END)) {
+    throw httpError(400, 'All sessions for this quiz must be in END State');
+  }
+
+  const newdata = data;
+  const userToUpdata = data.users.find(
+    (user) => user.authUserId === authUserId.authUserId
+  );
+  const quizToTrash = data.quizzes.filter((quiz) => quiz.quizId === quizId);
+  data.quizzes = data.quizzes.filter((quiz) => quiz.quizId !== quizId);
+  if (userToUpdata) {
+    const indexToRemove = userToUpdata.quizId.indexOf(quizId);
+    if (indexToRemove !== -1) {
+      userToUpdata.quizId.splice(indexToRemove, 1);
+    }
+  }
+  for (let check of newdata.users) {
+    if (check.authUserId === authUserId.authUserId) {
+      check = userToUpdata;
+    }
+  }
+  newdata.trash.push(quizToTrash[0]);
+  saveDataInFile(newdata);
+  return {};
 }
 
 /**
@@ -325,6 +378,7 @@ function adminQuizCreate(
     questions: [],
     numQuestions: 0,
     duration: 0,
+    state: State.LOBBY,
   });
 
   // Add quizId to quizId[] array in data.users

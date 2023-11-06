@@ -98,6 +98,16 @@ export interface Question {
   }[];
 }
 
+export enum State {
+  LOBBY = 'lobby',
+  QUESTION_COUNTDOWN = 'question_countdown',
+  QUESTION_OPEN = 'question_open',
+  QUESTION_CLOSE = 'question_close',
+  ANSWER_SHOW = 'answer_show',
+  FINAL_RESULTS = 'final results',
+  END = 'end',
+}
+
 export interface Quizzes {
   quizId: number;
   name: string;
@@ -108,7 +118,7 @@ export interface Quizzes {
   numQuestions: number;
   questions: Question[];
   duration: number;
-  thumbnailUrl: string;
+  state: State;
 }
 
 export interface DataStore {
