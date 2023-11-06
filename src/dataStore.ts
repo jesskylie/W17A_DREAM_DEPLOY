@@ -88,6 +88,7 @@ export interface Question {
   questionId: number;
   question: string;
   duration: number;
+  thumbnailUrl: string;
   points: number;
   answers: {
     answerId: number;
@@ -107,6 +108,7 @@ export interface Quizzes {
   numQuestions: number;
   questions: Question[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 export interface DataStore {
