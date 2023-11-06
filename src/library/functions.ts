@@ -1,6 +1,6 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import { CONVERT_MSECS_TO_SECS, ONE_MILLION, RANDOM_COLOURS_ARRAY } from './constants';
+import { CONVERT_MSECS_TO_SECS, RANDOM_COLOURS_ARRAY } from './constants';
 
 // import libraries
 // import fs from 'fs';
@@ -13,8 +13,6 @@ const DATASTORE_FILENAME = 'database.json';
 // import types from src/dataStore
 
 import { DataStore } from '../dataStore';
-import { ONE_MILLION } from './constants';
-
 
 interface getDataReturnObject {
   result: boolean;
@@ -250,8 +248,8 @@ export function countAllAnswers(data: DataStore): number {
  * @returns {number} - the random number generated
  * between 0 and up to but not including max
  */
-export function getRandomInt(): number {
-  return Math.random() * (ONE_MILLION - 0);
+export function getRandomInt(max: number): number {
+  return Math.floor(Math.random() * max);
 }
 
 /**
