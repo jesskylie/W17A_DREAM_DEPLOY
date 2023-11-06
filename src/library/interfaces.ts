@@ -13,6 +13,11 @@ export interface QuestionBody {
   thumbnailUrl: string;
 }
 
+export interface ErrorObjectWithCode {
+  error: string;
+  errorCode: number;
+}
+
 export interface TransferQuizReturn {
   transferQuizResponse: Record<string, never> | ErrorObjectWithCode;
 }
@@ -28,11 +33,6 @@ export interface AuthUserId {
 
 export interface TokenString {
   token: string;
-}
-
-export interface ErrorObjectWithCode {
-  error: string;
-  errorCode: number;
 }
 
 export interface QuestionId {

@@ -166,16 +166,11 @@ app.put(
   '/v2/admin/quiz/:quizId/question/:questionId',
   (req: Request, res: Response) => {
     const token = req.headers.token as string;
-    const questionBody = req.body;
+    const { questionBody, thumbnailUrl } = req.body;
     const quizId = parseInt(req.params.quizId);
     const questionId = parseInt(req.params.questionId);
 
-    res.json(updateQuizQuestionV2(
-      quizId,
-      questionId,
-      token,
-      questionBody
-    ));
+    res.json(updateQuizQuestionV2(quizId, questionId, token, questionBody, thumbnailUrl));
   }
 );
 
@@ -186,12 +181,7 @@ app.put(
     const questionId = parseInt(req.params.questionId);
     const token = req.headers.token as string;
     const newPosition = req.body;
-    res.json(adminQuizQuestionMoveV2(
-      token,
-      quizId,
-      questionId,
-      newPosition
-    ));
+    res.json(adminQuizQuestionMoveV2(token, quizId, questionId, newPosition));
   }
 );
 // --------------------------- PUT REQUESTS - END -----------------------------
