@@ -12,7 +12,7 @@ import {
 import { TokenString } from '../library/interfaces';
 
 // assuming there are these functions in auth_2.test.ts (name could be change after finish writing auth_2.test.ts)
-import { Quizzes } from '../dataStore';
+// import { Quizzes } from '../dataStore';
 
 function requestAdminRegister(
   email: string,
@@ -41,10 +41,10 @@ interface QuizId {
   quizId: number;
 }
 
-interface requestAdminQuizListReturn {
-  statusCode?: number;
-  bodyString: Quizzes[] | ErrorObject;
-}
+// interface requestAdminQuizListReturn {
+//   statusCode?: number;
+//   bodyString: Quizzes[] | ErrorObject;
+// }
 
 interface requestAdminQuizRemoveReturn {
   statusCode?: number;

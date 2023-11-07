@@ -376,7 +376,8 @@ export function requestUpdateQuestionV2(
   quizId: number,
   questionId: number,
   token: string,
-  question: QuestionBody
+  question: QuestionBody,
+  thumbnailUrl: string
 ): requestCreateQuestionReturn {
   const res = request(
     'PUT',
@@ -390,6 +391,7 @@ export function requestUpdateQuestionV2(
           points: question.points,
           answers: question.answers as QuestionBody['answers'],
         },
+        thumbnailUrl: thumbnailUrl,
       },
       timeout: WAIT_TIME,
     }
