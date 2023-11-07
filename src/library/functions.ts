@@ -157,7 +157,7 @@ export function isTokenValid(data: DataStore, token: string): boolean {
  * @returns {array} - authUserId : number
  */
 
-interface AuthUserIdFromToken {
+export interface AuthUserIdFromToken {
   authUserId: number;
 }
 export function getAuthUserIdUsingToken(

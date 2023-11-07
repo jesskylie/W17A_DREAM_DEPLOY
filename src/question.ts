@@ -50,7 +50,8 @@ export function updateQuizQuestionV2(
   quizId: number,
   questionId: number,
   token: string,
-  question: QuestionBody
+  question: QuestionBody,
+  thumbnailUrl: string
 ): Record<string, never> | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
 

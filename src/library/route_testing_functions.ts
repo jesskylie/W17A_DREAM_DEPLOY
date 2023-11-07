@@ -34,6 +34,15 @@ const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;
 
+interface ErrorObject {
+  error: string;
+}
+
+export interface RequestAdminQuizDescriptionUpdateReturn {
+  statusCode?: number;
+  bodyString: Record<string, never> | ErrorObject;
+}
+
 // constants used throughout file - END
 
 export const requestClear = () => {
@@ -45,6 +54,66 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export function requestAdminQuizDescriptionUpdateV2(
+  token: string,
+  quizid: number,
+  description: string
+): RequestAdminQuizDescriptionUpdateReturn {
+  const res = request('PUT', SERVER_URL + `/v2/admin/quiz/${quizid}/description`, {
+    headers: { token },
+    json: { quizid, description },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+  }
+}
+
+export function requestUpdateQuizNameV2(
+  token: string,
+  quizid: number,
+  name: string
+) {
+  const res = request('PUT', SERVER_URL + `/v2/admin/quiz/${quizid}/name`, {
+    headers: { token },
+    json: { name, quizid },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+  }
+}
+
+export const requestAdminQuizInfoV2 = (
+  token: string,
+  quizid: number
+): requestAdminQuizInfoReturn => {
+  const res = request('GET', SERVER_URL + `/v2/admin/quiz/${quizid}`, {
+    headers: { token },
+    qs: { quizid },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+  }
+};
+
 export const requestAdminQuizRemoveV2 = (token: string, quizid: number) => {
   const res = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizid}`, {
     headers: { token },
@@ -54,6 +123,8 @@ export const requestAdminQuizRemoveV2 = (token: string, quizid: number) => {
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
     case RESPONSE_ERROR_401:
       throw HTTPError(RESPONSE_ERROR_401);
     case RESPONSE_ERROR_400:
@@ -376,7 +447,8 @@ export function requestUpdateQuestionV2(
   quizId: number,
   questionId: number,
   token: string,
-  question: QuestionBody
+  question: QuestionBody,
+  thumbnailUrl: string
 ): requestCreateQuestionReturn {
   const res = request(
     'PUT',
@@ -390,6 +462,7 @@ export function requestUpdateQuestionV2(
           points: question.points,
           answers: question.answers as QuestionBody['answers'],
         },
+        thumbnailUrl: thumbnailUrl,
       },
       timeout: WAIT_TIME,
     }

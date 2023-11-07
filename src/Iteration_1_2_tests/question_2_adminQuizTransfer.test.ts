@@ -1,5 +1,5 @@
-import request from 'sync-request-curl';
-import config from '../config.json';
+// import request from 'sync-request-curl';
+// import config from '../config.json';
 
 import {
   requestClear,
@@ -20,9 +20,9 @@ import {
 
 import {
   CreateQuizQuestionReturn,
-  ErrorObjectWithCode,
+  // ErrorObjectWithCode,
   requestAdminQuizListReturn,
-  TransferQuizReturn,
+  // TransferQuizReturn,
   TransferQuizServerReturn
 } from '../library/interfaces';
 
@@ -30,9 +30,9 @@ import {
 import {
   requestTransferQuestion
 } from '../library/route_testing_functions';
-const port = config.port;
-const url = config.url;
-const SERVER_URL = `${url}:${port}`;
+// const port = config.port;
+// const url = config.url;
+// const SERVER_URL = `${url}:${port}`;
 
 // interfaces used throughout file - START
 

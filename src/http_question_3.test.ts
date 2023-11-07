@@ -1,14 +1,14 @@
 import HTTPError from 'http-errors';
 import {
-  requestAdminQuizCreate,
+  requestAdminQuizCreateV2,
   requestAdminQuizInfo,
-  requestAdminQuizQuestionMove,
+  requestAdminQuizQuestionMoveV2,
   requestAdminRegister,
   requestClear,
-  requestCreateQuestion,
-  requestDeleteQuizQuestion,
-  requestDuplicateQuestion,
-  requestUpdateQuestion,
+  requestCreateQuestionV2,
+  requestDeleteQuizQuestionV2,
+  requestDuplicateQuestionV2,
+  requestUpdateQuestionV2,
 } from './library/route_testing_functions';
 import {
   QuestionBody,
@@ -35,7 +35,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -58,7 +58,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -76,13 +76,14 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-        const result = requestUpdateQuestion(
+        const result = requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          newQuestion
+          newQuestion,
+          'thumbnailUrl'
         );
-        expect(result.bodyString).toStrictEqual({});
+        expect(result).toStrictEqual({});
         expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
       }
     }
@@ -97,7 +98,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -120,7 +121,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -143,11 +144,12 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           token,
           quizId
         ) as requestAdminQuizInfoReturn;
-        const result = requestUpdateQuestion(
+        const result = requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          newQuestion
+          newQuestion,
+          'thumbnailUrl'
         );
         const quizAfterUpdate = requestAdminQuizInfo(
           token,
@@ -168,7 +170,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -192,7 +194,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
         ],
       } as QuestionBody;
 
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const shortAnswers = {
@@ -208,18 +210,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
         } as QuestionBody;
 
         // question id does not refer to valid question within quiz
-        const response = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          shortAnswers
-        );
-
-        expect(response.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(response.statusCode).toStrictEqual(RESPONSE_ERROR_400);
-
+          shortAnswers,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
         const longAnswers = {
           question: 'What is the capital of Australia?',
           duration: 2,
@@ -257,16 +254,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
         } as QuestionBody;
 
         // question id does not refer to valid question within quiz
-        const responseTwo = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          longAnswers
-        );
-        expect(responseTwo.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(responseTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          longAnswers,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -280,7 +274,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -303,7 +297,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         // question string is less than 5 characters and/or greater than 50 characters
@@ -324,16 +318,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
         } as QuestionBody;
 
         // question length is less than 5 characters
-        const shortResponse = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          shortLength
-        );
-        expect(shortResponse.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(shortResponse.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          shortLength,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
 
         // question string is larger than 50 characters
         const longLength = {
@@ -353,16 +344,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
         } as QuestionBody;
 
         // question id does not refer to valid question within quiz
-        const longResponse = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          longLength
-        );
-        expect(longResponse.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(longResponse.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          longLength,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -376,7 +364,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -399,7 +387,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -417,17 +405,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-        const result = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          newQuestion
-        );
-
-        expect(result.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -441,7 +425,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -464,7 +448,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -482,16 +466,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-        const result = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          newQuestion
-        );
-        expect(result.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -505,7 +486,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -528,7 +509,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -546,17 +527,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-
-        const result = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          newQuestion
-        );
-        expect(result.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
 
         const newQuestionTwo = {
           question: 'What is the capital of Australia?',
@@ -573,16 +550,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-        const resultTwo = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          newQuestionTwo
-        );
-        expect(resultTwo.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(resultTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          newQuestionTwo,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -596,7 +570,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -619,7 +593,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const oneCharacter = {
@@ -637,17 +611,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-
-        const result = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          oneCharacter
-        );
-        expect(result.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          oneCharacter,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
 
         const thirtyCharacters = {
           question: 'What is the capital of Australia?',
@@ -664,16 +634,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-        const resultTwo = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          thirtyCharacters
-        );
-        expect(resultTwo.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(resultTwo.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          thirtyCharacters,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -687,7 +654,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -710,7 +677,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -728,17 +695,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-
-        const result = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          newQuestion
-        );
-        expect(result.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -752,7 +715,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -775,7 +738,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -793,17 +756,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-
-        const result = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
-          newQuestion
-        );
-        expect(result.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -817,7 +776,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -840,7 +799,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -858,27 +817,20 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-        const emptyToken = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           '',
-          newQuestion
-        );
-        expect(emptyToken.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
-
-        const invalidToken = requestUpdateQuestion(
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_401]);
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
-          'abcdefg',
-          newQuestion
-        );
-        expect(invalidToken.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
+          'token',
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_401]);
       }
     }
   });
@@ -899,8 +851,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
     );
     const tokenOne = userOne.body.token;
     const tokenTwo = userTwo.body.token;
-    const newQuiz = requestAdminQuizCreate(
-      tokenOne,
+    const newQuiz = requestAdminQuizCreateV2(
+      tokenTwo,
       'New Quiz One',
       'Quiz Description One'
     );
@@ -922,7 +874,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           },
         ],
       } as QuestionBody;
-      const question = requestCreateQuestion(tokenTwo, validQuestion, quizId);
+      const question = requestCreateQuestionV2(tokenTwo, validQuestion, quizId);
       if ('questionId' in question.bodyString) {
         const questionId = question.bodyString.questionId as number;
         const newQuestion = {
@@ -940,17 +892,88 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             },
           ],
         } as QuestionBody;
-        const result = requestUpdateQuestion(
+        expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           tokenOne,
-          newQuestion
-        );
-        expect(result).toStrictEqual({
-          error: expect.any(String),
-          errorCode: RESPONSE_ERROR_403,
-        });
-        expect(result.statusCode).toStrictEqual(RESPONSE_ERROR_403);
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_403]);
+      }
+    }
+  });
+
+  test('Testing invalid thumbnailUrl - error code 400', () => {
+    requestClear();
+    const newUser = requestAdminRegister(
+      'ann@hotmail.com',
+      'hello1234566',
+      'Ann',
+      'Lee'
+    );
+    const token = newUser.body.token;
+    const newQuiz = requestAdminQuizCreateV2(
+      token,
+      'New Quiz One',
+      'Quiz Description One'
+    );
+    if ('quizId' in newQuiz.bodyString) {
+      const quizId = newQuiz.bodyString.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
+        duration: 2,
+        points: 10,
+        answers: [
+          {
+            answer: 'Blue',
+            correct: true,
+          },
+          {
+            answer: 'Green',
+            correct: false,
+          },
+        ],
+      } as QuestionBody;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId);
+      if ('questionId' in question.bodyString) {
+        const questionId = question.bodyString.questionId as number;
+        const newQuestion = {
+          question: 'What is the capital of Australia?',
+          duration: 2,
+          points: 10,
+          answers: [
+            {
+              answer: 'Sydney',
+              correct: false,
+            },
+            {
+              answer: 'Canberra',
+              correct: true,
+            },
+          ],
+        } as QuestionBody;
+        expect(() => requestUpdateQuestionV2(
+          quizId,
+          questionId,
+          '',
+          newQuestion,
+          ''
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
+        expect(() => requestUpdateQuestionV2(
+          quizId,
+          questionId,
+          'token',
+          newQuestion,
+          'thumbnailUrl'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
+        expect(() => requestUpdateQuestionV2(
+          quizId,
+          questionId,
+          'token',
+          newQuestion,
+          'thumbnailUrl.ts'
+        )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
     }
   });
@@ -966,7 +989,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1004,18 +1027,18 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         ],
       } as QuestionBody;
       // creates three questions
-      requestCreateQuestion(token, QuestionOne, quizId);
-      const resultTwo = requestCreateQuestion(token, QuestionTwo, quizId);
+      requestCreateQuestionV2(token, QuestionOne, quizId);
+      const resultTwo = requestCreateQuestionV2(token, QuestionTwo, quizId);
       if ('questionId' in resultTwo.bodyString) {
         const questionId = resultTwo.bodyString.questionId as number;
         // duplicate second question
-        const duplicateResult = requestDuplicateQuestion(
+        const duplicateResult = requestDuplicateQuestionV2(
           quizId,
           questionId,
           token
         );
 
-        expect(duplicateResult.bodyString).toStrictEqual({
+        expect(duplicateResult).toStrictEqual({
           newQuestionId: expect.any(Number),
         });
         expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_OK_200);
@@ -1041,7 +1064,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1063,12 +1086,12 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
           },
         ],
       } as QuestionBody;
-      requestCreateQuestion(token, QuestionOne, quizId);
-      const duplicateResult = requestDuplicateQuestion(quizId, -1, token);
-      expect(duplicateResult.bodyString).toStrictEqual({
-        error: expect.any(String),
-      });
-      expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_ERROR_400);
+      requestCreateQuestionV2(token, QuestionOne, quizId);
+      expect(() => requestDuplicateQuestionV2(
+        quizId,
+        -1,
+        token
+      )).toThrow(HTTPError[RESPONSE_ERROR_400]);
     }
   });
 
@@ -1081,7 +1104,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1106,31 +1129,20 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         ],
       } as QuestionBody;
 
-      const resultTwo = requestCreateQuestion(token, Question, quizId);
+      const resultTwo = requestCreateQuestionV2(token, Question, quizId);
       if ('questionId' in resultTwo.bodyString) {
         const questionId = resultTwo.bodyString.questionId as number;
-
-        const emptyToken = requestDuplicateQuestion(quizId, questionId, '');
-
-        if ('error' in emptyToken.bodyString) {
-          const errorObj = emptyToken.bodyString;
-          expect(errorObj).toStrictEqual({
-            error: expect.any(String),
-          });
-        }
-
-        expect(emptyToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
-
-        const invalidToken = requestDuplicateQuestion(
+        expect(() => requestDuplicateQuestionV2(
           quizId,
           questionId,
-          'abcfde'
-        );
+          ''
+        )).toThrow(HTTPError[RESPONSE_ERROR_401]);
 
-        expect(invalidToken.bodyString).toStrictEqual({
-          error: expect.any(String),
-        });
-        expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_401);
+        expect(() => requestDuplicateQuestionV2(
+          quizId,
+          questionId,
+          'token'
+        )).toThrow(HTTPError[RESPONSE_ERROR_401]);
       }
     }
   });
@@ -1151,7 +1163,7 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
     );
     const token = newUser.body.token;
     const tokenTwo = newUserTwo.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1175,16 +1187,14 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
           },
         ],
       } as QuestionBody;
-
-      const result = requestCreateQuestion(tokenTwo, Question, quizId);
+      const result = requestCreateQuestionV2(token, Question, quizId);
       if ('questionId' in result.bodyString) {
         const questionId = result.bodyString.questionId as number;
-
-        const invalidToken = requestDuplicateQuestion(quizId, questionId, '');
-        expect(invalidToken.bodyString).toStrictEqual({
-          error: expect.any(Number),
-        });
-        expect(invalidToken.statusCode).toStrictEqual(RESPONSE_ERROR_403);
+        expect(() => requestDuplicateQuestionV2(
+          quizId,
+          questionId,
+          tokenTwo
+        )).toThrow(HTTPError[RESPONSE_ERROR_403]);
       }
     }
   });
@@ -1201,7 +1211,7 @@ describe('deleteQuizQuestion testing', () => {
     ).body as TokenString;
     const testToken = returnTokenObj.token;
 
-    const QuizOne = requestAdminQuizCreate(
+    const QuizOne = requestAdminQuizCreateV2(
       testToken,
       'Quiz One',
       'this is my first quiz'
@@ -1221,13 +1231,13 @@ describe('deleteQuizQuestion testing', () => {
         },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
     ).bodyString as QuestionId;
 
-    requestDeleteQuizQuestion(
+    requestDeleteQuizQuestionV2(
       testToken,
       QuizOne.quizId,
       questionOne.questionId
@@ -1255,7 +1265,7 @@ describe('deleteQuizQuestion testing', () => {
     ).body as TokenString;
     const testToken = returnTokenObj.token;
 
-    const QuizOne = requestAdminQuizCreate(
+    const QuizOne = requestAdminQuizCreateV2(
       testToken,
       'Quiz One',
       'this is my first quiz'
@@ -1275,20 +1285,16 @@ describe('deleteQuizQuestion testing', () => {
         },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
     ).bodyString as QuestionId;
-    const invalidQuizId = requestDeleteQuizQuestion(
+    expect(() => requestDeleteQuizQuestionV2(
       testToken,
       -1 * (QuizOne.quizId + 1531),
       questionOne.questionId
-    );
-    expect(invalidQuizId.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(invalidQuizId.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 400: QuestionId does not refer to a valid question with this quiz', () => {
@@ -1301,7 +1307,7 @@ describe('deleteQuizQuestion testing', () => {
     ).body as TokenString;
     const testToken = returnTokenObj.token;
 
-    const QuizOne = requestAdminQuizCreate(
+    const QuizOne = requestAdminQuizCreateV2(
       testToken,
       'Quiz One',
       'this is my first quiz'
@@ -1321,20 +1327,16 @@ describe('deleteQuizQuestion testing', () => {
         },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
     ).bodyString as QuestionId;
-    const invalidQuestionId = requestDeleteQuizQuestion(
+    expect(() => requestDeleteQuizQuestionV2(
       testToken,
       QuizOne.quizId,
       -1 * (1531 + questionOne.questionId)
-    );
-    expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(invalidQuestionId.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 401: Token is invalid', () => {
@@ -1347,7 +1349,7 @@ describe('deleteQuizQuestion testing', () => {
     ).body as TokenString;
     const testToken = returnTokenObj.token;
 
-    const QuizOne = requestAdminQuizCreate(
+    const QuizOne = requestAdminQuizCreateV2(
       testToken,
       'Quiz One',
       'this is my first quiz'
@@ -1367,20 +1369,16 @@ describe('deleteQuizQuestion testing', () => {
         },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
     ).bodyString as QuestionId;
-    const invalidToken = requestDeleteQuizQuestion(
+    expect(() => requestDeleteQuizQuestionV2(
       'invalid',
       QuizOne.quizId,
       questionOne.questionId
-    );
-    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_401);
-    expect(invalidToken.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
   test('Error 401: Token is empty', () => {
@@ -1393,7 +1391,7 @@ describe('deleteQuizQuestion testing', () => {
     ).body as TokenString;
     const testToken = returnTokenObj.token;
 
-    const QuizOne = requestAdminQuizCreate(
+    const QuizOne = requestAdminQuizCreateV2(
       testToken,
       'Quiz One',
       'this is my first quiz'
@@ -1413,20 +1411,16 @@ describe('deleteQuizQuestion testing', () => {
         },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
     ).bodyString as QuestionId;
-    const emptyToken = requestDeleteQuizQuestion(
+    expect(() => requestDeleteQuizQuestionV2(
       '',
       -1 * QuizOne.quizId,
       questionOne.questionId
-    );
-    expect(emptyToken.statusCode).toBe(RESPONSE_ERROR_401);
-    expect(emptyToken.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
   test('Error 403: Valid token but user is not an owner of this quiz', () => {
@@ -1452,7 +1446,7 @@ describe('deleteQuizQuestion testing', () => {
     const testToken2 = returnTokenObj2.token;
 
     // Create quiz using jack@hotmail.com token
-    const JackQuiz = requestAdminQuizCreate(
+    const JackQuiz = requestAdminQuizCreateV2(
       testToken,
       'Quiz 1',
       'This a quiz by Jack'
@@ -1473,20 +1467,16 @@ describe('deleteQuizQuestion testing', () => {
         },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       JackQuiz.quizId
     ).bodyString as QuestionId;
-    const quizIdNotReferToUser1 = requestDeleteQuizQuestion(
+    expect(() => requestDeleteQuizQuestionV2(
       testToken2,
       JackQuiz.quizId,
       questionOne.questionId
-    );
-    expect(quizIdNotReferToUser1.statusCode).toBe(RESPONSE_ERROR_403);
-    expect(quizIdNotReferToUser1.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
 });
 
@@ -1500,7 +1490,7 @@ describe('AdminQuizQuestionMove testing', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1520,7 +1510,7 @@ describe('AdminQuizQuestionMove testing', () => {
         },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       token,
       validQuestionOne,
       newQuiz.quizId
@@ -1535,7 +1525,7 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
 
-    const questionTwo = requestCreateQuestion(
+    const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
@@ -1552,12 +1542,12 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
 
-    const questionThree = requestCreateQuestion(
+    const questionThree = requestCreateQuestionV2(
       token,
       validQuestionThree,
       newQuiz.quizId
     ).bodyString as QuestionId;
-    requestAdminQuizQuestionMove(
+    requestAdminQuizQuestionMoveV2(
       token,
       newQuiz.quizId,
       questionTwo.questionId,
@@ -1587,7 +1577,7 @@ describe('AdminQuizQuestionMove testing', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1601,23 +1591,19 @@ describe('AdminQuizQuestionMove testing', () => {
         { answer: 'Green', correct: false },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       token,
       validQuestionOne,
       newQuiz.quizId
     ).bodyString as QuestionId;
-
-    const InvalidPositionNum = requestAdminQuizQuestionMove(
+    expect(() => requestAdminQuizQuestionMoveV2(
       token,
       newQuiz.quizId,
       questionOne.questionId,
       -1
-    );
-    expect(InvalidPositionNum.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(InvalidPositionNum.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
+
   test('Error 400: New position is more than 1 less than the number of question.', () => {
     requestClear();
     const newUser = requestAdminRegister(
@@ -1627,7 +1613,7 @@ describe('AdminQuizQuestionMove testing', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1641,23 +1627,18 @@ describe('AdminQuizQuestionMove testing', () => {
         { answer: 'Green', correct: false },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       token,
       validQuestionOne,
       newQuiz.quizId
     ).bodyString as QuestionId;
 
-    const InvalidPositionNum = requestAdminQuizQuestionMove(
+    expect(() => requestAdminQuizQuestionMoveV2(
       token,
       newQuiz.quizId,
       questionOne.questionId,
       3
-    );
-
-    expect(InvalidPositionNum.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(InvalidPositionNum.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 400: New position is the current position of the question.', () => {
@@ -1669,7 +1650,7 @@ describe('AdminQuizQuestionMove testing', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1689,22 +1670,18 @@ describe('AdminQuizQuestionMove testing', () => {
         },
       ],
     } as QuestionBody;
-    const questionOne = requestCreateQuestion(
+    const questionOne = requestCreateQuestionV2(
       token,
       validQuestionOne,
       newQuiz.quizId
     ).bodyString as QuestionId;
 
-    const InvalidPositionNum = requestAdminQuizQuestionMove(
+    expect(() => requestAdminQuizQuestionMoveV2(
       token,
       newQuiz.quizId,
       questionOne.questionId,
       0
-    );
-    expect(InvalidPositionNum.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(InvalidPositionNum.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 400: QuestionId does not refer to a valid question with this quiz', () => {
@@ -1716,7 +1693,7 @@ describe('AdminQuizQuestionMove testing', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1736,7 +1713,7 @@ describe('AdminQuizQuestionMove testing', () => {
         },
       ],
     } as QuestionBody;
-    requestCreateQuestion(token, validQuestionOne, newQuiz.quizId)
+    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId)
       .bodyString as QuestionId;
 
     const validQuestionTwo = {
@@ -1755,22 +1732,17 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
 
-    const questionTwo = requestCreateQuestion(
+    const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
     ).bodyString as QuestionId;
-
-    const invalidQuestionId = requestAdminQuizQuestionMove(
+    expect(() => requestAdminQuizQuestionMoveV2(
       token,
       newQuiz.quizId,
       -1 * (999 + questionTwo.questionId),
-      0
-    );
-    expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(invalidQuestionId.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+      1
+    )).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 401: Token is invalid', () => {
@@ -1782,7 +1754,7 @@ describe('AdminQuizQuestionMove testing', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1802,7 +1774,7 @@ describe('AdminQuizQuestionMove testing', () => {
         },
       ],
     } as QuestionBody;
-    requestCreateQuestion(token, validQuestionOne, newQuiz.quizId)
+    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId)
       .bodyString as QuestionId;
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
@@ -1814,21 +1786,17 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
 
-    const questionTwo = requestCreateQuestion(
+    const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
     ).bodyString as QuestionId;
-    const invalidQuestionId = requestAdminQuizQuestionMove(
-      'invalidToken#',
+    expect(() => requestAdminQuizQuestionMoveV2(
+      'token',
       newQuiz.quizId,
       questionTwo.questionId,
-      0
-    );
-    expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_401);
-    expect(invalidQuestionId.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+      1
+    )).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
   test('Error 401: Token is empty', () => {
@@ -1840,7 +1808,7 @@ describe('AdminQuizQuestionMove testing', () => {
       'Lee'
     );
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1855,7 +1823,7 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
 
-    requestCreateQuestion(token, validQuestionOne, newQuiz.quizId)
+    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId)
       .bodyString as QuestionId;
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
@@ -1873,23 +1841,17 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
 
-    const questionTwo = requestCreateQuestion(
+    const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
     ).bodyString as QuestionId;
-
-    const invalidQuestionId = requestAdminQuizQuestionMove(
+    expect(() => requestAdminQuizQuestionMoveV2(
       '',
       newQuiz.quizId,
       questionTwo.questionId,
-      0
-    );
-
-    expect(invalidQuestionId.statusCode).toBe(RESPONSE_ERROR_401);
-    expect(invalidQuestionId.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+      1
+    )).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
   test('Error 403: Valid token but user is not an owner of this quiz', () => {
@@ -1908,7 +1870,7 @@ describe('AdminQuizQuestionMove testing', () => {
     );
     const token2 = newUser2.body.token;
     const token = newUser.body.token;
-    const newQuiz = requestAdminQuizCreate(
+    const newQuiz = requestAdminQuizCreateV2(
       token,
       'New Quiz One',
       'Quiz Description One'
@@ -1928,7 +1890,7 @@ describe('AdminQuizQuestionMove testing', () => {
         },
       ],
     } as QuestionBody;
-    requestCreateQuestion(token, validQuestionOne, newQuiz.quizId)
+    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId)
       .bodyString as QuestionId;
 
     const validQuestionTwo = {
@@ -1947,22 +1909,16 @@ describe('AdminQuizQuestionMove testing', () => {
       ],
     } as QuestionBody;
 
-    const questionTwo = requestCreateQuestion(
+    const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
     ).bodyString as QuestionId;
-
-    const invalidToken = requestAdminQuizQuestionMove(
+    expect(() => requestAdminQuizQuestionMoveV2(
       token2,
       newQuiz.quizId,
       questionTwo.questionId,
       0
-    );
-
-    expect(invalidToken.statusCode).toBe(RESPONSE_ERROR_403);
-    expect(invalidToken.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
+    )).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
 });

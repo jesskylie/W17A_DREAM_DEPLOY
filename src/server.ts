@@ -33,9 +33,15 @@ import {
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
   adminQuizTransfer,
+} from './quiz';
+import {
   adminQuizCreateV2,
   adminQuizRemoveV2,
-} from './quiz';
+  adminQuizInfoV2,
+  adminQuizNameUpdateV2,
+  adminQuizDescriptionUpdateV2,
+} from './quizV2';
+
 import {
   createQuizQuestion,
   createQuizQuestionV2,
@@ -115,12 +121,6 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   res.json(adminQuizCreateV2(token, name, description));
 });
 
-app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
-  const quizId = parseInt(req.params.quizid);
-  res.json(adminQuizRemoveV2(token, quizId));
-});
-
 app.post(
   '/v2/admin/quiz/:quizId/question/:questionId/duplicate',
   (req: Request, res: Response) => {
@@ -138,6 +138,12 @@ app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   const token = req.headers.token as string;
 
   res.json(adminUserDetailsV2(token));
+});
+
+app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  res.json(adminQuizInfoV2(token, quizId));
 });
 
 // --------------------------- GET REQUESTS - END -----------------------------
@@ -162,11 +168,11 @@ app.put(
   '/v2/admin/quiz/:quizId/question/:questionId',
   (req: Request, res: Response) => {
     const token = req.headers.token as string;
-    const questionBody = req.body;
+    const { questionBody, thumbnailUrl } = req.body;
     const quizId = parseInt(req.params.quizId);
     const questionId = parseInt(req.params.questionId);
 
-    res.json(updateQuizQuestionV2(quizId, questionId, token, questionBody));
+    res.json(updateQuizQuestionV2(quizId, questionId, token, questionBody, thumbnailUrl));
   }
 );
 
@@ -180,6 +186,20 @@ app.put(
     res.json(adminQuizQuestionMoveV2(token, quizId, questionId, newPosition));
   }
 );
+
+app.put('/v2/admin/quiz/:quizid/name', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { name } = req.body;
+  const quizId = parseInt(req.params.quizid);
+  res.json(adminQuizNameUpdateV2(token, quizId, name));
+});
+
+app.put('/v2/admin/quiz/:quizid/description', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { description } = req.body;
+  const quizId = parseInt(req.params.quizid);
+  res.json(adminQuizDescriptionUpdateV2(token, quizId, description));
+});
 // --------------------------- PUT REQUESTS - END -----------------------------
 
 // --------------------------- DELETE REQUESTS - START ------------------------
@@ -192,6 +212,13 @@ app.delete(
     res.json(deleteQuizQuestionV2(token, quizId, questionId));
   }
 );
+
+app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  res.json(adminQuizRemoveV2(token, quizId));
+});
+
 // --------------------------- DELETE REQUESTS - END --------------------------
 
 // ============================================================================
