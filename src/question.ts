@@ -23,6 +23,7 @@ import {
   AuthUserId,
   ErrorObjectWithCode,
   NewQuestionId,
+  QuestionId,
 } from './library/interfaces';
 
 import { isAuthUserIdMatchQuizId } from './quiz';
@@ -55,7 +56,10 @@ export function updateQuizQuestionV2(
 
   // 401 error token is invalid
   if (!isTokenValid(data, token)) {
-    throw httpError(401, 'Token is empty or invalid (does not refer to valid logged in user session)');
+    throw httpError(
+      401,
+      'Token is empty or invalid (does not refer to valid logged in user session)'
+    );
   }
 
   // 403 error - valid token provided but incorrect user
@@ -66,7 +70,10 @@ export function updateQuizQuestionV2(
   for (const user of data.users) {
     if (user.authUserId === authUserId) {
       if (!user.quizId.includes(quizId)) {
-        throw httpError(403, 'Valid token is provided, but user is unauthorised to complete this action');
+        throw httpError(
+          403,
+          'Valid token is provided, but user is unauthorised to complete this action'
+        );
       }
     }
   }
@@ -74,7 +81,10 @@ export function updateQuizQuestionV2(
   // 400 errors
   // Question Id does not refer to a valid question within this quiz
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    throw httpError(400, 'QuestionId does not refer to valid question in this quiz');
+    throw httpError(
+      400,
+      'QuestionId does not refer to valid question in this quiz'
+    );
   }
 
   // Question string is less than 5 characters in length or greater than 50 characters in length
@@ -117,7 +127,10 @@ export function updateQuizQuestionV2(
   for (const answer of question.answers) {
     const answerLength = answer.answer.length;
     if (answerLength < MIN_ANSWER_LENGTH || answerLength > MAX_ANSWER_LENGTH) {
-      throw httpError(400, 'Length of answer must be between 1 and 30 characters');
+      throw httpError(
+        400,
+        'Length of answer must be between 1 and 30 characters'
+      );
     }
   }
 
@@ -150,6 +163,7 @@ export function updateQuizQuestionV2(
           questionId: questionId,
           question: question.question,
           duration: question.duration,
+          thumbnailUrl: question.thumbnailUrl,
           points: question.points,
           answers: question.answers,
         };
@@ -193,14 +207,20 @@ export function duplicateQuestionV2(
   for (const user of data.users) {
     if (user.authUserId === authUserId) {
       if (!user.quizId.includes(quizId)) {
-        throw httpError(403, 'Valid token is provided, but user is unauthorised to complete this action');
+        throw httpError(
+          403,
+          'Valid token is provided, but user is unauthorised to complete this action'
+        );
       }
     }
   }
 
   // Question Id does not refer to a valid question within this quiz - error 400
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    throw httpError(400, 'QuestionId does not refer to valid question in this quiz');
+    throw httpError(
+      400,
+      'QuestionId does not refer to valid question in this quiz'
+    );
   }
 
   // find quizId to duplicate
@@ -219,6 +239,7 @@ export function duplicateQuestionV2(
         questionId: quiz.questions.length + 1,
         question: questionToDuplicate.question,
         duration: questionToDuplicate.duration,
+        thumbnailUrl: questionToDuplicate.thumbnailUrl,
         points: questionToDuplicate.points,
         answers: questionToDuplicate.answers,
       };
@@ -262,7 +283,10 @@ function deleteQuizQuestionV2(
     throw httpError(RESPONSE_ERROR_400, 'QuestionId is empty');
   }
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    throw httpError(RESPONSE_ERROR_400, 'QuestionId is not refer to a valid question within this quiz');
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'QuestionId is not refer to a valid question within this quiz'
+    );
   }
   const newdata = data;
   const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
@@ -313,18 +337,27 @@ export function adminQuizQuestionMoveV2(
     throw httpError(RESPONSE_ERROR_400, 'QuizId is invalid');
   }
   if (!isQuestionIdValid(data, quizId, questionId)) {
-    throw httpError(RESPONSE_ERROR_400, 'QuestionId is not refer to a valid question within this quiz');
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'QuestionId is not refer to a valid question within this quiz'
+    );
   }
 
   const quizToUpdate = newdata.quizzes.find((quiz) => quiz.quizId === quizId);
   if (!quizToUpdate.questions.some((quiz) => quiz.questionId === questionId)) {
-    throw httpError(RESPONSE_ERROR_400, 'Question Id does not refer to a valid question within this quiz');
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'Question Id does not refer to a valid question within this quiz'
+    );
   }
   if (newPosition < 0) {
     throw httpError(400, 'NewPosition cannot be less than 0');
   }
   if (quizToUpdate.questions.length - 1 < newPosition) {
-    throw httpError(400, 'NewPosition cannot be more than number of existing questions');
+    throw httpError(
+      400,
+      'NewPosition cannot be more than number of existing questions'
+    );
   }
 
   const questionToMove = quizToUpdate.questions.find(
@@ -333,7 +366,10 @@ export function adminQuizQuestionMoveV2(
   const index = quizToUpdate.questions.indexOf(questionToMove);
 
   if (index === newPosition) {
-    throw httpError(400, 'NewPosition cannot be position of the current question');
+    throw httpError(
+      400,
+      'NewPosition cannot be position of the current question'
+    );
   }
 
   quizToUpdate.questions.splice(index, 1);
@@ -625,6 +661,7 @@ export function createQuizQuestion(
     newQuestion = {
       question: question.question,
       duration: question.duration,
+      thumbnailUrl: question.thumbnailUrl,
       points: question.points,
       answers: question.answers,
       questionId: numQuestionsNow,
@@ -804,6 +841,7 @@ export function updateQuizQuestion(
           questionId: questionId,
           question: question.question,
           duration: question.duration,
+          thumbnailUrl: question.thumbnailUrl,
           points: question.points,
           answers: question.answers,
         };
@@ -907,6 +945,7 @@ export function duplicateQuestion(
         questionId: quiz.questions.length + 1,
         question: questionToDuplicate.question,
         duration: questionToDuplicate.duration,
+        thumbnailUrl: questionToDuplicate.thumbnailUrl,
         points: questionToDuplicate.points,
         answers: questionToDuplicate.answers,
       };
@@ -1191,7 +1230,7 @@ export function createQuizQuestionV2(
   token: string,
   question: QuestionBody,
   quizId: number
-): CreateQuizQuestionReturn {
+): QuestionId | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
 
   // Step 1: Check for 401 errors - START
@@ -1355,6 +1394,16 @@ export function createQuizQuestionV2(
     throw httpError(RESPONSE_ERROR_400, 'There are no correct answers');
   }
 
+  // thumbnailUrl ERRORS - START
+
+  // Step 3J: The thumbnailUrl is an empty string
+
+  if (question.thumbnailUrl.length === 0) {
+    throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
+  }
+
+  // thumbnailUrl ERRORS - START
+
   // Step 3: Check for 400 errors - END
 
   // Step 4: all error conditions have passed
@@ -1410,6 +1459,7 @@ export function createQuizQuestionV2(
     newQuestion = {
       question: question.question,
       duration: question.duration,
+      thumbnailUrl: question.thumbnailUrl,
       points: question.points,
       answers: question.answers,
       questionId: numQuestionsNow,
@@ -1445,6 +1495,6 @@ export function createQuizQuestionV2(
 
   saveDataInFile(data);
   return {
-    createQuizQuestionResponse: { questionId: questionIdNumber },
+    questionId: questionIdNumber,
   };
 }

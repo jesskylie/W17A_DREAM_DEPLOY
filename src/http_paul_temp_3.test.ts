@@ -1,34 +1,29 @@
 import HTTPError from 'http-errors';
 import {
-  // requestAdminQuizCreate,
-  // requestAdminQuizInfo,
-  // requestAdminQuizQuestionMove,
   requestClear,
   requestAdminRegister,
+  requestAdminQuizInfo,
   requestAdminLogoutV2,
   requestAdminAuthLogin,
   requestGetAdminUserDetailV2,
   requestAdminUserDetailUpdateV2,
   requestUpdatePasswordV2,
-  // requestCreateQuestion,
-  // requestDeleteQuizQuestion,
-  // requestDuplicateQuestion,
-  // requestUpdateQuestion,
+  requestAdminQuizCreateV2,
+  requestCreateQuestionV2,
 } from './library/route_testing_functions';
 import {
   QuestionBody,
-  QuestionId,
-  QuizId,
   TokenString,
   requestAdminQuizInfoReturn,
+  requestCreateQuestionReturn,
 } from './library/interfaces';
 import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
   RESPONSE_OK_200,
+  THUMBNAIL_URL_PLACEHOLDER,
 } from './library/constants';
-import { Quizzes } from './dataStore';
 
 // --------------------------------------------------
 // Test suite for POST /v2/admin/auth/logout route - START
@@ -123,7 +118,7 @@ describe('test /v2/admin/auth/logout : Returns an empty object -> EXPECT 200 SUC
   });
 });
 
-describe('test /v1/admin/auth/logout : Returns an error object -> EXPECT ERROR CODE 401', () => {
+describe('test /v2/admin/auth/logout : Returns an error object -> EXPECT ERROR CODE 401', () => {
   test('Returns error object -> EXPECT ERROR CODE 401', () => {
     requestClear();
 
@@ -294,8 +289,6 @@ describe('test adminUserDetailUpdate function : Returns an empty object -> EXPEC
       newNameFirst,
       newNameLast
     );
-
-    console.log('testadminUserDetailUpdateFn ->', testadminUserDetailUpdateFn);
 
     // test for returned empty object
     expect(testadminUserDetailUpdateFn).toStrictEqual({});
@@ -568,7 +561,7 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 
 // Test suite for PUT /v2/admin/user/password - START
 
-describe('Testing PUT /v1/admin/user/password', () => {
+describe('Testing PUT /v2/admin/user/password', () => {
   test('Testing successful password change', () => {
     requestClear();
     // Create user 1
@@ -665,8 +658,7 @@ describe('Testing PUT /v1/admin/user/password', () => {
     const newPassword1 = 'abcde1234565';
     const OldPassword1 = password;
 
-    const userDetails1 = requestGetAdminUserDetailV2(testRegisterFn.body.token);
-    console.log('userDetails1 ->', userDetails1);
+    requestGetAdminUserDetailV2(testRegisterFn.body.token);
 
     // successfully change password once
     requestUpdatePasswordV2(
@@ -675,8 +667,8 @@ describe('Testing PUT /v1/admin/user/password', () => {
       newPassword1
     );
 
-    const userDetails2 = requestGetAdminUserDetailV2(testRegisterFn.body.token);
-    console.log('userDetails2 ->', userDetails2);
+    requestGetAdminUserDetailV2(testRegisterFn.body.token);
+
     // unsuccessfully change password as attempted new password has been used before
 
     const newPassword2 = password;
@@ -742,3 +734,775 @@ describe('Testing PUT /v1/admin/user/password', () => {
 });
 
 // Test suite for PUT /v2/admin/user/password - END
+
+// Test suite for POST /v2/admin/quiz/:quizId/question - START
+
+describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
+  test('Testing successful creating a quiz question', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    // check quizId was returned
+
+    const validQuestion = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    const newQuestion = requestCreateQuestionV2(
+      token,
+      validQuestion,
+      quizId
+    ) as requestCreateQuestionReturn;
+
+    expect(newQuestion).toStrictEqual({
+      questionId: expect.any(Number),
+    });
+  });
+
+  test('Testing QuizId does not refer to valid quiz - error code 403', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    requestAdminQuizCreateV2(token, 'New Quiz', 'Description of quiz');
+
+    // create invalid quizIdcheck quizId was returned
+
+    const quizId = -1;
+
+    const validQuestion = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() => requestCreateQuestionV2(token, validQuestion, quizId)).toThrow(
+      HTTPError[RESPONSE_ERROR_403]
+    );
+  });
+
+  test('Question string is less than 5 characters - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    // check quizId was returned
+
+    const shortQuizIdQuestion = {
+      question: '?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, shortQuizIdQuestion, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Question string is more than 50 characters - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const longQuizIdQuestion = {
+      question: '1234567891 1234567891 1234567891 1234567891 1234567891?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, longQuizIdQuestion, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Question duration is not a positive number - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const negativeLength = {
+      question: 'What color is the sky?',
+      duration: -1,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, negativeLength, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Question has less than 2 answers - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const oneAnswer = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() => requestCreateQuestionV2(token, oneAnswer, quizId)).toThrow(
+      HTTPError[RESPONSE_ERROR_400]
+    );
+  });
+
+  test('Question has more than 6 answers - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const tooManyAnswers = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Yellow',
+          correct: false,
+        },
+        {
+          answer: 'Blue',
+          correct: false,
+        },
+        {
+          answer: 'Blue',
+          correct: false,
+        },
+        {
+          answer: 'Red',
+          correct: false,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+        {
+          answer: 'Black',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, tooManyAnswers, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Question duration exceeds 3 minutes - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const question1 = {
+      question: 'What color is the sky?',
+      duration: 90,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    requestCreateQuestionV2(token, question1, quizId);
+
+    const question2 = {
+      question: 'Who makes the 787 Dreamliner?',
+      duration: 100,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Boeing',
+          correct: true,
+        },
+        {
+          answer: 'Airbus',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() => requestCreateQuestionV2(token, question2, quizId)).toThrow(
+      HTTPError[RESPONSE_ERROR_400]
+    );
+  });
+
+  test('Question duration updated correctly - response true', () => {
+    // STILL USING V1 requestAdminQuizInfo ROUTE TESTING
+    // FUNCTION AS V2 HAS NOT YET BEEN IMPLEMENTED
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const duration1 = 3;
+    const duration2 = 11;
+    const question1 = {
+      question: 'What color is the sky?',
+      duration: duration1,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    requestCreateQuestionV2(token, question1, quizId);
+
+    const question2 = {
+      question: 'Who makes the 787 Dreamliner?',
+      duration: duration2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Boeing',
+          correct: true,
+        },
+        {
+          answer: 'Airbus',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    requestCreateQuestionV2(token, question2, quizId);
+
+    // get information about quiz
+    // /v2/admin/quiz/{quizid}
+
+    // Test that the duration of the two questions equals
+    // the total duration of the quiz
+
+    const quizInfo = requestAdminQuizInfo(
+      token,
+      quizId
+    ) as requestAdminQuizInfoReturn;
+
+    if ('duration' in quizInfo.bodyString) {
+      const testTotalDuration = quizInfo.bodyString.duration;
+      expect(testTotalDuration).toStrictEqual(duration1 + duration2);
+    }
+  });
+
+  test('Points awarded for question is not between 1 and 10 - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const lessThanOne = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 0,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    const moreThanTen = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 20,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() => requestCreateQuestionV2(token, lessThanOne, quizId)).toThrow(
+      HTTPError[RESPONSE_ERROR_400]
+    );
+
+    expect(() => requestCreateQuestionV2(token, moreThanTen, quizId)).toThrow(
+      HTTPError[RESPONSE_ERROR_400]
+    );
+  });
+
+  test('The length of the answers must be between 1 and 30 characters - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const lessThanOne = {
+      question: 'What color is the sky?',
+      duration: 3,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 5,
+      answers: [
+        {
+          answer: '',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    const moreThanThirty = {
+      question: 'What color is the sky?',
+      duration: 3,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 5,
+      answers: [
+        {
+          answer:
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() => requestCreateQuestionV2(token, lessThanOne, quizId)).toThrow(
+      HTTPError[RESPONSE_ERROR_400]
+    );
+
+    expect(() =>
+      requestCreateQuestionV2(token, moreThanThirty, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Answer strings are duplicates of one another - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const duplicateAnswers = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 5,
+      answers: [
+        {
+          answer: 'Yellow',
+          correct: true,
+        },
+        {
+          answer: 'Yellow',
+          correct: true,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, duplicateAnswers, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('There are no correct answers - error code 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const incorrectAnswers = {
+      question: 'What is 2 + 2?',
+      duration: 3,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 4,
+      answers: [
+        {
+          answer: 'Yellow',
+          correct: false,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, incorrectAnswers, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Testing Token is empty or invalid - error code 401', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    // Incorrect - has to return 401
+    const validQuestion = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 5,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    const newToken = '';
+
+    expect(() =>
+      requestCreateQuestionV2(newToken, validQuestion, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_401]);
+  });
+
+  test('Valid token is provided, but user is not an owner of this quiz - error code 403', () => {
+    requestClear();
+    // user1 created and user1's token creates quiz
+    const user1 = requestAdminRegister(
+      'abc@hotmail.com',
+      'abcde4284',
+      'Ann',
+      'Pie'
+    );
+    const token = user1.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+    // user2 created. user2 does not create a quiz
+    const user2 = requestAdminRegister(
+      'paul@gmail.com',
+      'abcde4284',
+      'Paul',
+      'Rather'
+    );
+    const token2 = user2.body.token;
+
+    const quizId = quizCreateResponse.quizId;
+
+    // Incorrect - has to return 403
+    const validQuestion = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 5,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    // question is created on quizId of user1, but with user2's token
+
+    expect(() =>
+      requestCreateQuestionV2(token2, validQuestion, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_403]);
+  });
+});
+
+describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - EXPECT ERROR CODE 400', () => {
+  test('The thumbnailUrl is an empty string - EXPECT ERROR CODE 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    // check quizId was returned
+
+    const invalidQuestionNoThumbnailUrl = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: '',
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, invalidQuestionNoThumbnailUrl, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+});
+
+// Test suite for POST /v2/admin/quiz/:quizId/question - END
