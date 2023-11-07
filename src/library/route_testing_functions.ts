@@ -45,10 +45,7 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export const requestAdminQuizRemoveV2 = (
-  token: string,
-  quizid: number
-) => {
+export const requestAdminQuizRemoveV2 = (token: string, quizid: number) => {
   const res = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizid}`, {
     headers: { token },
     qs: { quizid },
@@ -73,7 +70,7 @@ export function requestAdminLogoutV2(token: string): RequestGenericReturn {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
     case RESPONSE_ERROR_401:
-      throw HTTPError(RESPONSE_ERROR_401);
+      throw HTTPError(RESPONSE_ERROR_401, 'Hello this is an error');
   }
 }
 
