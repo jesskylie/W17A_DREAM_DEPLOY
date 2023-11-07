@@ -45,6 +45,24 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export const requestAdminQuizInfoV2 = (
+  token: string,
+  quizid: number
+): requestAdminQuizInfoReturn => {
+  const res = request('GET', SERVER_URL + `/v2/admin/quiz/${quizid}`, {
+    headers: { token },
+    qs: { quizid },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+  }
+};
+
 export const requestAdminQuizRemoveV2 = (token: string, quizid: number) => {
   const res = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizid}`, {
     headers: { token },
@@ -54,6 +72,8 @@ export const requestAdminQuizRemoveV2 = (token: string, quizid: number) => {
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
     case RESPONSE_ERROR_401:
       throw HTTPError(RESPONSE_ERROR_401);
     case RESPONSE_ERROR_400:
