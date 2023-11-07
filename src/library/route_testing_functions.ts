@@ -15,6 +15,9 @@ import {
   HTTPResponse,
   RequestDeleteQuizQuestionReturn,
   TransferQuizServerReturn,
+  RequestGenericReturn,
+  RequestUserDetailsReturn,
+  RequestAdminDetailsUpdateServerReturn,
 } from './interfaces';
 
 import {
@@ -41,6 +44,80 @@ export const requestClear = () => {
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
+
+// Paul - 7 Nov 23 - START
+export function requestAdminLogoutV2(token: string): RequestGenericReturn {
+  const res = request('POST', SERVER_URL + '/v2/admin/auth/logout', {
+    headers: { token },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+  }
+}
+
+export function requestGetAdminUserDetailV2(
+  token: string
+): RequestUserDetailsReturn {
+  const res = request('GET', SERVER_URL + '/v2/admin/user/details', {
+    headers: { token },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+  }
+}
+
+export function requestAdminUserDetailUpdateV2(
+  token: string,
+  email: string,
+  nameFirst: string,
+  nameLast: string
+): RequestAdminDetailsUpdateServerReturn {
+  const res = request('PUT', SERVER_URL + '/v2/admin/user/details', {
+    headers: { token },
+    json: {
+      email,
+      nameFirst,
+      nameLast,
+    },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
+export function requestUpdatePasswordV2(
+  token: string,
+  newPassword: string,
+  oldPassword: string
+) {
+  const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
+    headers: { token },
+    json: {
+      newPassword: newPassword,
+      oldPassword: oldPassword,
+    },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+// Paul - 7 Nov 23 - END
 
 export const requestAdminQuizCreateV2 = (
   token: string,
@@ -145,7 +222,7 @@ export function requestCreateQuestionV2(
 ): requestCreateQuestionReturn {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/question`,
     {
       headers: { token },
       json: {
@@ -154,6 +231,7 @@ export function requestCreateQuestionV2(
           duration: question.duration,
           points: question.points,
           answers: question.answers as QuestionBody['answers'],
+          thumbnailUrl: question.thumbnailUrl,
         },
       },
       timeout: WAIT_TIME,
