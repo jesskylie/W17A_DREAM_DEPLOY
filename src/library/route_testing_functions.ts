@@ -45,6 +45,22 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export const requestAdminQuizRemoveV2 = (token: string, quizid: number) => {
+  const res = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizid}`, {
+    headers: { token },
+    qs: { quizid },
+    timeout: WAIT_TIME,
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+};
+
 // Paul - 7 Nov 23 - START
 export function requestAdminLogoutV2(token: string): RequestGenericReturn {
   const res = request('POST', SERVER_URL + '/v2/admin/auth/logout', {
