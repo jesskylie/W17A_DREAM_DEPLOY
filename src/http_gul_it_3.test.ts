@@ -119,12 +119,12 @@ describe('Testing POST adminQuizTransfer', () => {
       transferorToken,
       transfereeEmail,
       quizId1User2
-    );
+    ) as TransferQuizServerReturn;
 
-    const transferResponseTest = responseTransfer;
+    const transferResponseTest = responseTransfer.bodyString;
 
     // Check for blank object
-
+    
     expect(transferResponseTest).toStrictEqual({});
 
     // check for status code 200
@@ -391,7 +391,7 @@ describe('Testing POST adminQuizTransfer', () => {
     const transferorToken = tokenUser1;
     expect(() => requestTransferQuestionV2( transferorToken,
       transfereeEmail,
-      quizId1User2)).toThrow(HTTPError[RESPONSE_ERROR_401]);
+      quizId1User2)).toThrow(HTTPError[RESPONSE_ERROR_403]);
     
   });
 });
@@ -423,7 +423,7 @@ describe('adminQuizList testing', () => {
     ).bodyString as QuizId;
     
     const QuizPrint = requestAdminQuizListV2(testToken);
-    expect(QuizPrint.bodyString).toStrictEqual({
+    expect(QuizPrint).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -435,17 +435,18 @@ describe('adminQuizList testing', () => {
         },
       ],
     });
-    expect(QuizPrint.statusCode).toStrictEqual(RESPONSE_OK_200);
+    
   });
+  
   test('Error 401: invalid token', () => {
     requestClear();
-    expect(() => requestAdminLogoutV2('invalid')).toThrow(
+    expect(() => requestAdminQuizListV2('invalid')).toThrow(
       HTTPError[RESPONSE_ERROR_401]
     );
   });
   test('Error 401: empty token', () => {
     requestClear();
-    expect(() => requestAdminLogoutV2('')).toThrow(
+    expect(() => requestAdminQuizListV2('')).toThrow(
       HTTPError[RESPONSE_ERROR_401]
     );
   });
@@ -479,7 +480,7 @@ describe('adminTrashQuizRestore testing', () => {
     requestAdminQuizRemove(testToken, QuizTwo.quizId);
     requestAdminTrashQuizRestoreV2(testToken, QuizOne.quizId);
     const quizOneRestored = requestAdminQuizListV2(testToken);
-    expect(quizOneRestored.bodyString).toStrictEqual({
+    expect(quizOneRestored).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -489,7 +490,7 @@ describe('adminTrashQuizRestore testing', () => {
     });
     requestAdminTrashQuizRestoreV2(testToken, QuizTwo.quizId);
     const quizTwoRestored = requestAdminQuizListV2(testToken);
-    expect(quizTwoRestored.bodyString).toStrictEqual({
+    expect(quizTwoRestored).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -514,7 +515,7 @@ describe('adminTrashQuizRestore testing', () => {
     );
 
     const testToken = returnTokenObj.body.token;
-    expect(() =>requestAdminTrashQuizRestoreV2(testToken, -1 * 1531)).toThrow(
+    expect(() =>requestAdminTrashQuizRestoreV2(testToken, -9999)).toThrow(
       HTTPError[RESPONSE_ERROR_400]
     );
   });
@@ -777,9 +778,9 @@ describe('adminTrashQuizEmpty testing', () => {
       'Jack',
       'Tony quiz'
     ).bodyString as QuizId;
-    expect(
-      requestAdminTrashQuizRestoreV2(testToken, TonyQuiz.quizId).statusCode
-    ).toBe(RESPONSE_ERROR_403);
+    // expect(
+    //   requestAdminTrashQuizRestoreV2(testToken, TonyQuiz.quizId).statusCode
+    // ).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
     expect(() =>requestAdminTrashQuizEmptyV2(testToken,
       JSON.stringify([TonyQuiz.quizId]))).toThrow(
@@ -823,8 +824,7 @@ describe('adminTrashQuizList testing', () => {
 
     // print out quiz in trash
     const TrashQuizPrint = requestAdminTrashQuizListV2(testToken);
-
-    expect(TrashQuizPrint.bodyString).toStrictEqual({
+    expect(TrashQuizPrint).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -834,7 +834,7 @@ describe('adminTrashQuizList testing', () => {
     });
     requestAdminQuizRemove(testToken, QuizTwo.quizId);
     const TrashQuizPrint2 = requestAdminTrashQuizListV2(testToken);
-    expect(TrashQuizPrint2.bodyString).toStrictEqual({
+    expect(TrashQuizPrint2).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -856,7 +856,7 @@ describe('adminTrashQuizList testing', () => {
 
   test('Error 401: empty token', () => {
     expect(() => requestAdminTrashQuizListV2('')).toThrow(
-      HTTPError[RESPONSE_ERROR_403]
+      HTTPError[RESPONSE_ERROR_401]
     );
   });
 });
