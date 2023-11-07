@@ -1,5 +1,6 @@
 import isEmail from 'validator/lib/isEmail.js';
 import { DataStore, Question, State } from './dataStore';
+import httpError from 'http-errors';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -7,6 +8,7 @@ import {
   getAuthUserIdUsingToken,
   createCurrentTimeStamp,
   getRandomInt,
+  getState,
 } from './library/functions';
 
 import {
@@ -742,7 +744,7 @@ function adminQuizTransferV2(
   const isTokenValidTest = isTokenValid(data, token) as boolean;
 
   if (!isTokenValidTest) {
-    throw httpError(401, 'Token is empty or invalid (does not refer to valid logged in user session');
+    throw httpError(RESPONSE_ERROR_401, 'Token is empty or invalid (does not refer to valid logged in user session');
   }
 
   // Step 1a: Check for 401 errors - END
@@ -776,7 +778,7 @@ function adminQuizTransferV2(
   }
 
   if (!userOwnsQuizBool) {
-    throw httpError(403, 'Valid token is provided, but user is not an owner of this quiz');
+    throw httpError(RESPONSE_ERROR_403, 'Valid token is provided, but user is not an owner of this quiz');
   }
 
   // Step 1b: Check for 403 errors - END
@@ -787,7 +789,7 @@ function adminQuizTransferV2(
   // includes whether email is valid
 
   if (!isEmail(userEmail) || !isUserEmailRealUser(data, userEmail)) {
-      throw httpError(400, 'userEmail is not a real user');
+      throw httpError(RESPONSE_ERROR_400, 'userEmail is not a real user');
   }
 
   // Step 1c: Check for userEmail is not a real user - START
@@ -796,7 +798,7 @@ function adminQuizTransferV2(
   // includes whether email is valid
 
   if (isUserEmailIsCurrentLoggedInUser(data, token, userEmail)) {
-    throw httpError(400, 'userEmail is the current logged in user');
+    throw httpError(RESPONSE_ERROR_400, 'userEmail is the current logged in user');
   }
 
   // Step 1d: Check userEmail is the current logged in user - END
@@ -837,7 +839,7 @@ function adminQuizTransferV2(
   }
 
   if (quizNamesArray.includes(transferQuizName)) {
-    throw httpError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+    throw httpError(RESPONSE_ERROR_400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
   }
 
   // Step 1e: Quiz ID refers to a quiz that has a name that is already used by the target user - END
@@ -891,7 +893,7 @@ function adminQuizTransferV2(
   
   const state = getState();
   if (!state.has(State.END)) {
-    throw httpError(400, 'All sessions for this quiz must be in END State');
+    throw httpError(RESPONSE_ERROR_400, 'All sessions for this quiz must be in END State');
   }
 
   saveDataInFile(data);
@@ -945,10 +947,10 @@ function adminQuizListV2(token: string): QuizListReturn | ErrorObjectWithCode {
   const authUserId = getAuthUserIdUsingToken(data, token);
 
   if (!token) {
-    throw httpError(401, 'Token is empty.');
+    throw httpError(RESPONSE_ERROR_401, 'Token is empty.');
   }
   if (!isTokenValidTest) {
-    throw httpError(401, 'Token is invalid.');
+    throw httpError(RESPONSE_ERROR_401, 'Token is invalid.');
   }
   for (const quiz of data.quizzes) {
     if (quiz.userId.includes(authUserId.authUserId)) {
@@ -1079,10 +1081,10 @@ function adminTrashQuizListV2(
   const isTokenValidTest = isTokenValid(data, token);
   const authUserId = getAuthUserIdUsingToken(data, token);
   if (!token) {
-    throw httpError(401, 'Token is empty');
+    throw httpError(RESPONSE_ERROR_401, 'Token is empty');
   }
   if (!isTokenValidTest) {
-    throw httpError(401, 'Token is invalid');
+    throw httpError(RESPONSE_ERROR_401, 'Token is invalid');
   }
   const trashArray = [];
   const quizIdArray = [];
@@ -1189,25 +1191,25 @@ function adminTrashQuizRestoreV2(
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isTokenValidTest = isTokenValid(data, token);
   if (!token) {
-    throw httpError(401, 'Token is empty');
+    throw httpError(RESPONSE_ERROR_401, 'Token is empty');
   }
   if (!isTokenValidTest) {
-    throw httpError(401, 'Token is invalid');
+    throw httpError(RESPONSE_ERROR_401, 'Token is invalid');
   }
   if (!Number.isInteger(quizId) || quizId < 0) {
-    throw httpError(400, 'QuizId is invalid');
+    throw httpError(RESPONSE_ERROR_401, 'QuizId is invalid');
   }
   if (!isQuizIdInTrash(data, quizId)) {
     if (!isQuizIdValid(data, quizId)) {
-      throw httpError(400, 'QuizId is not valid');
+      throw httpError(RESPONSE_ERROR_400, 'QuizId is not valid');
     }
     if (!isAuthUserIdMatchQuizId(data, authUserId.authUserId, quizId)) {
-      throw httpError(403, 'QuizId does not match authUserId');
+      throw httpError(RESPONSE_ERROR_403, 'QuizId does not match authUserId');
     }
-    throw httpError(400, 'QuizId is not in trash');
+    throw httpError(RESPONSE_ERROR_400, 'QuizId is not in trash');
   }
   if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {
-    throw httpError(403, 'QuizId does not match authUserId');
+    throw httpError(RESPONSE_ERROR_403, 'QuizId does not match authUserId');
   }
 
   const newdata = data;
