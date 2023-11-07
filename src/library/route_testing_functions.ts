@@ -114,14 +114,14 @@ export function requestAdminUserDetailUpdateV2(
 
 export function requestUpdatePasswordV2(
   token: string,
-  newPassword: string,
-  oldPassword: string
+  oldPassword: string,
+  newPassword: string
 ) {
   const res = request('PUT', SERVER_URL + '/v2/admin/user/password', {
     headers: { token },
     json: {
-      newPassword: newPassword,
       oldPassword: oldPassword,
+      newPassword: newPassword,
     },
   });
   switch (res.statusCode) {

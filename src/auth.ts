@@ -704,7 +704,7 @@ export function updatePasswordV2(
   }
 
   // new password must be more than 8 characters, and have letters and numbers
-  if (!isValidPassword(getHashOf(newPassword))) {
+  if (!isValidPassword(newPassword)) {
     throw httpError(RESPONSE_ERROR_400, 'Invalid password');
   }
 
@@ -734,7 +734,7 @@ export function updatePasswordV2(
       } else {
         // move current password to old passwords array
         // update new password
-        user.oldPasswords.push(oldPassword);
+        user.oldPasswords.push(getHashOf(oldPassword));
         user.password = hashedNewPassword;
         saveDataInFile(data);
         return {};

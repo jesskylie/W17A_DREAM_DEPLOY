@@ -9,6 +9,7 @@ import {
   requestAdminAuthLogin,
   requestGetAdminUserDetailV2,
   requestAdminUserDetailUpdateV2,
+  requestUpdatePasswordV2,
   // requestCreateQuestion,
   // requestDeleteQuizQuestion,
   // requestDuplicateQuestion,
@@ -564,3 +565,180 @@ describe('test adminUserDetailUpdate function : ERRORS WITH NAMES AND EMAIL -> E
 });
 
 // Test suite for PUT /v2/admin/user/details - END
+
+// Test suite for PUT /v2/admin/user/password - START
+
+describe('Testing PUT /v1/admin/user/password', () => {
+  test('Testing successful password change', () => {
+    requestClear();
+    // Create user 1
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterFn = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    const result = requestUpdatePasswordV2(
+      testRegisterFn.body.token,
+      password,
+      'abcde123456'
+    );
+
+    expect(result).toStrictEqual({});
+  });
+
+  test('Old password is not the correct old password - error code 400', () => {
+    requestClear();
+    // Create user 1
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterFn = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    const newPassword = 'abcde1234565';
+    const wrongOldPassword = 'hellothere12345';
+
+    expect(() =>
+      requestUpdatePasswordV2(
+        testRegisterFn.body.token,
+        wrongOldPassword,
+        newPassword
+      )
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Old password and new password match exactly - error code 400', () => {
+    requestClear();
+    // Create user 1
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterFn = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    const newPassword = 'abcde1234565';
+    const wrongOldPassword = newPassword;
+
+    expect(() =>
+      requestUpdatePasswordV2(
+        testRegisterFn.body.token,
+        wrongOldPassword,
+        newPassword
+      )
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('New password has already been used by this user - error code 400', () => {
+    requestClear();
+    // Create user 1
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterFn = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    const newPassword1 = 'abcde1234565';
+    const OldPassword1 = password;
+
+    const userDetails1 = requestGetAdminUserDetailV2(testRegisterFn.body.token);
+    console.log('userDetails1 ->', userDetails1);
+
+    // successfully change password once
+    requestUpdatePasswordV2(
+      testRegisterFn.body.token,
+      OldPassword1,
+      newPassword1
+    );
+
+    const userDetails2 = requestGetAdminUserDetailV2(testRegisterFn.body.token);
+    console.log('userDetails2 ->', userDetails2);
+    // unsuccessfully change password as attempted new password has been used before
+
+    const newPassword2 = password;
+    const OldPassword2 = newPassword1;
+    expect(() =>
+      requestUpdatePasswordV2(
+        testRegisterFn.body.token,
+        OldPassword2,
+        newPassword2
+      )
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('New password is less than 8 characters - with error code 400', () => {
+    requestClear();
+    // Create user 1
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterFn = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    expect(() =>
+      requestUpdatePasswordV2(testRegisterFn.body.token, passwordBase, 'a')
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('New password does not contain at least one number and one letter - with error code 400', () => {
+    requestClear();
+    // Create user 1
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegisterFn = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    expect(() =>
+      requestUpdatePasswordV2(
+        testRegisterFn.body.token,
+        'abcde4284',
+        '12345678910'
+      )
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Testing unsuccessful password change (invalid token) with error code 401', () => {
+    expect(() =>
+      requestUpdatePasswordV2('a', 'abcde4284', '12345678910')
+    ).toThrow(HTTPError[RESPONSE_ERROR_401]);
+  });
+});
+
+// Test suite for PUT /v2/admin/user/password - END
