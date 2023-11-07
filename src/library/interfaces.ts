@@ -10,7 +10,9 @@ export interface QuestionBody {
     colour: string;
     answerId: number;
   }[];
+  thumbnailUrl: string;
 }
+
 export interface TransferQuizReturn {
   transferQuizResponse: Record<string, never> | ErrorObjectWithCode;
 }
@@ -107,4 +109,33 @@ export interface AdminQuizCreateReturnCombined {
 export interface RequestDeleteQuizQuestionReturn {
   statusCode?: number;
   bodyString: Record<string, never> | ErrorObject;
+}
+
+export interface RequestGenericReturn {
+  statusCode: number;
+  bodyString: ErrorObject | Record<string, never>;
+}
+
+export interface UserInfo {
+  user: {
+    authUserId: number;
+    name: string;
+    email: string;
+    numSuccessfulLogins: number;
+    numFailedPasswordsSinceLastLogin: number;
+  };
+}
+
+export interface RequestUserDetailsReturn {
+  bodyString: UserInfo | ErrorObject;
+  statusCode: number;
+}
+
+interface AdminUserDetailUpdateReturn {
+  detailsUpdateResponse: Record<string, never> | ErrorObjectWithCode;
+}
+
+export interface RequestAdminDetailsUpdateServerReturn {
+  bodyString: AdminUserDetailUpdateReturn;
+  statusCode: number;
 }
