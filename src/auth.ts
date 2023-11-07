@@ -613,7 +613,7 @@ function adminUserDetailUpdateV2(
   email: string,
   nameFirst: string,
   nameLast: string
-): AdminUserDetailUpdateReturn {
+): Record<string, never> | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
   // step 1: check for valid token
   const isTokenValidTest = isTokenValid(data, token) as boolean;
@@ -671,7 +671,7 @@ function adminUserDetailUpdateV2(
 
   saveDataInFile(data);
 
-  return { detailsUpdateResponse: {} };
+  return {};
 }
 
 export { adminUserDetailUpdateV2 };

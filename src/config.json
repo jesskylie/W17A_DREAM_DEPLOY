@@ -1,11 +1,5 @@
 {
-<<<<<<< HEAD
-    "url": "http://localhost",
-    "port": "49153",
-    "expandDocs": false
-=======
   "url": "http://localhost",
   "port": "3200",
   "expandDocs": false
->>>>>>> 9d2be4cc22fd0cacf7dd3c6adbeb867bb29959f0
 }

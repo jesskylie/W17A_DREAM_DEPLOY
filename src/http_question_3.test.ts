@@ -1,7 +1,28 @@
 import HTTPError from 'http-errors';
-import { requestAdminQuizCreate, requestAdminQuizInfo, requestAdminQuizQuestionMove, requestAdminRegister, requestClear, requestCreateQuestion, requestDeleteQuizQuestion, requestDuplicateQuestion, requestUpdateQuestion } from './library/route_testing_functions';
-import { QuestionBody, QuestionId, QuizId, TokenString, requestAdminQuizInfoReturn } from './library/interfaces';
-import { RESPONSE_ERROR_400, RESPONSE_ERROR_401, RESPONSE_ERROR_403, RESPONSE_OK_200 } from './library/constants';
+import {
+  requestAdminQuizCreate,
+  requestAdminQuizInfo,
+  requestAdminQuizQuestionMove,
+  requestAdminRegister,
+  requestClear,
+  requestCreateQuestion,
+  requestDeleteQuizQuestion,
+  requestDuplicateQuestion,
+  requestUpdateQuestion,
+} from './library/route_testing_functions';
+import {
+  QuestionBody,
+  QuestionId,
+  QuizId,
+  TokenString,
+  requestAdminQuizInfoReturn,
+} from './library/interfaces';
+import {
+  RESPONSE_ERROR_400,
+  RESPONSE_ERROR_401,
+  RESPONSE_ERROR_403,
+  RESPONSE_OK_200,
+} from './library/constants';
 import { Quizzes } from './dataStore';
 
 describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
