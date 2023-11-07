@@ -38,6 +38,8 @@ import {
   adminQuizCreateV2,
   adminQuizRemoveV2,
   adminQuizInfoV2,
+  adminQuizNameUpdateV2,
+  adminQuizDescriptionUpdateV2,
 } from './quizV2';
 
 import {
@@ -184,6 +186,20 @@ app.put(
     res.json(adminQuizQuestionMoveV2(token, quizId, questionId, newPosition));
   }
 );
+
+app.put('/v2/admin/quiz/:quizid/name', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { name } = req.body;
+  const quizId = parseInt(req.params.quizid);
+  res.json(adminQuizNameUpdateV2(token, quizId, name));
+});
+
+app.put('/v2/admin/quiz/:quizid/description', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const { description } = req.body;
+  const quizId = parseInt(req.params.quizid);
+  res.json(adminQuizDescriptionUpdateV2(token, quizId, description));
+});
 // --------------------------- PUT REQUESTS - END -----------------------------
 
 // --------------------------- DELETE REQUESTS - START ------------------------

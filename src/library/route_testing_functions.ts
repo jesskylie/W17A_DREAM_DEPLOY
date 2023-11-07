@@ -34,6 +34,15 @@ const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;
 
+interface ErrorObject {
+  error: string;
+}
+
+export interface RequestAdminQuizDescriptionUpdateReturn {
+  statusCode?: number;
+  bodyString: Record<string, never> | ErrorObject;
+}
+
 // constants used throughout file - END
 
 export const requestClear = () => {
@@ -44,6 +53,48 @@ export const requestClear = () => {
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
+
+export function requestAdminQuizDescriptionUpdateV2(
+  token: string,
+  quizid: number,
+  description: string
+): RequestAdminQuizDescriptionUpdateReturn {
+  const res = request('PUT', SERVER_URL + `/v2/admin/quiz/${quizid}/description`, {
+    headers: { token },
+    json: { quizid, description },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+  }
+}
+
+export function requestUpdateQuizNameV2(
+  token: string,
+  quizid: number,
+  name: string
+) {
+  const res = request('PUT', SERVER_URL + `/v2/admin/quiz/${quizid}/name`, {
+    headers: { token },
+    json: { name, quizid },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+  }
+}
 
 export const requestAdminQuizInfoV2 = (
   token: string,
