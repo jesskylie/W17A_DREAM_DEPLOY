@@ -45,7 +45,10 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export const requestAdminQuizRemoveV2 = (token: string, quizid: number) => {
+export const requestAdminQuizRemoveV2 = (
+  token: string,
+  quizid: number
+) => {
   const res = request('DELETE', SERVER_URL + `/v2/admin/quiz/${quizid}`, {
     headers: { token },
     qs: { quizid },
@@ -171,7 +174,7 @@ export const requestAdminQuizCreate = (
   };
 };
 
-//**************************************************************
+//* *************************************************************
 export const requestAdminQuizList = (
   token: string
 ): requestAdminQuizListReturn => {
@@ -181,7 +184,7 @@ export const requestAdminQuizList = (
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
-//**************************************************************
+//* *************************************************************
 export const requestAdminQuizListV2 = (
   token: string
 ): requestAdminQuizListReturn => {
@@ -196,7 +199,7 @@ export const requestAdminQuizListV2 = (
     throw HTTPError(401);
   }
 };
-//**************************************************************
+//* *************************************************************
 export const requestAdminQuizInfo = (
   token: string,
   quizid: number
@@ -328,8 +331,8 @@ export const requestQuizCreateCombined = (
 
   return { resBody, statusCode };
 };
-//**************************************************************
-//**************************************************************
+//* *************************************************************
+//* *************************************************************
 export const requestAdminTrashQuizRestore = (
   token: string,
   quizId: number
@@ -340,7 +343,7 @@ export const requestAdminTrashQuizRestore = (
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
-//**************************************************************
+//* *************************************************************
 export const requestAdminTrashQuizRestoreV2 = (
   token: string,
   quizId: number
@@ -359,8 +362,8 @@ export const requestAdminTrashQuizRestoreV2 = (
     throw HTTPError(RESPONSE_ERROR_403);
   }
 };
-//**************************************************************
-//**************************************************************
+//* *************************************************************
+//* *************************************************************
 export const requestAdminTrashQuizEmpty = (
   token: string,
   quizids: string
@@ -569,7 +572,7 @@ export function requestDuplicateQuestion(
     statusCode,
   };
 }
-//**************************************************************
+//* *************************************************************
 export const requestAdminTrashQuizEmptyV2 = (
   token: string,
   quizids: string
@@ -589,8 +592,8 @@ export const requestAdminTrashQuizEmptyV2 = (
     throw HTTPError(RESPONSE_ERROR_403);
   }
 };
-//**************************************************************
-//**************************************************************
+//* *************************************************************
+//* *************************************************************
 export const requestAdminTrashQuizList = (
   token: string
 ): requestAdminQuizListReturn => {
@@ -600,7 +603,7 @@ export const requestAdminTrashQuizList = (
   const bodyString = JSON.parse(res.body.toString());
   return { statusCode: res.statusCode, bodyString: bodyString };
 };
-//**************************************************************
+//* *************************************************************
 export const requestAdminTrashQuizListV2 = (
   token: string
 ): requestAdminQuizListReturn => {
@@ -616,7 +619,7 @@ export const requestAdminTrashQuizListV2 = (
   }
 };
 
-//**************************************************************
+//* *************************************************************
 export function requestTransferQuestion(
   token: string,
   userEmail: string,
@@ -642,7 +645,7 @@ export function requestTransferQuestion(
   };
 }
 
-//**************************************************************
+//* *************************************************************
 export function requestTransferQuestionV2(
   token: string,
   userEmail: string,
@@ -668,4 +671,4 @@ export function requestTransferQuestionV2(
     throw HTTPError(RESPONSE_ERROR_403);
   }
 }
-//**************************************************************
+//* *************************************************************

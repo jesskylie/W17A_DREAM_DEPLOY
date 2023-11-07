@@ -1169,7 +1169,6 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
   });
 });
 
-
 describe('deleteQuizQuestion testing', () => {
   test('StatusCode 200: Valid input', () => {
     requestClear();
@@ -1469,7 +1468,6 @@ describe('deleteQuizQuestion testing', () => {
     });
   });
 });
-
 
 describe('AdminQuizQuestionMove testing', () => {
   test('StatusCode 200: Valid input', () => {

@@ -29,7 +29,7 @@ import {
 // constants used throughout file - START
 import {
   requestTransferQuestion
-} from '../library/route_testing_functions'
+} from '../library/route_testing_functions';
 const port = config.port;
 const url = config.url;
 const SERVER_URL = `${url}:${port}`;
@@ -44,8 +44,6 @@ export interface CreateQuizQuestionServerReturn {
   bodyString: CreateQuizQuestionReturn;
   statusCode: number;
 }
-
-
 
 // interfaces used throughout file - END
 
