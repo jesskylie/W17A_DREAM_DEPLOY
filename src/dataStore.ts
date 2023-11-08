@@ -71,7 +71,7 @@ Example usage
 
 // TypeScript interfaces for Iteration 2 - START
 
-interface ResultForEachQuestion {
+export interface ResultForEachQuestion {
   questionId: number,
   playersCorrectList: string[],
   averageAnswerTime : number,
@@ -83,18 +83,26 @@ export interface Player {
   name: string;
 }
 
-interface session {
-  sessionIds: number;
+export interface Message {
+  messageBody: string;
+  playerId: number;
+  playerName: string;
+  timeSent: number;
+}
+
+export interface Session {
+  sessionId: number;
   state: State;
   autoStartNum: number;
   players: Player[];
   result: ResultForEachQuestion[];
   atQuestion: number;
   numQuestions: number;
+  messages: Message[];
 }
 
-interface QuizzesCopy {
-  sessions: session[];
+export interface QuizzesCopy {
+  session: Session;
   metadata: Quizzes;
 }
 

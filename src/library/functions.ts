@@ -12,7 +12,7 @@ const DATASTORE_FILENAME = 'database.json';
 
 // import types from src/dataStore
 
-import { DataStore, State } from '../dataStore';
+import { Action, DataStore, State } from '../dataStore';
 
 interface getDataReturnObject {
   result: boolean;
@@ -270,17 +270,70 @@ export function returnRandomColour(): string {
 //   return Math.random() * (ONE_MILLION - 0);
 // }
 
-export function getState(): Set<State> {
-  const state = new Set<State>();
-  if (isQuizInEndState) {
-    state.add(State.END);
+export function getState(data: DataStore, sessionId: number): State {
+ for (const check of data.quizzesCopy) {
+  if (check.session.sessionId === sessionId) {
+    return check.session.state;
   }
-  return state;
+ }
 }
 
 // checks if quiz is in end state
-function isQuizInEndState(data: DataStore): boolean {
+export function isQuizInEndState(data: DataStore, quizId: number): boolean {
+  for (const check of data.quizzesCopy) {
+    if (check.metadata.quizId === quizId) {
+      if (check.session.state !== State.END) {
+        return false;
+      }
+    }
+  }
   return true;
 }
 
-
+export function isActionValid(state: State, action: Action) {
+  if (state === State.LOBBY) {
+    if (action === Action.END || action === Action.NEXT_QUESTION) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.QUESTION_COUNTDOWN) {
+    if (action === Action.SKIP_COUNTDOWN || action === Action.END) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.QUESTION_OPEN) {
+    if (action === Action.END || action === Action.GO_TO_ANSWER) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.QUESTION_CLOSE) {
+    if (action === Action.END || action === Action.GO_TO_ANSWER || action === Action.GO_TO_FINAL_RESULTS) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.ANSWER_SHOW) {
+    if (action === Action.END || action === Action.NEXT_QUESTION || action === Action.GO_TO_FINAL_RESULTS) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.FINAL_RESULTS) {
+    if (action === Action.END) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.END) {
+    return false;
+  } 
+}
