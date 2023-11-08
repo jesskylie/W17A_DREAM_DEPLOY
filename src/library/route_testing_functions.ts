@@ -262,7 +262,7 @@ export const requestAdminQuizListV2 = (
   });
   const bodyString = JSON.parse(res.body.toString());
   if (res.statusCode === 200) {
-    return bodyString;
+    return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
     throw HTTPError(401);
   }
@@ -421,7 +421,7 @@ export const requestAdminTrashQuizRestoreV2 = (
   });
   const bodyString = JSON.parse(res.body.toString());
   if (res.statusCode === 200) {
-    return bodyString;
+    return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
     throw HTTPError(RESPONSE_ERROR_401);
   } else if (res.statusCode === 400) {
@@ -653,9 +653,9 @@ export const requestAdminTrashQuizEmptyV2 = (
   });
   const bodyString = JSON.parse(res.body.toString());
   if (res.statusCode === 200) {
-    return bodyString;
+    return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
-    throw HTTPError(RESPONSE_ERROR_400);
+    throw HTTPError(RESPONSE_ERROR_401);
   } else if (res.statusCode === 400) {
     throw HTTPError(RESPONSE_ERROR_400);
   } else if (res.statusCode === 403) {
@@ -683,7 +683,7 @@ export const requestAdminTrashQuizListV2 = (
   });
   const bodyString = JSON.parse(res.body.toString());
   if (res.statusCode === 200) {
-    return bodyString;
+    return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
     throw HTTPError(RESPONSE_ERROR_401);
   }
@@ -729,12 +729,12 @@ export function requestTransferQuestionV2(
       json: { token, userEmail },
     }
   );
-
   const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
   if (res.statusCode === 200) {
-    return bodyString;
+    return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
-    throw HTTPError(RESPONSE_ERROR_400);
+    throw HTTPError(RESPONSE_ERROR_401);
   } else if (res.statusCode === 400) {
     throw HTTPError(RESPONSE_ERROR_400);
   } else if (res.statusCode === 403) {
