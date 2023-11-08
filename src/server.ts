@@ -181,7 +181,6 @@ app.post('/v1/player/join', (req: Request, res: Response) => {
 
 app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   const token = req.headers.token as string;
-
   res.json(adminUserDetailsV2(token));
 });
 
@@ -207,6 +206,12 @@ app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
   const token = req.headers.token as string;
   const quizId = parseInt(req.params.quizid);
   const result = viewAllSessions(token, quizId);
+  res.json(result);
+});
+
+app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const result = adminQuizListV2(token);
   res.json(result);
 });
 
