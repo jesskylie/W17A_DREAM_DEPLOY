@@ -1098,30 +1098,36 @@ function adminTrashQuizListV2(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
-
   const isTokenValidTest = isTokenValid(data, token);
-  const authUserId = getAuthUserIdUsingToken(data, token);
-  if (!token) {
-    throw httpError(RESPONSE_ERROR_401, 'Token is empty');
-  }
+
   if (!isTokenValidTest) {
-    throw httpError(RESPONSE_ERROR_401, 'Token is invalid');
+    throw httpError(
+      RESPONSE_ERROR_401,
+      'Token is empty or invalid (does not refer to valid logged in user session'
+    );
   }
-  const trashArray = [];
-  const quizIdArray = [];
-  for (const checkId of data.users) {
-    if (checkId.authUserId === authUserId.authUserId) {
-      quizIdArray.push(...checkId.quizId);
+  // Step 1 test for 401 error - END
+
+  // all error cases have been dealt with,
+  // now return the quizzes array
+  const authUserIdObj = getAuthUserIdUsingToken(data, token) as AuthUserId;
+  const authUserId = authUserIdObj.authUserId;
+
+  const trashQuizArray = data.trash;
+
+  const quizzesArray = [];
+
+  for (const quiz of trashQuizArray) {
+    if (quiz.userId.includes(authUserId)) {
+      const tempArray = {
+        quizId: quiz.quizId,
+        name: quiz.name,
+      };
+      quizzesArray.push(tempArray);
     }
   }
-  for (const checkQuizzes of data.trash) {
-    for (const checkUserId of checkQuizzes.userId) {
-      if (checkUserId === authUserId.authUserId) {
-        trashArray.push(checkQuizzes);
-      }
-    }
-  }
-  return { quizzes: trashArray };
+
+  return { quizzes: quizzesArray };
 }
 
 export { adminTrashQuizListV2 };

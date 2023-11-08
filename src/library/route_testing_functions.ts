@@ -319,7 +319,6 @@ export const requestAdminQuizListV2 = (
     headers: { token },
     qs: { token },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -476,9 +475,9 @@ export const requestAdminTrashQuizRestoreV2 = (
   quizId: number
 ): requestAdminTrashQuizRestoreReturn => {
   const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
+    headers: { token },
     json: { token, quizId },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -710,7 +709,6 @@ export const requestAdminTrashQuizEmptyV2 = (
     headers: { token },
     qs: { quizIds: quizids, token: token },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -740,7 +738,7 @@ export const requestAdminTrashQuizListV2 = (
     headers: { token },
     qs: { token },
   });
-
+  console.log(res.body.toString());
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -788,7 +786,6 @@ export function requestTransferQuestionV2(
       json: { token, userEmail },
     }
   );
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
