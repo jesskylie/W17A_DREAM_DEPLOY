@@ -78,7 +78,7 @@ interface ResultForEachQuestion {
   percentCorrect: number
 }
 
-interface Player {
+export interface Player {
   playerId: number;
   name: string;
 }
