@@ -1,6 +1,14 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import { CONVERT_MSECS_TO_SECS, RANDOM_COLOURS_ARRAY } from './constants';
+import request from 'sync-request-curl';
+import httpError from 'http-errors';
+
+import {
+  CONVERT_MSECS_TO_SECS,
+  RANDOM_COLOURS_ARRAY,
+  RESPONSE_OK_200,
+  RESPONSE_ERROR_400,
+} from './constants';
 
 // import libraries
 // import fs from 'fs';
@@ -287,3 +295,50 @@ function isQuizInEndState(data: DataStore): boolean {
   }
   return false;
 }
+
+/**
+ * Function to check the validity of a thumbnailUrl
+ *
+ * @param {string} thumbnailUrl - the string of the url to be checked
+ * ...
+ *
+ * @returns {{void}} - nothing
+ * throws an error if an error is detected
+ * ...
+ * called by:
+ *
+ * isThumbnailUrlValid(thumbnailUrlString)
+ *
+ */
+
+export const isThumbnailUrlValid = (thumbnailUrl: string): void => {
+  // Error Check 1: The thumbnailUrl is an empty string
+
+  if (thumbnailUrl.length === 0) {
+    throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
+  }
+
+  // Error Check 2: The thumbnailUrl does not return to a valid file
+
+  const response = request('GET', thumbnailUrl);
+
+  const testStatusCode = response.statusCode;
+
+  if (testStatusCode !== RESPONSE_OK_200) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The thumbnailUrl does not return to a valid file'
+    );
+  }
+
+  // Error Check 3: The thumbnailUrl, when fetched, is not a JPG or PNG file type
+
+  const contentType = response.headers['content-type'];
+
+  if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
+    );
+  }
+};

@@ -1475,7 +1475,54 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
   });
 });
 
-describe.only('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - EXPECT ERROR CODE 400', () => {
+describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - EXPECT ERROR CODE 400', () => {
+  test('The thumbnailUrl is valid - EXPECT NORMAL RESPONSE', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    // check quizId was returned
+
+    const invalidQuestionNoThumbnailUrl = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    const testResponse = requestCreateQuestionV2(
+      token,
+      invalidQuestionNoThumbnailUrl,
+      quizId
+    ) as requestCreateQuestionReturn;
+
+    expect(testResponse).toStrictEqual({
+      questionId: expect.any(Number),
+    });
+  });
+
   test('The thumbnailUrl is an empty string - EXPECT ERROR CODE 400', () => {
     requestClear();
     const response = requestAdminRegister(

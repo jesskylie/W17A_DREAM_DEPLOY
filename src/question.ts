@@ -1,6 +1,7 @@
-import request from 'sync-request-curl';
 import httpError from 'http-errors';
 import { DataStore } from './dataStore';
+
+import { isThumbnailUrlValid } from './library/functions';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -1399,35 +1400,7 @@ export const createQuizQuestionV2 = (
 
   // thumbnailUrl ERRORS - START
 
-  // Step 3ja: The thumbnailUrl is an empty string
-
-  if (question.thumbnailUrl.length === 0) {
-    throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
-  }
-
-  // Step 3jb: The thumbnailUrl does not return to a valid file
-
-  const response = request('GET', question.thumbnailUrl);
-
-  if (!response) {
-    throw httpError(
-      RESPONSE_ERROR_400,
-      'The thumbnailUrl does not return to a valid file'
-    );
-  }
-
-  // Step 3jc: The thumbnailUrl, when fetched, is not a JPG or PNG file type
-
-  const contentType = response.headers['content-type'];
-
-  console.log('contentType ->', contentType);
-
-  if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
-    throw httpError(
-      RESPONSE_ERROR_400,
-      'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
-    );
-  }
+  isThumbnailUrlValid(question.thumbnailUrl) as void;
 
   // thumbnailUrl ERRORS - END
 
