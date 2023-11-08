@@ -22,4 +22,4 @@ export const MIN_PASSWORD_LENGTH = 8;
 export const ONE_MILLION = 1000000;
 
 export const THUMBNAIL_URL_PLACEHOLDER =
-  'http://google.com/some/image/path.jpg';
+  'https://www.diggers.com.au/cdn/shop/products/sunflower-evening-sun-seed-s787_35427e60-917a-47e4-a0c0-3303b7e64ce2_1200x.jpg';

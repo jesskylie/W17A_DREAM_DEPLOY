@@ -1,3 +1,14 @@
+/*
+###########################################################################################
+ROUTES TESTED IN THIS FILE
+POST /v2/admin/auth/logout -> adminAuthLogoutV2 -> requestAdminLogoutV2
+GET /v2/admin/user/details -> adminUserDetailsV2 -> requestGetAdminUserDetailV2
+PUT /v2/admin/user/details -> adminUserDetailUpdateV2 -> requestAdminUserDetailUpdateV2
+PUT /v2/admin/user/password -> updatePasswordV2 -> requestUpdatePasswordV2
+POST /v2/admin/quiz/:quizId/question -> createQuizQuestionV2 -> requestCreateQuestionV2
+###########################################################################################
+*/
+
 import HTTPError from 'http-errors';
 import {
   requestClear,
@@ -1462,8 +1473,8 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
   });
 });
 
-describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - EXPECT ERROR CODE 400', () => {
-  test('The thumbnailUrl is an empty string - EXPECT ERROR CODE 400', () => {
+describe.only('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - EXPECT ERROR CODE 400', () => {
+  test.only('The thumbnailUrl is an empty string - EXPECT ERROR CODE 400', () => {
     requestClear();
     const response = requestAdminRegister(
       emailBase,
@@ -1503,6 +1514,85 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - E
       requestCreateQuestionV2(token, invalidQuestionNoThumbnailUrl, quizId)
     ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
+  /*
+  test('The thumbnailUrl does not return to a valid file - EXPECT ERROR CODE 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const invalidQuestionNoThumbnailUrl = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, invalidQuestionNoThumbnailUrl, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('The thumbnailUrl, when fetched, is not a JPG or PNg file type - EXPECT ERROR CODE 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const invalidQuestionNoThumbnailUrl = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, invalidQuestionNoThumbnailUrl, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+  */
 });
 
 // Test suite for POST /v2/admin/quiz/:quizId/question - END
