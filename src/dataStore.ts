@@ -71,6 +71,33 @@ Example usage
 
 // TypeScript interfaces for Iteration 2 - START
 
+interface ResultForEachQuestion {
+  questionId: number,
+  playersCorrectList: string[],
+  averageAnswerTime : number,
+  percentCorrect: number
+}
+
+interface Player {
+  playerId: number;
+  name: string;
+}
+
+interface session {
+  sessionIds: number;
+  state: State;
+  autoStartNum: number;
+  players: Player[];
+  result: ResultForEachQuestion[];
+  atQuestion: number;
+  numQuestions: number;
+}
+
+interface QuizzesCopy {
+  sessions: session[];
+  metadata: Quizzes;
+}
+
 export interface Users {
   authUserId: number;
   nameFirst: string;
@@ -126,19 +153,20 @@ export interface Quizzes {
   numQuestions: number;
   questions: Question[];
   duration: number;
-  state: State;
 }
 
 export interface DataStore {
   users: Users[];
   quizzes: Quizzes[];
   trash: Quizzes[];
+  quizzesCopy: QuizzesCopy[];
 }
 
 export let data: DataStore = {
   users: [],
   quizzes: [],
   trash: [],
+  quizzesCopy: [],
 };
 
 // Use get() to access the data

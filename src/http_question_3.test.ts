@@ -298,8 +298,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
         ],
       } as QuestionBody;
       const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      if ('questionId' in question) {
+        const questionId = question.questionId as number;
         // question string is less than 5 characters and/or greater than 50 characters
         const shortLength = {
           question: 'W?',

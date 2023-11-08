@@ -86,7 +86,6 @@ export function adminQuizCreateV2(
     questions: [],
     numQuestions: 0,
     duration: 0,
-    state: State.LOBBY,
   });
 
   // Add quizId to quizId[] array in data.users
