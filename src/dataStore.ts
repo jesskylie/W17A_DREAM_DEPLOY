@@ -161,6 +161,7 @@ export interface Quizzes {
   numQuestions: number;
   questions: Question[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 

@@ -37,8 +37,8 @@ export const viewAllSession = (token: string, quizId: number) => {
 
 export const startNewSession = (quizId: number, token: string, autoStartNum: number) => {
   let data = retrieveDataFromFile();
-  console.log(data.quizzesCopy); // undefined
-  console.log(data.trash); // []
+  console.log('This is data.quizzescopy:', data.quizzesCopy); // undefined
+  
   
   
   const authUserId = getAuthUserIdUsingToken(data, token);
@@ -94,7 +94,8 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
     userId: [],
     numQuestions: 0,
     questions: [],
-    duration: 0
+    duration: 0,
+    thumbnailUrl: '',
   };
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
@@ -106,6 +107,7 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
       copyQuiz.timeCreated = quiz.timeCreated;
       copyQuiz.timeLastEdited = quiz.timeLastEdited;
       copyQuiz.userId = quiz.userId;
+      copyQuiz.thumbnailUrl = quiz.thumbnailUrl;
     }
   }
   // randomly generates sessionId number
@@ -132,8 +134,11 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
     session: session,
     metadata: copyQuiz,
   }
+  console.log('This is the quiz to copy:', copyQuiz);
+  console.log('This is quizObject:', quizCopyObject);
   data.quizzesCopy.push(quizCopyObject); //unable to push since data.quizzesCopy is undefined
   saveDataInFile(data);
+  console.log(data.quizzesCopy);
   return { sessionId: sessionId };
 }
 
