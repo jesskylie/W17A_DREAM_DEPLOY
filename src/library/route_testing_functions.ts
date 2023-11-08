@@ -416,7 +416,7 @@ export const requestAdminTrashQuizRestoreV2 = (
   token: string,
   quizId: number
 ): requestAdminTrashQuizRestoreReturn => {
-  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizId}/restore`, {
+  const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
     json: { token, quizId },
   });
   const bodyString = JSON.parse(res.body.toString());

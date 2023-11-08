@@ -85,7 +85,7 @@ export function retrieveDataFromFile(): DataStore {
   let data: DataStore;
 
   if (!dataStoreObj.result) {
-    data = { users: [], quizzes: [], trash: [] };
+    data = { users: [], quizzes: [], trash: [], quizzesCopy: [] };
   } else {
     data = dataStoreObj.data as DataStore;
   }
@@ -280,12 +280,7 @@ export function getState(): Set<State> {
 
 // checks if quiz is in end state
 function isQuizInEndState(data: DataStore): boolean {
-  for (const quiz of data.quizzes) {
-    if (quiz.state === State.END) {
-      return true;
-    }
-  }
-  return false;
+  return true;
 }
 
 

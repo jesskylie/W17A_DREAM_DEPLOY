@@ -541,6 +541,8 @@ export { adminQuizNameUpdate };
  * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
  * @returns {} - return nothing
  */
+//***************************************************************
+//*************************************************************** 
 function adminQuizTransfer(
   token: string,
   userEmail: string,
@@ -724,7 +726,180 @@ function adminQuizTransfer(
   return {};
 }
 export { adminQuizTransfer };
+//*************************************************************** 
+function adminQuizTransferV2(
+  token: string,
+  userEmail: string,
+  quizId: number
+): Record<string, never> | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
 
+  // Step 1 - check for errors - START
+
+  // Step 1a: Check for 401 errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is empty or invalid (does not refer to valid logged in user session');
+  }
+
+  // Step 1a: Check for 401 errors - END
+
+  // Step 1b: Check for 403 errors - START
+  // Token is empty or invalid (does not refer to valid logged in user session)
+  // Need:
+  // a. authUserId
+  // b. quizId
+  // Then:
+  // x. iterate over data.users
+  // y. find user array that corresponds with authUserId
+  // z. check in that user's quizid array to test whether quizId is included
+
+  // x
+
+  // get authUserId from Token
+  const authUserIdObj = getAuthUserIdUsingToken(data, token) as AuthUserId;
+  const authUserIdTransferor = authUserIdObj.authUserId;
+  const userArr = data.users;
+
+  let userOwnsQuizBool = false;
+
+  for (const user of userArr) {
+    if (
+      user.authUserId === authUserIdTransferor &&
+      user.quizId.includes(quizId)
+    ) {
+      userOwnsQuizBool = true;
+    }
+  }
+
+  if (!userOwnsQuizBool) {
+    throw httpError(403, 'Valid token is provided, but user is not an owner of this quiz');
+  }
+
+  // Step 1b: Check for 403 errors - END
+
+  // Check for 400 errors - START
+
+  // Step 1c: Check for userEmail is not a real user - START
+  // includes whether email is valid
+
+  if (!isEmail(userEmail) || !isUserEmailRealUser(data, userEmail)) {
+      throw httpError(400, 'userEmail is not a real user');
+  }
+
+  // Step 1c: Check for userEmail is not a real user - START
+
+  // Step 1d: Check userEmail is the current logged in user - START
+  // includes whether email is valid
+
+  if (isUserEmailIsCurrentLoggedInUser(data, token, userEmail)) {
+    throw httpError(400, 'userEmail is the current logged in user');
+  }
+
+  // Step 1d: Check userEmail is the current logged in user - END
+
+  // Step 1e: Quiz ID refers to a quiz that has a name that is already used by the target user - START
+
+  // step 1: get name of quiz from quizId
+  // step 2: get array of all quiz names of transferee via userEmail
+  // step 3: confirm authUserId of transferee via userEmail: new function
+  // step 4: iterate over quiz array and make array of all quiz names where quizzes.userId includes authUserId of transferee
+  // step 5: check if name of quiz being transferred is in this array. If so, then ERROR, if not, then OK
+
+  // step 1: get name of quiz being transferred
+  const quizArr = data.quizzes;
+  let transferQuizName: string;
+  for (const quiz of quizArr) {
+    if (quiz.quizId === quizId) {
+      transferQuizName = quiz.name;
+    }
+  }
+
+  // step 2 & 3: get authUserId of transferee via email
+  let transfereeAuthUserId: number;
+  for (const user of userArr) {
+    if (user.email === userEmail) {
+      transfereeAuthUserId = user.authUserId;
+    }
+  }
+
+  // step 4: make array of all quiz names where quizzes.userId includes authUserId of transferee
+
+  const quizNamesArray: string[] = [];
+
+  for (const quiz of quizArr) {
+    if (quiz.userId.includes(transfereeAuthUserId)) {
+      quizNamesArray.push(quiz.name);
+    }
+  }
+
+  if (quizNamesArray.includes(transferQuizName)) {
+    throw httpError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+  }
+
+  // Step 1e: Quiz ID refers to a quiz that has a name that is already used by the target user - END
+
+  // Check for 400 errors - END
+
+  // Step 1 - check for errors - END
+
+  // All errors have been dealt with
+  // now mutate the dataStore
+  // by transferring the quiz to the transferee
+
+  for (const quiz of quizArr) {
+    if (quiz.quizId === quizId) {
+      // get index of element to be replaced
+      const indexToReplace = quiz.userId.indexOf(authUserIdTransferor);
+
+      // Ensure element can be found in array
+      if (indexToReplace !== -1) {
+        // Replace old element with new element
+        quiz.userId.splice(indexToReplace, 1, transfereeAuthUserId);
+      }
+      // update timeLastEdited
+      quiz.timeLastEdited = createCurrentTimeStamp();
+    }
+  }
+
+  // also mutate the users array
+  // transfer the quizId from the transferor to transferee
+  // in users.quizId
+
+  // Remove quizId from users.quizId of transferor
+
+  for (const user of userArr) {
+    if (user.authUserId === authUserIdTransferor) {
+      // remove quizId from transferor's quizId array
+      const index = user.quizId.indexOf(quizId);
+      if (index !== -1) {
+        user.quizId.splice(index, 1);
+      }
+    }
+  }
+
+  // Add quizId to users.quizId of transferee
+
+  for (const user of userArr) {
+    if (user.authUserId === transfereeAuthUserId) {
+      user.quizId.push(quizId);
+    }
+  }
+  
+  const state = getState();
+  if (!state.has(State.END)) {
+    throw httpError(400, 'All sessions for this quiz must be in END State');
+  }
+
+  saveDataInFile(data);
+  return {};
+}
+export { adminQuizTransferV2 };
+//*************************************************************** 
+//*************************************************************** 
 // TO HERE - END
 
 /**
@@ -736,6 +911,8 @@ export { adminQuizTransfer };
  * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
  * @returns {{quizzes: array}} - return all quizzes that contain the user's authUserId
  */
+//***************************************************************
+//***************************************************************
 function adminQuizList(token: string): QuizListReturn | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
   const quizzesList = [];
@@ -760,7 +937,33 @@ function adminQuizList(token: string): QuizListReturn | ErrorObjectWithCode {
 }
 
 export { adminQuizList };
+//***************************************************************
+function adminQuizListV2(token: string): QuizListReturn | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+  const quizzesList = [];
+  const isTokenValidTest = isTokenValid(data, token);
+  const authUserId = getAuthUserIdUsingToken(data, token);
 
+  if (!token) {
+    throw httpError(401, 'Token is empty.');
+  }
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is invalid.');
+  }
+  for (const quiz of data.quizzes) {
+    if (quiz.userId.includes(authUserId.authUserId)) {
+      quizzesList.push({
+        quizId: quiz.quizId,
+        name: quiz.name,
+      });
+    }
+  }
+  return { quizzes: quizzesList };
+}
+
+export { adminQuizListV2 };
+//***************************************************************
+//***************************************************************
 /**
  * Given a particular quiz, permanently remove the quiz.
  *
@@ -834,6 +1037,8 @@ export { adminQuizRemove };
  * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
  * @returns {} - return nothing
  */
+//*************************************************************** 
+//*************************************************************** 
 function adminTrashQuizList(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
@@ -865,7 +1070,40 @@ function adminTrashQuizList(
 }
 
 export { adminTrashQuizList };
+//*************************************************************** 
+function adminTrashQuizListV2(
+  token: string
+): QuizListReturn | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
 
+  const isTokenValidTest = isTokenValid(data, token);
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  if (!token) {
+    throw httpError(401, 'Token is empty');
+  }
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is invalid');
+  }
+  const trashArray = [];
+  const quizIdArray = [];
+  for (const checkId of data.users) {
+    if (checkId.authUserId === authUserId.authUserId) {
+      quizIdArray.push(...checkId.quizId);
+    }
+  }
+  for (const checkQuizzes of data.trash) {
+    for (const checkUserId of checkQuizzes.userId) {
+      if (checkUserId === authUserId.authUserId) {
+        trashArray.push(checkQuizzes);
+      }
+    }
+  }
+  return { quizzes: trashArray };
+}
+
+export { adminTrashQuizListV2 };
+//*************************************************************** 
+//*************************************************************** 
 /**
  * Restore the quizzes in trash with the provided quizId
  *
@@ -876,6 +1114,8 @@ export { adminTrashQuizList };
  * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
  * @returns {} - return nothing
  */
+//*************************************************************** 
+//*************************************************************** 
 function adminTrashQuizRestore(
   token: string,
   quizId: number
@@ -940,7 +1180,67 @@ function adminTrashQuizRestore(
 }
 
 export { adminTrashQuizRestore };
+//*************************************************************** 
+function adminTrashQuizRestoreV2(
+  token: string,
+  quizId: number
+): Record<string, never> | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isTokenValidTest = isTokenValid(data, token);
+  if (!token) {
+    throw httpError(401, 'Token is empty');
+  }
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is invalid');
+  }
+  if (!Number.isInteger(quizId) || quizId < 0) {
+    throw httpError(400, 'QuizId is invalid');
+  }
+  if (!isQuizIdInTrash(data, quizId)) {
+    if (!isQuizIdValid(data, quizId)) {
+      throw httpError(400, 'QuizId is not valid');
+    }
+    if (!isAuthUserIdMatchQuizId(data, authUserId.authUserId, quizId)) {
+      throw httpError(403, 'QuizId does not match authUserId');
+    }
+    throw httpError(400, 'QuizId is not in trash');
+  }
+  if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {
+    throw httpError(403, 'QuizId does not match authUserId');
+  }
 
+  const newdata = data;
+  const userToUpdata = data.users.find(
+    (user) => user.authUserId === authUserId.authUserId
+  );
+  const quizToRestore = data.trash.filter((quiz) => quiz.quizId === quizId);
+  const isQuizNameValidTest = isQuizNameValid(
+    data,
+    quizToRestore[0].name,
+    authUserId.authUserId
+  );
+  if (!isQuizNameValidTest.result) {
+    throw httpError(400, isQuizNameValidTest.error);
+  }
+  quizToRestore[0].timeLastEdited = Math.floor(
+    Date.now() / CONVERT_MSECS_TO_SECS
+  );
+  newdata.trash = newdata.trash.filter((quiz) => quiz.quizId !== quizId);
+  userToUpdata.quizId.push(quizId);
+  for (let check of newdata.users) {
+    if (check.authUserId === authUserId.authUserId) {
+      check = userToUpdata;
+    }
+  }
+  newdata.quizzes.push(quizToRestore[0]);
+  saveDataInFile(newdata);
+  return {};
+}
+
+export { adminTrashQuizRestoreV2 };
+//*************************************************************** 
+//*************************************************************** 
 /**
  * Delete the quizzes in trash with the provided quizId array
  *
@@ -951,6 +1251,57 @@ export { adminTrashQuizRestore };
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {} - return nothing
  */
+//***************************************************************
+//*************************************************************** 
+function adminTrashQuizEmptyV2(
+  token: string,
+  quizIds: number[]
+): Record<string, never> | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isTokenValidTest = isTokenValid(data, token);
+  if (!token) {
+    throw httpError(401, 'Token is empty');
+  }
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is invalid');
+  }
+  for (const quizId of quizIds) {
+    if (!Number.isInteger(quizId) || quizId < 0) {
+      throw httpError(400, 'QuizId is invalid');
+    }
+    if (!isQuizIdInTrash(data, quizId)) {
+      if (!isQuizIdValid(data, quizId)) {
+        throw httpError(400, 'QuizId is invalid');
+      }
+      if (!isAuthUserIdMatchQuizId(data, authUserId.authUserId, quizId)) {
+        throw httpError(403, 'QuizId does not match authUserId');
+      }
+      throw httpError(400, 'QuizId is not in trash');
+    }
+    if (!isAuthUserIdMatchTrashQuizId(data, authUserId.authUserId, quizId)) {
+      throw httpError(403, 'QuizId does not match authUserId');
+    }
+  }
+  const newdata = data;
+  for (const quizId of quizIds) {
+    newdata.trash = data.trash.filter((quiz) => quiz.quizId === quizId);
+  }
+  if (quizIds.length === 1 && quizIds[0] === newdata.trash[0].quizId) {
+    newdata.trash = [];
+  }
+  // for (const checkQuiz of newdata.trash) {
+  //   const indexToRemove = quizIds.indexOf(checkQuiz.quizId);
+  //   if (indexToRemove !== -1) {
+  //     newdata.trash.splice(indexToRemove, 1);
+  //   }
+  // }
+  saveDataInFile(newdata);
+  return {};
+}
+
+export { adminTrashQuizEmptyV2 };
+//*************************************************************** 
 function adminTrashQuizEmpty(
   token: string,
   quizIds: number[]
@@ -1005,7 +1356,8 @@ function adminTrashQuizEmpty(
 }
 
 export { adminTrashQuizEmpty };
-
+//*************************************************************** 
+//*************************************************************** 
 // NEW FUNCTIONS FOR ITERATION 2 - END
 
 // HELPER FUNCTIONS - START ------------------------------------------------------------------------
