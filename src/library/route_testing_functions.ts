@@ -76,10 +76,14 @@ export function requestAdminQuizDescriptionUpdateV2(
   quizid: number,
   description: string
 ): RequestAdminQuizDescriptionUpdateReturn {
-  const res = request('PUT', SERVER_URL + `/v2/admin/quiz/${quizid}/description`, {
-    headers: { token },
-    json: { quizid, description },
-  });
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v2/admin/quiz/${quizid}/description`,
+    {
+      headers: { token },
+      json: { quizid, description },
+    }
+  );
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -277,7 +281,7 @@ export const requestAdminQuizListV2 = (
     headers: { token },
     qs: { token },
   });
-  const bodyString = JSON.parse(res.body.toString());
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -436,7 +440,7 @@ export const requestAdminTrashQuizRestoreV2 = (
   const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
     json: { token, quizId },
   });
-  const bodyString = JSON.parse(res.body.toString());
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -668,7 +672,7 @@ export const requestAdminTrashQuizEmptyV2 = (
     headers: { token },
     qs: { quizIds: quizids, token: token },
   });
-  const bodyString = JSON.parse(res.body.toString());
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -698,7 +702,7 @@ export const requestAdminTrashQuizListV2 = (
     headers: { token },
     qs: { token },
   });
-  const bodyString = JSON.parse(res.body.toString());
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -746,8 +750,7 @@ export function requestTransferQuestionV2(
       json: { token, userEmail },
     }
   );
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -759,3 +762,30 @@ export function requestTransferQuestionV2(
   }
 }
 //* *************************************************************
+
+// PUT /v1/admin/quiz/{quizid}/thumbnail Update the quiz thumbnail
+export const requestAdminUpdateQuizThumbnail = (
+  quizid: number,
+  token: string,
+  imgUrl: string
+): Record<string, never> => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/admin/quiz/${quizid}/thumbnail`,
+    {
+      headers: { token },
+      json: { imgUrl: imgUrl },
+    }
+  );
+
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+};

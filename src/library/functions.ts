@@ -1,6 +1,14 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import { CONVERT_MSECS_TO_SECS, RANDOM_COLOURS_ARRAY } from './constants';
+import request from 'sync-request-curl';
+import httpError from 'http-errors';
+
+import {
+  CONVERT_MSECS_TO_SECS,
+  RANDOM_COLOURS_ARRAY,
+  RESPONSE_OK_200,
+  RESPONSE_ERROR_400,
+} from './constants';
 
 // import libraries
 // import fs from 'fs';
@@ -271,11 +279,11 @@ export function returnRandomColour(): string {
 // }
 
 export function getState(data: DataStore, sessionId: number): State {
- for (const check of data.quizzesCopy) {
-  if (check.session.sessionId === sessionId) {
-    return check.session.state;
+  for (const check of data.quizzesCopy) {
+    if (check.session.sessionId === sessionId) {
+      return check.session.state;
+    }
   }
- }
 }
 
 // checks if quiz is in end state
@@ -313,14 +321,22 @@ export function isActionValid(state: State, action: Action) {
     }
   }
   if (state === State.QUESTION_CLOSE) {
-    if (action === Action.END || action === Action.GO_TO_ANSWER || action === Action.GO_TO_FINAL_RESULTS) {
+    if (
+      action === Action.END ||
+      action === Action.GO_TO_ANSWER ||
+      action === Action.GO_TO_FINAL_RESULTS
+    ) {
       return true;
     } else {
       return false;
     }
   }
   if (state === State.ANSWER_SHOW) {
-    if (action === Action.END || action === Action.NEXT_QUESTION || action === Action.GO_TO_FINAL_RESULTS) {
+    if (
+      action === Action.END ||
+      action === Action.NEXT_QUESTION ||
+      action === Action.GO_TO_FINAL_RESULTS
+    ) {
       return true;
     } else {
       return false;
@@ -335,5 +351,52 @@ export function isActionValid(state: State, action: Action) {
   }
   if (state === State.END) {
     return false;
-  } 
+  }
 }
+
+/**
+ * Function to check the validity of a thumbnailUrl
+ *
+ * @param {string} thumbnailUrl - the string of the url to be checked
+ * ...
+ *
+ * @returns {{void}} - nothing
+ * throws an error if an error is detected
+ * ...
+ * called by:
+ *
+ * isThumbnailUrlValid(thumbnailUrlString)
+ *
+ */
+
+export const isThumbnailUrlValid = (thumbnailUrl: string): void => {
+  // Error Check 1: The thumbnailUrl is an empty string
+
+  if (thumbnailUrl.length === 0) {
+    throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
+  }
+
+  // Error Check 2: The thumbnailUrl does not return to a valid file
+
+  const response = request('GET', thumbnailUrl);
+
+  const testStatusCode = response.statusCode;
+
+  if (testStatusCode !== RESPONSE_OK_200) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The thumbnailUrl does not return to a valid file'
+    );
+  }
+
+  // Error Check 3: The thumbnailUrl, when fetched, is not a JPG or PNG file type
+
+  const contentType = response.headers['content-type'];
+
+  if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
+    );
+  }
+};

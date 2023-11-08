@@ -21,5 +21,14 @@ export const MIN_NAME_LENGTH = 2;
 export const MIN_PASSWORD_LENGTH = 8;
 export const ONE_MILLION = 1000000;
 
-export const THUMBNAIL_URL_PLACEHOLDER =
-  'http://google.com/some/image/path.jpg';
+export const VALID_THUMBNAIL_URL =
+  'https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/1-long-haired-miniature-dachshund-lee-feldstein.jpg';
+
+export const INVALID_THUMBNAIL_URL_NOT_A_FILE =
+  'https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/1-long-haired-miniature-dachshund-lee-feldstein';
+
+export const INVALID_THUMBNAIL_URL_NOT_JPG_PNG =
+  'https://pixels.com/featured/1-long-haired-miniature-dachshund-lee-feldstein.html';
+
+export const DEFAULT_VALID_THUMBNAIL_URL =
+  'https://www.gliding.com.au/assets/images/sx/pages/pawnee247133.jpg';

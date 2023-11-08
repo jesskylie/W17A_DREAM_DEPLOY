@@ -1,3 +1,14 @@
+/*
+###########################################################################################
+ROUTES TESTED IN THIS FILE
+POST /v2/admin/auth/logout -> adminAuthLogoutV2 -> requestAdminLogoutV2
+GET /v2/admin/user/details -> adminUserDetailsV2 -> requestGetAdminUserDetailV2
+PUT /v2/admin/user/details -> adminUserDetailUpdateV2 -> requestAdminUserDetailUpdateV2
+PUT /v2/admin/user/password -> updatePasswordV2 -> requestUpdatePasswordV2
+POST /v2/admin/quiz/:quizId/question -> createQuizQuestionV2 -> requestCreateQuestionV2
+###########################################################################################
+*/
+
 import HTTPError from 'http-errors';
 import {
   requestClear,
@@ -10,7 +21,7 @@ import {
   requestUpdatePasswordV2,
   requestAdminQuizCreateV2,
   requestCreateQuestionV2,
-} from './library/route_testing_functions'; 
+} from './library/route_testing_functions';
 import {
   QuestionBody,
   TokenString,
@@ -22,7 +33,9 @@ import {
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
   RESPONSE_OK_200,
-  THUMBNAIL_URL_PLACEHOLDER,
+  VALID_THUMBNAIL_URL,
+  INVALID_THUMBNAIL_URL_NOT_A_FILE,
+  INVALID_THUMBNAIL_URL_NOT_JPG_PNG,
 } from './library/constants';
 
 // --------------------------------------------------
@@ -760,7 +773,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -803,7 +816,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -844,7 +857,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const shortQuizIdQuestion = {
       question: '?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -883,7 +896,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const longQuizIdQuestion = {
       question: '1234567891 1234567891 1234567891 1234567891 1234567891?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -922,7 +935,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const negativeLength = {
       question: 'What color is the sky?',
       duration: -1,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -961,7 +974,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const oneAnswer = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -996,7 +1009,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const tooManyAnswers = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1055,7 +1068,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const question1 = {
       question: 'What color is the sky?',
       duration: 90,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1074,7 +1087,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const question2 = {
       question: 'Who makes the 787 Dreamliner?',
       duration: 100,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1117,7 +1130,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const question1 = {
       question: 'What color is the sky?',
       duration: duration1,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1136,7 +1149,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const question2 = {
       question: 'Who makes the 787 Dreamliner?',
       duration: duration2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1189,7 +1202,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const lessThanOne = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 0,
       answers: [
         {
@@ -1206,7 +1219,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const moreThanTen = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 20,
       answers: [
         {
@@ -1249,7 +1262,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const lessThanOne = {
       question: 'What color is the sky?',
       duration: 3,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1266,7 +1279,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const moreThanThirty = {
       question: 'What color is the sky?',
       duration: 3,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1310,7 +1323,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const duplicateAnswers = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1349,7 +1362,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const incorrectAnswers = {
       question: 'What is 2 + 2?',
       duration: 3,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 4,
       answers: [
         {
@@ -1389,7 +1402,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1440,7 +1453,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1463,6 +1476,53 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
 });
 
 describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - EXPECT ERROR CODE 400', () => {
+  test('The thumbnailUrl is valid - EXPECT NORMAL RESPONSE', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    // check quizId was returned
+
+    const invalidQuestionNoThumbnailUrl = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    const testResponse = requestCreateQuestionV2(
+      token,
+      invalidQuestionNoThumbnailUrl,
+      quizId
+    ) as requestCreateQuestionReturn;
+
+    expect(testResponse).toStrictEqual({
+      questionId: expect.any(Number),
+    });
+  });
+
   test('The thumbnailUrl is an empty string - EXPECT ERROR CODE 400', () => {
     requestClear();
     const response = requestAdminRegister(
@@ -1486,6 +1546,84 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - E
       question: 'What color is the sky?',
       duration: 2,
       thumbnailUrl: '',
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, invalidQuestionNoThumbnailUrl, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('The thumbnailUrl does not return to a valid file - EXPECT ERROR CODE 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const invalidQuestionNoThumbnailUrl = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: INVALID_THUMBNAIL_URL_NOT_A_FILE,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+    } as QuestionBody;
+
+    expect(() =>
+      requestCreateQuestionV2(token, invalidQuestionNoThumbnailUrl, quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('The thumbnailUrl, when fetched, is not a JPG or PNg file type - EXPECT ERROR CODE 400', () => {
+    requestClear();
+    const response = requestAdminRegister(
+      emailBase,
+      passwordBase,
+      'Ann',
+      'Pie'
+    );
+    const token = response.body.token;
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    const invalidQuestionNoThumbnailUrl = {
+      question: 'What color is the sky?',
+      duration: 2,
+      thumbnailUrl: INVALID_THUMBNAIL_URL_NOT_JPG_PNG,
       points: 10,
       answers: [
         {

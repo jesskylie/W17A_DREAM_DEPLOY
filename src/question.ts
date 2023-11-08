@@ -1,5 +1,7 @@
 import httpError from 'http-errors';
 import { DataStore } from './dataStore';
+
+import { isThumbnailUrlValid } from './library/functions';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -27,6 +29,7 @@ import {
 } from './library/interfaces';
 
 import { isAuthUserIdMatchQuizId } from './quiz';
+
 // CONSTANTS - START
 
 const MIN_QUESTION_STRING_LENGTH = 5;
@@ -1227,11 +1230,11 @@ function isValidDuration(
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {{questionId}} - an object of the questionId, a unique number
  */
-export function createQuizQuestionV2(
+export const createQuizQuestionV2 = (
   token: string,
   question: QuestionBody,
   quizId: number
-): QuestionId | ErrorObjectWithCode {
+): QuestionId | ErrorObjectWithCode => {
   const data: DataStore = retrieveDataFromFile();
 
   // Step 1: Check for 401 errors - START
@@ -1397,11 +1400,7 @@ export function createQuizQuestionV2(
 
   // thumbnailUrl ERRORS - START
 
-  // Step 3J: The thumbnailUrl is an empty string
-
-  if (question.thumbnailUrl.length === 0) {
-    throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
-  }
+  isThumbnailUrlValid(question.thumbnailUrl) as void;
 
   // thumbnailUrl ERRORS - END
 
@@ -1498,4 +1497,4 @@ export function createQuizQuestionV2(
   return {
     questionId: questionIdNumber,
   };
-}
+};
