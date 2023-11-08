@@ -1,8 +1,25 @@
 import httpError from 'http-errors';
-import { Action, DataStore, Message, Player, Quizzes, ResultForEachQuestion, State } from "./dataStore";
+import { 
+  Action, 
+  DataStore, 
+  Message, 
+  Player, 
+  Quizzes, 
+  ResultForEachQuestion, 
+  State,
+  QuizzesCopy,
+} from "./dataStore";
 import { ONE_MILLION } from "./library/constants";
 import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from "./library/functions";
 import { MessageBody } from "./library/interfaces";
+import {
+  isQuizIdValid,
+  isAuthUserIdMatchQuizId,
+} from './quiz';
+import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
+
+const MAX_AUTO_START_NUM = 50;
+const MAX_END_STATE_NUM = 10;
 
 export const viewAllSession = (token: string, quizId: number) => {
   return { 
@@ -19,10 +36,67 @@ export const viewAllSession = (token: string, quizId: number) => {
 }
 
 export const startNewSession = (quizId: number, token: string, autoStartNum: number) => {
-  const data = retrieveDataFromFile();
-  let newdata = data;
-  let copyQuiz: Quizzes;
-  for (const quiz of newdata.quizzes) {
+  let data = retrieveDataFromFile();
+  console.log(data.quizzesCopy); // undefined
+  console.log(data.trash); // []
+  
+  
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isTokenValidTest = isTokenValid(data, token);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
+    data,
+    authUserId.authUserId,
+    quizId
+  );
+  // Valid token is provided, but user does not own quiz - error 403
+  if (!isAuthUserIdMatchQuizIdTest && isTokenValidTest && isQuizIdValidTest) {
+    throw httpError(403, 'QuizId does not match authUserId');
+  }
+  //Token is empty or invalid - error 401
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is empty or invalid');
+  }
+  
+  //autoStartNum is a number greater than 50 - 400 error
+  if (autoStartNum > MAX_AUTO_START_NUM) {
+    throw httpError(400, 'autoStartNum can not be greater than 50');
+  }
+  
+  //the quiz does not have any questions in it - 400 error
+  for (const quizzes of data.quizzes) {
+    if (quizzes.quizId === quizId) {
+      const num = quizzes.numQuestions;
+      if (num === 0) {
+        throw httpError(400, 'The quiz does not have any questions in it');
+      }
+    }
+  }
+  
+   // commented out as this function iterates through data.quizzesCopy
+  // maximum of 10 sessions that are not in END state currently exist - error 400
+  // if (countQuizInEndState(data, quizId) > MAX_END_STATE_NUM) {
+  //   throw httpError(400, 'There is a maximum of 10 session in END state');
+  // }
+  
+  // const numSessionsInEndState = countQuizInEndState(data, quizId);
+  // if (numSessionsInEndState > MAX_END_STATE_NUM) {
+  //   throw httpError(400, 'Maximum of 10 sessions in END state currently exist');
+  // }
+  
+  // copy quiz of current quizid
+  let copyQuiz: Quizzes = {
+    quizId: 0,
+    name: '',
+    description: '',
+    timeCreated: 0,
+    timeLastEdited: 0,
+    userId: [],
+    numQuestions: 0,
+    questions: [],
+    duration: 0
+  };
+  for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
       copyQuiz.description = quiz.description;
       copyQuiz.duration = quiz.duration;
@@ -34,10 +108,15 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
       copyQuiz.userId = quiz.userId;
     }
   }
+  // randomly generates sessionId number
   let sessionId = getRandomInt(ONE_MILLION);
-  while (isSessionIdRepeated(data, sessionId)) {
-    sessionId = getRandomInt(ONE_MILLION);
-  }
+  
+  // commented out since it iterates through data.quizzescopy
+  // while (isSessionIdRepeated(data, sessionId)) {
+  //     sessionId = getRandomInt(ONE_MILLION);
+  //   } 
+  
+  // create session interface
   const session = {
     sessionId: sessionId,
     state: State.LOBBY,
@@ -48,12 +127,13 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
     numQuestions: copyQuiz.numQuestions,
     messages: [] as Message[],
   }
+  // pushes quizCopyObject to data.quizzesCopy interface
   const quizCopyObject = {
     session: session,
     metadata: copyQuiz,
   }
-  newdata.quizzesCopy.push(quizCopyObject);
-  saveDataInFile(newdata);
+  data.quizzesCopy.push(quizCopyObject); //unable to push since data.quizzesCopy is undefined
+  saveDataInFile(data);
   return { sessionId: sessionId };
 }
 
@@ -275,4 +355,20 @@ const isSessionIdRepeated = (data: DataStore, sessionId: number): boolean => {
     }
   }
   return false;
+}
+
+// finds all quizzes in QuizzesCopy with specific quizIds
+// returns the count of quizzes in end state
+function countQuizInEndState(data: DataStore, quizId: number) {
+  let count = 0;
+  if (data.quizzesCopy.length > 1) {
+    for (const quizzesCopy of data.quizzesCopy) {
+      if (quizzesCopy.metadata.quizId === quizId) {
+        if (quizzesCopy.session.state === State.END) {
+          count++;
+        }
+      }
+    } 
+  }
+  return count;
 }

@@ -65,6 +65,10 @@ import {
   RESPONSE_ERROR_403,
 } from './library/constants';
 
+import {
+  startNewSession
+} from './session';
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -134,6 +138,14 @@ app.post(
     res.json(duplicateQuestionV2(quizId, questionId, token));
   }
 );
+
+app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  const { autoStartNum } = req.body;
+  res.json(startNewSession(quizId, token, autoStartNum));
+  
+});
 // --------------------------- POST REQUESTS - END ----------------------------
 
 app.post('/v2/admin/quiz/:quizid/restore', (req: Request, res: Response) => {

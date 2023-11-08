@@ -1,5 +1,5 @@
 import HTTPError from 'http-errors';
-import { DataStore, State } from './dataStore';
+import { DataStore } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -7,7 +7,6 @@ import {
   getAuthUserIdUsingToken,
   createCurrentTimeStamp,
   getRandomInt,
-  getState,
   isQuizInEndState,
 } from './library/functions';
 
