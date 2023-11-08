@@ -1,5 +1,4 @@
-import request, { HttpVerb } from 'sync-request-curl';
-
+import request from 'sync-request-curl';
 import httpError from 'http-errors';
 import { DataStore } from './dataStore';
 import {
@@ -1230,11 +1229,11 @@ function isValidDuration(
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {{questionId}} - an object of the questionId, a unique number
  */
-export const createQuizQuestionV2 = async (
+export const createQuizQuestionV2 = (
   token: string,
   question: QuestionBody,
   quizId: number
-): Promise<QuestionId | ErrorObjectWithCode> => {
+): QuestionId | ErrorObjectWithCode => {
   const data: DataStore = retrieveDataFromFile();
 
   // Step 1: Check for 401 errors - START
@@ -1408,33 +1407,27 @@ export const createQuizQuestionV2 = async (
 
   // Step 3jb: The thumbnailUrl does not return to a valid file
 
-  const response = request(HttpVerb.GET, question.thumbnailUrl);
+  const response = request('GET', question.thumbnailUrl);
 
-  // const response = await fetch(question.thumbnailUrl);
-
-  // const contentType = response.headers.get('Content-Type');
-
-  // console.log('contentType ->', contentType);
-
-  // if (!contentType) {
-  //   throw httpError(
-  //     RESPONSE_ERROR_400,
-  //     'The thumbnailUrl does not return to a valid file'
-  //   );
-  // }
+  if (!response) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The thumbnailUrl does not return to a valid file'
+    );
+  }
 
   // Step 3jc: The thumbnailUrl, when fetched, is not a JPG or PNG file type
 
-  // const response2 = await fetch(question.thumbnailUrl);
+  const contentType = response.headers['content-type'];
 
-  // const contentType2 = response2.headers.get('Content-Type');
+  console.log('contentType ->', contentType);
 
-  // if (contentType2 !== 'image/jpeg' && contentType2 !== 'image/png') {
-  //   throw httpError(
-  //     RESPONSE_ERROR_400,
-  //     'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
-  //   );
-  // }
+  if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
+    );
+  }
 
   // thumbnailUrl ERRORS - END
 

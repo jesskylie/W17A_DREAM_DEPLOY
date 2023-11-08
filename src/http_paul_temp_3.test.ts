@@ -33,7 +33,9 @@ import {
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
   RESPONSE_OK_200,
-  THUMBNAIL_URL_PLACEHOLDER,
+  VALID_THUMBNAIL_URL,
+  INVALID_THUMBNAIL_URL_NOT_A_FILE,
+  INVALID_THUMBNAIL_URL_NOT_JPG_PNG,
 } from './library/constants';
 
 // --------------------------------------------------
@@ -771,7 +773,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -814,7 +816,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -855,7 +857,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const shortQuizIdQuestion = {
       question: '?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -894,7 +896,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const longQuizIdQuestion = {
       question: '1234567891 1234567891 1234567891 1234567891 1234567891?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -933,7 +935,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const negativeLength = {
       question: 'What color is the sky?',
       duration: -1,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -972,7 +974,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const oneAnswer = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1007,7 +1009,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const tooManyAnswers = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1066,7 +1068,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const question1 = {
       question: 'What color is the sky?',
       duration: 90,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1085,7 +1087,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const question2 = {
       question: 'Who makes the 787 Dreamliner?',
       duration: 100,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1128,7 +1130,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const question1 = {
       question: 'What color is the sky?',
       duration: duration1,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1147,7 +1149,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const question2 = {
       question: 'Who makes the 787 Dreamliner?',
       duration: duration2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 10,
       answers: [
         {
@@ -1200,7 +1202,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const lessThanOne = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 0,
       answers: [
         {
@@ -1217,7 +1219,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const moreThanTen = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 20,
       answers: [
         {
@@ -1260,7 +1262,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const lessThanOne = {
       question: 'What color is the sky?',
       duration: 3,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1277,7 +1279,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const moreThanThirty = {
       question: 'What color is the sky?',
       duration: 3,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1321,7 +1323,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const duplicateAnswers = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1360,7 +1362,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const incorrectAnswers = {
       question: 'What is 2 + 2?',
       duration: 3,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 4,
       answers: [
         {
@@ -1400,7 +1402,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1451,7 +1453,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: VALID_THUMBNAIL_URL,
       points: 5,
       answers: [
         {
@@ -1474,7 +1476,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
 });
 
 describe.only('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - EXPECT ERROR CODE 400', () => {
-  test.only('The thumbnailUrl is an empty string - EXPECT ERROR CODE 400', () => {
+  test('The thumbnailUrl is an empty string - EXPECT ERROR CODE 400', () => {
     requestClear();
     const response = requestAdminRegister(
       emailBase,
@@ -1514,7 +1516,7 @@ describe.only('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl test
       requestCreateQuestionV2(token, invalidQuestionNoThumbnailUrl, quizId)
     ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
-  /*
+
   test('The thumbnailUrl does not return to a valid file - EXPECT ERROR CODE 400', () => {
     requestClear();
     const response = requestAdminRegister(
@@ -1535,7 +1537,7 @@ describe.only('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl test
     const invalidQuestionNoThumbnailUrl = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: INVALID_THUMBNAIL_URL_NOT_A_FILE,
       points: 10,
       answers: [
         {
@@ -1574,7 +1576,7 @@ describe.only('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl test
     const invalidQuestionNoThumbnailUrl = {
       question: 'What color is the sky?',
       duration: 2,
-      thumbnailUrl: THUMBNAIL_URL_PLACEHOLDER,
+      thumbnailUrl: INVALID_THUMBNAIL_URL_NOT_JPG_PNG,
       points: 10,
       answers: [
         {
@@ -1592,7 +1594,6 @@ describe.only('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl test
       requestCreateQuestionV2(token, invalidQuestionNoThumbnailUrl, quizId)
     ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
-  */
 });
 
 // Test suite for POST /v2/admin/quiz/:quizId/question - END
