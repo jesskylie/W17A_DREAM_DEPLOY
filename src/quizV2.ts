@@ -8,6 +8,7 @@ import {
   createCurrentTimeStamp,
   getRandomInt,
   getState,
+  isQuizInEndState,
 } from './library/functions';
 
 import {
@@ -131,8 +132,7 @@ export function adminQuizRemoveV2(
   }
 
   // All sessions for this quiz must be in end state
-  const state = getState();
-  if (!state.has(State.END)) {
+  if (!isQuizInEndState(data, quizId)) {
     throw HTTPError(400, 'All sessions for this quiz must be in END State');
   }
 

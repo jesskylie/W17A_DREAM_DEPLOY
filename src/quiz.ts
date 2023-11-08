@@ -9,6 +9,7 @@ import {
   createCurrentTimeStamp,
   getRandomInt,
   getState,
+  isQuizInEndState,
 } from './library/functions';
 
 import {
@@ -269,7 +270,6 @@ function adminQuizCreate(
     questions: [],
     numQuestions: 0,
     duration: 0,
-    state: State.LOBBY,
   });
 
   // Add quizId to quizId[] array in data.users
@@ -890,9 +890,8 @@ function adminQuizTransferV2(
       user.quizId.push(quizId);
     }
   }
-  
-  const state = getState();
-  if (!state.has(State.END)) {
+
+  if (!isQuizInEndState(data, quizId)) {
     throw httpError(RESPONSE_ERROR_400, 'All sessions for this quiz must be in END State');
   }
 
