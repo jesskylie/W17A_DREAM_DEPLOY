@@ -121,6 +121,7 @@ export interface Quizzes {
   state: State;
 }
 
+
 export interface DataStore {
   users: Users[];
   quizzes: Quizzes[];
