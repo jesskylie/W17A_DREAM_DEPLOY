@@ -139,3 +139,7 @@ export interface RequestAdminDetailsUpdateServerReturn {
   bodyString: AdminUserDetailUpdateReturn;
   statusCode: number;
 }
+
+export interface MessageBody {
+  messageBody: string;
+}
