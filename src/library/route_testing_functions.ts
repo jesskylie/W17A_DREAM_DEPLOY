@@ -755,7 +755,6 @@ export const requestAdminTrashQuizListV2 = (
     headers: { token },
     qs: { token },
   });
-  console.log(res.body.toString());
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
