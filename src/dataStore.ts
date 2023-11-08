@@ -164,7 +164,6 @@ export interface Quizzes {
   thumbnailUrl: string;
 }
 
-
 export interface DataStore {
   users: Users[];
   quizzes: Quizzes[];

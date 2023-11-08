@@ -54,7 +54,7 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export function requestSessionStart (quizid: number,token: string, autoStartNum: number) {
+export function requestSessionStart (quizid: number, token: string, autoStartNum: number) {
   const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizid}/session/start`, {
     headers: { token },
     json: { quizid, autoStartNum },

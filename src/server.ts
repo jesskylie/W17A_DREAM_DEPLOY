@@ -145,7 +145,6 @@ app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) =
   const quizId = parseInt(req.params.quizid);
   const { autoStartNum } = req.body;
   res.json(startNewSession(quizId, token, autoStartNum));
-  
 });
 // --------------------------- POST REQUESTS - END ----------------------------
 

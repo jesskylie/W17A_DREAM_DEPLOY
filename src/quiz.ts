@@ -1,5 +1,5 @@
 import isEmail from 'validator/lib/isEmail.js';
-import { DataStore, Question, State } from './dataStore';
+import { DataStore, Question } from './dataStore';
 import httpError from 'http-errors';
 import {
   retrieveDataFromFile,
@@ -8,7 +8,6 @@ import {
   getAuthUserIdUsingToken,
   createCurrentTimeStamp,
   getRandomInt,
-  getState,
   isQuizInEndState,
 } from './library/functions';
 
@@ -547,8 +546,8 @@ export { adminQuizNameUpdate };
  * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
  * @returns {} - return nothing
  */
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 function adminQuizTransfer(
   token: string,
   userEmail: string,
@@ -732,7 +731,7 @@ function adminQuizTransfer(
   return {};
 }
 export { adminQuizTransfer };
-//***************************************************************
+//* **************************************************************
 function adminQuizTransferV2(
   token: string,
   userEmail: string,
@@ -918,8 +917,8 @@ function adminQuizTransferV2(
   return {};
 }
 export { adminQuizTransferV2 };
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 // TO HERE - END
 
 /**
@@ -931,8 +930,8 @@ export { adminQuizTransferV2 };
  * @returns {{error: string}, {errorCode: number}} - an error object if an error occurs
  * @returns {{quizzes: array}} - return all quizzes that contain the user's authUserId
  */
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 function adminQuizList(token: string): QuizListReturn | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
   const quizzesList = [];
@@ -957,7 +956,7 @@ function adminQuizList(token: string): QuizListReturn | ErrorObjectWithCode {
 }
 
 export { adminQuizList };
-//***************************************************************
+//* **************************************************************
 function adminQuizListV2(token: string): QuizListReturn | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
   const quizzesList = [];
@@ -982,8 +981,8 @@ function adminQuizListV2(token: string): QuizListReturn | ErrorObjectWithCode {
 }
 
 export { adminQuizListV2 };
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 /**
  * Given a particular quiz, permanently remove the quiz.
  *
@@ -1057,8 +1056,8 @@ export { adminQuizRemove };
  * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
  * @returns {} - return nothing
  */
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 function adminTrashQuizList(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
@@ -1090,7 +1089,7 @@ function adminTrashQuizList(
 }
 
 export { adminTrashQuizList };
-//***************************************************************
+//* **************************************************************
 function adminTrashQuizListV2(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
@@ -1122,8 +1121,8 @@ function adminTrashQuizListV2(
 }
 
 export { adminTrashQuizListV2 };
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 /**
  * Restore the quizzes in trash with the provided quizId
  *
@@ -1134,8 +1133,8 @@ export { adminTrashQuizListV2 };
  * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
  * @returns {} - return nothing
  */
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 function adminTrashQuizRestore(
   token: string,
   quizId: number
@@ -1200,7 +1199,7 @@ function adminTrashQuizRestore(
 }
 
 export { adminTrashQuizRestore };
-//***************************************************************
+//* **************************************************************
 function adminTrashQuizRestoreV2(
   token: string,
   quizId: number
@@ -1259,8 +1258,8 @@ function adminTrashQuizRestoreV2(
 }
 
 export { adminTrashQuizRestoreV2 };
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 /**
  * Delete the quizzes in trash with the provided quizId array
  *
@@ -1271,8 +1270,8 @@ export { adminTrashQuizRestoreV2 };
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {} - return nothing
  */
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 function adminTrashQuizEmptyV2(
   token: string,
   quizIds: number[]
@@ -1321,7 +1320,7 @@ function adminTrashQuizEmptyV2(
 }
 
 export { adminTrashQuizEmptyV2 };
-//***************************************************************
+//* **************************************************************
 function adminTrashQuizEmpty(
   token: string,
   quizIds: number[]
@@ -1376,8 +1375,8 @@ function adminTrashQuizEmpty(
 }
 
 export { adminTrashQuizEmpty };
-//***************************************************************
-//***************************************************************
+//* **************************************************************
+//* **************************************************************
 // NEW FUNCTIONS FOR ITERATION 2 - END
 
 // HELPER FUNCTIONS - START ------------------------------------------------------------------------
