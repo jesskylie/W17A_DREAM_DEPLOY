@@ -108,6 +108,14 @@ export enum State {
   END = 'end',
 }
 
+export enum Action {
+  NEXT_QUESTION = 'next_question',
+  SKIP_COUNTDOWN = 'skip_countdown',
+  GO_TO_ANSWER = 'go_to_answer',
+  GO_TO_FINAL_RESULTS = 'go_to_final_results',
+  END = 'end',
+}
+
 export interface Quizzes {
   quizId: number;
   name: string;

@@ -1403,7 +1403,7 @@ export function createQuizQuestionV2(
     throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
   }
 
-  // thumbnailUrl ERRORS - START
+  // thumbnailUrl ERRORS - END
 
   // Step 3: Check for 400 errors - END
 
