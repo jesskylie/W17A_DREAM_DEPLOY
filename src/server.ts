@@ -33,6 +33,10 @@ import {
   adminTrashQuizEmpty,
   getQuizzesInTrashForLoggedInUser,
   adminQuizTransfer,
+  adminTrashQuizRestoreV2,
+  adminTrashQuizEmptyV2,
+  adminQuizTransferV2,
+  adminTrashQuizListV2
 } from './quiz';
 import {
   adminQuizCreateV2,
@@ -132,6 +136,39 @@ app.post(
 );
 // --------------------------- POST REQUESTS - END ----------------------------
 
+app.post('/v2/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
+  const token = req.body.token;
+  const quizId = parseInt(req.params.quizid);
+  const result = adminTrashQuizRestoreV2(token, quizId);
+  // if ('error' in result) {
+  //   if (result.errorCode === RESPONSE_ERROR_400) {
+  //     return res.status(RESPONSE_ERROR_400).json({ error: result.error });
+  //   } else if (result.errorCode === RESPONSE_ERROR_401) {
+  //     return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+  //   } else if (result.errorCode === RESPONSE_ERROR_403) {
+  //     return res.status(RESPONSE_ERROR_403).json({ error: result.error });
+  //   }
+  // }
+  // res.status(RESPONSE_OK_200).json(result);
+  res.json(result);
+});
+
+app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  const token = req.body.token;
+  const userEmail = req.body.userEmail;
+  const quizId = parseInt(req.params.quizid);
+  const result = adminQuizTransferV2(token, userEmail, quizId);
+  if ('error' in result) {
+    if (result.errorCode === RESPONSE_ERROR_400) {
+      return res.status(RESPONSE_ERROR_400).json({ error: result.error });
+    } else if (result.errorCode === RESPONSE_ERROR_401) {
+      return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+    } else if (result.errorCode === RESPONSE_ERROR_403) {
+      return res.status(RESPONSE_ERROR_403).json({ error: result.error });
+    }
+  }
+  res.status(RESPONSE_OK_200).json(result);
+});
 // --------------------------- GET REQUESTS - START ---------------------------
 
 app.get('/v2/admin/user/details', (req: Request, res: Response) => {
@@ -146,7 +183,20 @@ app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   res.json(adminQuizInfoV2(token, quizId));
 });
 
+app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+
+  const result = adminTrashQuizListV2(token);
+  res.json(result);
+});
+
 // --------------------------- GET REQUESTS - END -----------------------------
+app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+
+  const result = getQuizzesInTrashForLoggedInUser(token);
+  res.json(result);
+});
 
 // --------------------------- PUT REQUESTS - START ---------------------------
 
@@ -171,7 +221,6 @@ app.put(
     const { questionBody, thumbnailUrl } = req.body;
     const quizId = parseInt(req.params.quizId);
     const questionId = parseInt(req.params.questionId);
-
     res.json(updateQuizQuestionV2(quizId, questionId, token, questionBody, thumbnailUrl));
   }
 );
@@ -219,6 +268,13 @@ app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   res.json(adminQuizRemoveV2(token, quizId));
 });
 
+app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
+  const token = req.query.token as string;
+  const quizids = req.query.quizIds as string;
+  const quizIds = JSON.parse(quizids);
+  const result = adminTrashQuizEmptyV2(token, quizIds);
+ res.json(result);
+});
 // --------------------------- DELETE REQUESTS - END --------------------------
 
 // ============================================================================
@@ -363,26 +419,28 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const quizids = req.query.quizIds as string;
   const quizIds = JSON.parse(quizids);
   const result = adminTrashQuizEmpty(token, quizIds);
-  if ('error' in result) {
-    if (result.errorCode === RESPONSE_ERROR_400) {
-      return res.status(RESPONSE_ERROR_400).json({ error: result.error });
-    } else if (result.errorCode === RESPONSE_ERROR_401) {
-      return res.status(RESPONSE_ERROR_401).json({ error: result.error });
-    } else if (result.errorCode === RESPONSE_ERROR_403) {
-      return res.status(RESPONSE_ERROR_403).json({ error: result.error });
-    }
-  }
-  res.status(RESPONSE_OK_200).json(result);
+  // if ('error' in result) {
+  //   if (result.errorCode === RESPONSE_ERROR_400) {
+  //     return res.status(RESPONSE_ERROR_400).json({ error: result.error });
+  //   } else if (result.errorCode === RESPONSE_ERROR_401) {
+  //     return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+  //   } else if (result.errorCode === RESPONSE_ERROR_403) {
+  //     return res.status(RESPONSE_ERROR_403).json({ error: result.error });
+  //   }
+  // }
+  // res.status(RESPONSE_OK_200).json(result);
+  res.json(result);
 });
 
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   const token = req.query.token as string;
 
   const result = getQuizzesInTrashForLoggedInUser(token);
-  if ('error' in result) {
-    return res.status(RESPONSE_ERROR_401).json({ error: result.error });
-  }
-  res.status(RESPONSE_OK_200).json(result);
+  // if ('error' in result) {
+  //   return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+  // }
+  // res.status(RESPONSE_OK_200).json(result);
+  res.json(result);
 });
 
 app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
@@ -479,16 +537,17 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const token = req.body.token;
   const quizId = parseInt(req.params.quizid);
   const result = adminTrashQuizRestore(token, quizId);
-  if ('error' in result) {
-    if (result.errorCode === RESPONSE_ERROR_400) {
-      return res.status(RESPONSE_ERROR_400).json({ error: result.error });
-    } else if (result.errorCode === RESPONSE_ERROR_401) {
-      return res.status(RESPONSE_ERROR_401).json({ error: result.error });
-    } else if (result.errorCode === RESPONSE_ERROR_403) {
-      return res.status(RESPONSE_ERROR_403).json({ error: result.error });
-    }
-  }
-  res.status(RESPONSE_OK_200).json(result);
+  // if ('error' in result) {
+  //   if (result.errorCode === RESPONSE_ERROR_400) {
+  //     return res.status(RESPONSE_ERROR_400).json({ error: result.error });
+  //   } else if (result.errorCode === RESPONSE_ERROR_401) {
+  //     return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+  //   } else if (result.errorCode === RESPONSE_ERROR_403) {
+  //     return res.status(RESPONSE_ERROR_403).json({ error: result.error });
+  //   }
+  // }
+  // res.status(RESPONSE_OK_200).json(result);
+  res.json(result);
 });
 
 app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
@@ -496,16 +555,17 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const userEmail = req.body.userEmail;
   const quizId = parseInt(req.params.quizid);
   const result = adminQuizTransfer(token, userEmail, quizId);
-  if ('error' in result) {
-    if (result.errorCode === RESPONSE_ERROR_400) {
-      return res.status(RESPONSE_ERROR_400).json({ error: result.error });
-    } else if (result.errorCode === RESPONSE_ERROR_401) {
-      return res.status(RESPONSE_ERROR_401).json({ error: result.error });
-    } else if (result.errorCode === RESPONSE_ERROR_403) {
-      return res.status(RESPONSE_ERROR_403).json({ error: result.error });
-    }
-  }
-  res.status(RESPONSE_OK_200).json(result);
+  res.json(result);
+  // if ('error' in result) {
+  //   if (result.errorCode === RESPONSE_ERROR_400) {
+  //     return res.status(RESPONSE_ERROR_400).json({ error: result.error });
+  //   } else if (result.errorCode === RESPONSE_ERROR_401) {
+  //     return res.status(RESPONSE_ERROR_401).json({ error: result.error });
+  //   } else if (result.errorCode === RESPONSE_ERROR_403) {
+  //     return res.status(RESPONSE_ERROR_403).json({ error: result.error });
+  //   }
+  // }
+  // res.status(RESPONSE_OK_200).json(result);
 });
 
 app.delete(
