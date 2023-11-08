@@ -411,3 +411,117 @@ export function adminQuizThumbnailUrlUpdate(
 
   return {};
 }
+
+/**
+ * Function to update the thumbnail Url for a quiz
+ * @param {number} quizId - the quizId of the quiz to be updated
+ * @param {string} token - the token of the person creating the quiz - must exist / be valid / be unique
+ * @param {{object}} imgUrl - an object of the new image url - must be valid
+ * ...
+ * @returns {error object} - if an error occurs, an error object is thrown for error 400, 401, 403
+ * @returns {{}} - an empty array if ok
+ */
+
+export function adminQuizGetSessionStatus(
+  quizId: number,
+  sessionId: number,
+  token: string
+) {
+  const data: DataStore = retrieveDataFromFile();
+  // const authUserIdObj = getAuthUserIdUsingToken(data, token);
+  // const authUserId = authUserIdObj.authUserId;
+
+  // console.log('data ->', data);
+  // console.log('data.quizzesCopy ->', data.quizzesCopy);
+
+  // Step 1: ERROR 401
+  // test for Token is empty or invalid (does not refer to valid logged in user session) - START
+
+  if (!isTokenValid(data, token)) {
+    throw HTTPError(
+      401,
+      'Token is empty or invalid (does not refer to valid logged in user session)'
+    );
+  }
+
+  // Step 1: ERROR 401 - END
+
+  /*
+  // Step 2: ERROR 403
+  // ################ CANNOT BE IMPLEMENTED UNTIL POST v1/player/join is implemented
+  // test for
+  // Valid token is provided, but user is not authorised to view this session - START
+  const userArr = data.users;
+  let userOwnsQuizBool = false;
+  for (const user of userArr) {
+    if (user.authUserId === authUserId && user.quizId.includes(quizId)) {
+      userOwnsQuizBool = true;
+    }
+  }
+  if (!userOwnsQuizBool) {
+    throw HTTPError(
+      403,
+      'Valid token is provided, but user is not an owner of this quiz'
+    );
+  }
+
+  // Step 1: ERROR 403 - END
+  */
+
+  // Step 3: ERROR 400 - START
+
+  // If any of the following are true:
+  // Session Id does not refer to a valid session within this quiz
+
+  // get the matching quiz object
+
+  const validQuiz = data.quizzesCopy.find(
+    (metadata) => (metadata.metadata.quizId = quizId)
+  );
+
+  if (!validQuiz) {
+    throw HTTPError(
+      400,
+      'Session Id does not refer to a valid session within this quiz'
+    );
+  }
+
+  // once the matching quiz has been found, check that the session id
+  // of that quiz matches the sessionId
+
+  if (validQuiz.session.sessionId !== sessionId) {
+    throw HTTPError(
+      400,
+      'Session Id does not refer to a valid session within this quiz'
+    );
+  }
+
+  // Step 3: ERROR 400 - END
+
+  // NOW THAT ALL ERROR CASES HAVE BEEN DEALT WITH
+  // return session status object
+
+  // get the relevant session
+
+  const validSession = data.quizzesCopy.find(
+    (session) => session.session.sessionId === sessionId
+  );
+
+  const sessionStateObj = validSession.session;
+  const metadataStateObj = validSession.metadata;
+
+  // remove key userId - not part of return object
+
+  const keyToRemove = 'userId';
+
+  delete metadataStateObj[keyToRemove];
+
+  const sessionStateReturnObj = {
+    state: sessionStateObj.state,
+    atQuestion: sessionStateObj.atQuestion,
+    players: ['Hayden'],
+    metadata: metadataStateObj,
+  };
+
+  return sessionStateReturnObj;
+}
