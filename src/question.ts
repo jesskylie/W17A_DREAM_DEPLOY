@@ -54,7 +54,7 @@ export function updateQuizQuestionV2(
   questionId: number,
   token: string,
   question: QuestionBody,
-  thumbnailUrl: string,
+  thumbnailUrl: string
 ): Record<string, never> | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
 
@@ -151,9 +151,8 @@ export function updateQuizQuestionV2(
     throw httpError(400, 'There must be a correct answer');
   }
 
-  // invalid thumbnailUrl provided 
+  // invalid thumbnailUrl provided
   isThumbnailUrlValid(thumbnailUrl);
-  
 
   // update colours of the questions
   const tempAnswerArray = question.answers;
@@ -298,9 +297,9 @@ function deleteQuizQuestionV2(
   }
   if (!isQuizInEndState(data, quizId)) {
     throw httpError(
-      RESPONSE_ERROR_400, 
+      RESPONSE_ERROR_400,
       'All sessions for this quiz must be in END state'
-      );
+    );
   }
 
   const newdata = data;
@@ -1244,7 +1243,7 @@ function isValidDuration(
 export const createQuizQuestionV2 = (
   token: string,
   question: QuestionBody,
-  quizId: number,
+  quizId: number
 ): QuestionId | ErrorObjectWithCode => {
   const data: DataStore = retrieveDataFromFile();
 
