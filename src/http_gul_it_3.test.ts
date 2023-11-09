@@ -54,9 +54,9 @@ export interface CreateQuizQuestionServerReturn {
 
 const emailBase = 'gulemail3@gmail.com';
 const passwordBase = 'password123456789';
-//********************************************************
+//* *******************************************************
 
-//********************************************************
+//* *******************************************************
 function doesQuizExist(
   quizArray: SmallQuizArray[],
   targetQuizId: number
@@ -338,7 +338,7 @@ describe('Testing POST adminQuizTransfer', () => {
     // will error as invalid token used
     const transfereeEmail = user2Email;
     // Trasnferor's token
-    let invalidToken = 'inergogne';
+    const invalidToken = 'inergogne';
 
     expect(() =>
       requestTransferQuestionV2(invalidToken, transfereeEmail, quizId1User2)
@@ -392,7 +392,7 @@ describe('Testing POST adminQuizTransfer', () => {
   });
 });
 
-//********************************************************adminQuizList
+//* *******************************************************adminQuizList
 
 describe('adminQuizList testing', () => {
   test('Status Code 200: valid input', () => {
@@ -447,7 +447,7 @@ describe('adminQuizList testing', () => {
   });
 });
 
-//******************************************************** adminTrashQuizRestore
+//* ******************************************************* adminTrashQuizRestore
 describe('adminTrashQuizRestore testing', () => {
   test('StatusCode 200: Valid input', () => {
     requestClear();
@@ -631,7 +631,7 @@ describe('adminTrashQuizRestore testing', () => {
     ).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
 });
-//******************************************************** adminTrashQuizEmpty
+//* ******************************************************* adminTrashQuizEmpty
 describe('adminTrashQuizEmpty testing', () => {
   test('StatusCode 200: Valid input', () => {
     requestClear();
@@ -782,7 +782,7 @@ describe('adminTrashQuizEmpty testing', () => {
   });
 });
 
-//******************************************************** TrashQuizList
+//* ******************************************************* TrashQuizList
 
 describe('adminTrashQuizList testing', () => {
   test('Status Code 200: valid input', () => {

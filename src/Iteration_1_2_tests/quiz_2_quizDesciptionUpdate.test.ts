@@ -46,7 +46,7 @@ interface QuizId {
   quizId: number;
 }
 
-interface RequestAdminQuizDescriptionUpdateReturn {
+export interface RequestAdminQuizDescriptionUpdateReturn {
   statusCode?: number;
   bodyString: Record<string, never> | ErrorObject;
 }
