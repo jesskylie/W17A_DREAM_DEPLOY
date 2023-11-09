@@ -29,7 +29,7 @@ import {
 } from './library/interfaces';
 
 import { isAuthUserIdMatchQuizId } from './quiz';
-import { get } from 'http';
+
 // CONSTANTS - START
 
 const MIN_QUESTION_STRING_LENGTH = 5;

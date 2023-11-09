@@ -21,6 +21,7 @@ import {
   MAX_DESCRIPTION_LENGTH,
   CONVERT_MSECS_TO_SECS,
   ONE_MILLION,
+  DEFAULT_VALID_THUMBNAIL_URL,
 } from './library/constants';
 
 import { AuthUserId } from './library/interfaces';
@@ -50,6 +51,7 @@ export interface QuizInfoReturn {
   numQuestions: number;
   questions: Question[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 interface QuizInfoInTrashObject {
@@ -126,6 +128,7 @@ function adminQuizInfo(
         numQuestions: check.numQuestions,
         questions: check.questions,
         duration: duration,
+        thumbnailUrl: check.thumbnailUrl,
       };
     }
   }
@@ -270,6 +273,7 @@ function adminQuizCreate(
     questions: [],
     numQuestions: 0,
     duration: 0,
+    thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
   });
 
   // Add quizId to quizId[] array in data.users
@@ -544,7 +548,7 @@ export { adminQuizNameUpdate };
  * @returns {} - return nothing
  */
 //***************************************************************
-//*************************************************************** 
+//***************************************************************
 function adminQuizTransfer(
   token: string,
   userEmail: string,
@@ -728,7 +732,7 @@ function adminQuizTransfer(
   return {};
 }
 export { adminQuizTransfer };
-//*************************************************************** 
+//***************************************************************
 function adminQuizTransferV2(
   token: string,
   userEmail: string,
@@ -744,7 +748,10 @@ function adminQuizTransferV2(
   const isTokenValidTest = isTokenValid(data, token) as boolean;
 
   if (!isTokenValidTest) {
-    throw httpError(RESPONSE_ERROR_401, 'Token is empty or invalid (does not refer to valid logged in user session');
+    throw httpError(
+      RESPONSE_ERROR_401,
+      'Token is empty or invalid (does not refer to valid logged in user session'
+    );
   }
 
   // Step 1a: Check for 401 errors - END
@@ -778,7 +785,10 @@ function adminQuizTransferV2(
   }
 
   if (!userOwnsQuizBool) {
-    throw httpError(RESPONSE_ERROR_403, 'Valid token is provided, but user is not an owner of this quiz');
+    throw httpError(
+      RESPONSE_ERROR_403,
+      'Valid token is provided, but user is not an owner of this quiz'
+    );
   }
 
   // Step 1b: Check for 403 errors - END
@@ -789,7 +799,7 @@ function adminQuizTransferV2(
   // includes whether email is valid
 
   if (!isEmail(userEmail) || !isUserEmailRealUser(data, userEmail)) {
-      throw httpError(RESPONSE_ERROR_400, 'userEmail is not a real user');
+    throw httpError(RESPONSE_ERROR_400, 'userEmail is not a real user');
   }
 
   // Step 1c: Check for userEmail is not a real user - START
@@ -798,7 +808,10 @@ function adminQuizTransferV2(
   // includes whether email is valid
 
   if (isUserEmailIsCurrentLoggedInUser(data, token, userEmail)) {
-    throw httpError(RESPONSE_ERROR_400, 'userEmail is the current logged in user');
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'userEmail is the current logged in user'
+    );
   }
 
   // Step 1d: Check userEmail is the current logged in user - END
@@ -839,7 +852,10 @@ function adminQuizTransferV2(
   }
 
   if (quizNamesArray.includes(transferQuizName)) {
-    throw httpError(RESPONSE_ERROR_400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'Quiz ID refers to a quiz that has a name that is already used by the target user'
+    );
   }
 
   // Step 1e: Quiz ID refers to a quiz that has a name that is already used by the target user - END
@@ -892,15 +908,18 @@ function adminQuizTransferV2(
   }
 
   if (!isQuizInEndState(data, quizId)) {
-    throw httpError(RESPONSE_ERROR_400, 'All sessions for this quiz must be in END State');
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'All sessions for this quiz must be in END State'
+    );
   }
 
   saveDataInFile(data);
   return {};
 }
 export { adminQuizTransferV2 };
-//*************************************************************** 
-//*************************************************************** 
+//***************************************************************
+//***************************************************************
 // TO HERE - END
 
 /**
@@ -1038,8 +1057,8 @@ export { adminQuizRemove };
  * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
  * @returns {} - return nothing
  */
-//*************************************************************** 
-//*************************************************************** 
+//***************************************************************
+//***************************************************************
 function adminTrashQuizList(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
@@ -1071,7 +1090,7 @@ function adminTrashQuizList(
 }
 
 export { adminTrashQuizList };
-//*************************************************************** 
+//***************************************************************
 function adminTrashQuizListV2(
   token: string
 ): QuizListReturn | ErrorObjectWithCode {
@@ -1103,8 +1122,8 @@ function adminTrashQuizListV2(
 }
 
 export { adminTrashQuizListV2 };
-//*************************************************************** 
-//*************************************************************** 
+//***************************************************************
+//***************************************************************
 /**
  * Restore the quizzes in trash with the provided quizId
  *
@@ -1115,8 +1134,8 @@ export { adminTrashQuizListV2 };
  * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
  * @returns {} - return nothing
  */
-//*************************************************************** 
-//*************************************************************** 
+//***************************************************************
+//***************************************************************
 function adminTrashQuizRestore(
   token: string,
   quizId: number
@@ -1181,7 +1200,7 @@ function adminTrashQuizRestore(
 }
 
 export { adminTrashQuizRestore };
-//*************************************************************** 
+//***************************************************************
 function adminTrashQuizRestoreV2(
   token: string,
   quizId: number
@@ -1240,8 +1259,8 @@ function adminTrashQuizRestoreV2(
 }
 
 export { adminTrashQuizRestoreV2 };
-//*************************************************************** 
-//*************************************************************** 
+//***************************************************************
+//***************************************************************
 /**
  * Delete the quizzes in trash with the provided quizId array
  *
@@ -1253,7 +1272,7 @@ export { adminTrashQuizRestoreV2 };
  * @returns {} - return nothing
  */
 //***************************************************************
-//*************************************************************** 
+//***************************************************************
 function adminTrashQuizEmptyV2(
   token: string,
   quizIds: number[]
@@ -1302,7 +1321,7 @@ function adminTrashQuizEmptyV2(
 }
 
 export { adminTrashQuizEmptyV2 };
-//*************************************************************** 
+//***************************************************************
 function adminTrashQuizEmpty(
   token: string,
   quizIds: number[]
@@ -1357,8 +1376,8 @@ function adminTrashQuizEmpty(
 }
 
 export { adminTrashQuizEmpty };
-//*************************************************************** 
-//*************************************************************** 
+//***************************************************************
+//***************************************************************
 // NEW FUNCTIONS FOR ITERATION 2 - END
 
 // HELPER FUNCTIONS - START ------------------------------------------------------------------------

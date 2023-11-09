@@ -6,12 +6,18 @@ import {
   requestCreateQuestion,
   requestDeleteQuizQuestion,
 } from '../library/route_testing_functions';
-import { QuestionBody, QuestionId, QuizId, TokenString } from '../library/interfaces';
+import {
+  QuestionBody,
+  QuestionId,
+  QuizId,
+  TokenString,
+} from '../library/interfaces';
 
 import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
+  DEFAULT_VALID_THUMBNAIL_URL,
 } from '../library/constants';
 
 describe('deleteQuizQuestion testing', () => {
@@ -66,6 +72,7 @@ describe('deleteQuizQuestion testing', () => {
       numQuestions: 0,
       questions: [],
       duration: 0,
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
     });
   });
 

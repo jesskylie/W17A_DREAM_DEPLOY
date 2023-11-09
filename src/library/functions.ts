@@ -279,11 +279,11 @@ export function returnRandomColour(): string {
 // }
 
 export function getState(data: DataStore, sessionId: number): State {
- for (const check of data.quizzesCopy) {
-  if (check.session.sessionId === sessionId) {
-    return check.session.state;
+  for (const check of data.quizzesCopy) {
+    if (check.session.sessionId === sessionId) {
+      return check.session.state;
+    }
   }
- }
 }
 
 // checks if quiz is in end state
@@ -321,14 +321,22 @@ export function isActionValid(state: State, action: Action) {
     }
   }
   if (state === State.QUESTION_CLOSE) {
-    if (action === Action.END || action === Action.GO_TO_ANSWER || action === Action.GO_TO_FINAL_RESULTS) {
+    if (
+      action === Action.END ||
+      action === Action.GO_TO_ANSWER ||
+      action === Action.GO_TO_FINAL_RESULTS
+    ) {
       return true;
     } else {
       return false;
     }
   }
   if (state === State.ANSWER_SHOW) {
-    if (action === Action.END || action === Action.NEXT_QUESTION || action === Action.GO_TO_FINAL_RESULTS) {
+    if (
+      action === Action.END ||
+      action === Action.NEXT_QUESTION ||
+      action === Action.GO_TO_FINAL_RESULTS
+    ) {
       return true;
     } else {
       return false;
@@ -343,7 +351,7 @@ export function isActionValid(state: State, action: Action) {
   }
   if (state === State.END) {
     return false;
-  } 
+  }
 }
 
 /**

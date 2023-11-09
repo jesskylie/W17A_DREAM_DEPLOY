@@ -21,7 +21,7 @@ import {
   requestUpdatePasswordV2,
   requestAdminQuizCreateV2,
   requestCreateQuestionV2,
-} from './library/route_testing_functions'; 
+} from './library/route_testing_functions';
 import {
   QuestionBody,
   TokenString,

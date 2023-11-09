@@ -6,6 +6,7 @@ import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
+  DEFAULT_VALID_THUMBNAIL_URL,
 } from '../library/constants';
 
 import {
@@ -63,6 +64,7 @@ describe('adminQuizInfo testing', () => {
       numQuestions: 0,
       questions: [],
       duration: 0,
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
     });
 
     const QuizTwo = requestAdminQuizCreate(
@@ -80,6 +82,7 @@ describe('adminQuizInfo testing', () => {
       numQuestions: 0,
       questions: [],
       duration: 0,
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
     });
   });
 

@@ -143,3 +143,7 @@ export interface RequestAdminDetailsUpdateServerReturn {
 export interface MessageBody {
   messageBody: string;
 }
+
+export interface ImageUrlReturn {
+  imgUrl: string;
+}

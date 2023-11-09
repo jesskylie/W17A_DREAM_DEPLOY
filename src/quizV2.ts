@@ -9,6 +9,7 @@ import {
   getRandomInt,
   getState,
   isQuizInEndState,
+  isThumbnailUrlValid,
 } from './library/functions';
 
 import {
@@ -16,6 +17,7 @@ import {
   ONE_MILLION,
   MIN_QUIZ_NAME_LENGTH,
   MAX_QUIZ_NAME_LENGTH,
+  DEFAULT_VALID_THUMBNAIL_URL,
 } from './library/constants';
 
 import {
@@ -87,6 +89,7 @@ export function adminQuizCreateV2(
     questions: [],
     numQuestions: 0,
     duration: 0,
+    thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
   });
 
   // Add quizId to quizId[] array in data.users
@@ -168,7 +171,10 @@ export function adminQuizRemoveV2(
  * @returns {{error: string}, {errorCode: number}} - an error object with error code if an error occurs
  * @returns {{quizInfo}} - an object with all the quiz informations
  */
-export function adminQuizInfoV2(token: string, quizId: number): QuizInfoReturn | ErrorObjectWithCode {
+export function adminQuizInfoV2(
+  token: string,
+  quizId: number
+): QuizInfoReturn | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -207,6 +213,7 @@ export function adminQuizInfoV2(token: string, quizId: number): QuizInfoReturn |
         numQuestions: check.numQuestions,
         questions: check.questions,
         duration: duration,
+        thumbnailUrl: check.thumbnailUrl,
       };
     }
   }
@@ -235,10 +242,16 @@ export function adminQuizNameUpdateV2(
   // invalid quiz name characters - error 400
   const isQuizNameValidTest = isQuizNameValid(data, name, authUserId);
   if (!isQuizNameValidTest.result) {
-    throw HTTPError(400, 'Name contains invalid characters or has already been used');
+    throw HTTPError(
+      400,
+      'Name contains invalid characters or has already been used'
+    );
   }
   // quiz name is not between 3-30 characters - error 400
-  if (name.length < MIN_QUIZ_NAME_LENGTH || name.length > MAX_QUIZ_NAME_LENGTH) {
+  if (
+    name.length < MIN_QUIZ_NAME_LENGTH ||
+    name.length > MAX_QUIZ_NAME_LENGTH
+  ) {
     throw HTTPError(400, 'Name is not between 3 and 30 characters');
   }
   // Token is empty/invalid - 401 error
@@ -255,7 +268,10 @@ export function adminQuizNameUpdateV2(
     }
   }
   if (!userOwnsQuizBool) {
-    throw HTTPError(403, 'Valid token is provided, but user is not an owner of this quiz');
+    throw HTTPError(
+      403,
+      'Valid token is provided, but user is not an owner of this quiz'
+    );
   }
   for (const quiz of data.quizzes) {
     if (quiz.quizId === quizId) {
@@ -305,7 +321,10 @@ export function adminQuizDescriptionUpdateV2(
     }
   }
   if (!userOwnsQuizBool) {
-    throw HTTPError(403, 'Valid token is provided, but user is not an owner of this quiz');
+    throw HTTPError(
+      403,
+      'Valid token is provided, but user is not an owner of this quiz'
+    );
   }
   const quizArr = data.quizzes;
   for (const quiz of quizArr) {
@@ -315,5 +334,81 @@ export function adminQuizDescriptionUpdateV2(
     }
   }
   saveDataInFile(data);
+  return {};
+}
+
+/**
+ * Function to update the thumbnail Url for a quiz
+ * @param {number} quizId - the quizId of the quiz to be updated
+ * @param {string} token - the token of the person creating the quiz - must exist / be valid / be unique
+ * @param {{object}} imgUrl - an object of the new image url - must be valid
+ * ...
+ * @returns {error object} - if an error occurs, an error object is thrown for error 400, 401, 403
+ * @returns {{}} - an empty array if ok
+ */
+
+export function adminQuizThumbnailUrlUpdate(
+  quizId: number,
+  token: string,
+  imgUrl: string
+): Record<string, never> | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+  const authUserIdObj = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdObj.authUserId;
+
+  // Step 1: ERROR 401
+  // test for Token is empty or invalid (does not refer to valid logged in user session) - START
+
+  if (!isTokenValid(data, token)) {
+    throw HTTPError(
+      401,
+      'Token is empty or invalid (does not refer to valid logged in user session)'
+    );
+  }
+
+  // Step 1: ERROR 401 - END
+
+  // Step 2: ERROR 403
+  // test for
+  // Valid token is provided, but user is not an owner of this quiz - START
+
+  const userArr = data.users;
+  let userOwnsQuizBool = false;
+  for (const user of userArr) {
+    if (user.authUserId === authUserId && user.quizId.includes(quizId)) {
+      userOwnsQuizBool = true;
+    }
+  }
+  if (!userOwnsQuizBool) {
+    throw HTTPError(
+      403,
+      'Valid token is provided, but user is not an owner of this quiz'
+    );
+  }
+
+  // Step 1: ERROR 403 - END
+
+  // Step 3: ERROR 400 - START
+
+  // If any of the following are true:
+  // imgUrl when fetched does not return a valid file
+  // imgUrl when fetch is not a JPG or PNG image
+
+  isThumbnailUrlValid(imgUrl);
+
+  // Step 3: ERROR 400 - END
+
+  // NOW THAT ALL ERROR CASES HAVE BEEN DEALT WITH
+  // UPDATE THE THUMBNAIL URL
+
+  const quizArr = data.quizzes;
+  for (const quiz of quizArr) {
+    if (quiz.quizId === quizId) {
+      quiz.thumbnailUrl = imgUrl;
+      quiz.timeLastEdited = createCurrentTimeStamp();
+    }
+  }
+  saveDataInFile(data);
+
   return {};
 }
