@@ -1,4 +1,4 @@
-import httpError from 'http-errors';
+import httpError, { HttpError } from 'http-errors';
 import {
   Action,
   DataStore,
@@ -14,28 +14,49 @@ import { MessageBody } from './library/interfaces';
 import {
   isQuizIdValid,
   isAuthUserIdMatchQuizId,
+  SessionId,
 } from './quiz';
 import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
 
 const MAX_AUTO_START_NUM = 50;
 const MAX_END_STATE_NUM = 10;
 
-export const viewAllSession = (token: string, quizId: number) => {
+export const viewAllSessions = (token: string, quizId: number) => {
+  const data = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isTokenValidTest = isTokenValid(data, token);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
+    data,
+    authUserId.authUserId,
+    quizId
+  );
+  // Valid token is provided, but user does not own quiz - error 403
+  if (!isAuthUserIdMatchQuizIdTest && isTokenValidTest && isQuizIdValidTest) {
+    throw httpError(403, 'QuizId does not match authUserId');
+  }
+  // Token is empty or invalid - error 401
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is empty or invalid');
+  }
+  const activeSessions = [];
+  const inactiveSessions = [];
+  for (const check of data.quizzesCopy) {
+    if (check.metadata.quizId === quizId) {
+      if (check.session.state === State.END) {
+        inactiveSessions.push(check.session.sessionId);
+      } else {
+        activeSessions.push(check.session.sessionId);
+      }
+    }
+  }
   return {
-    activeSessions: [
-      247,
-      566,
-      629,
-      923
-    ],
-    inactiveSessions: [
-      422,
-      817
-    ]
+    activeSessions: activeSessions,
+    inactiveSessions: inactiveSessions
   };
 };
 
-export const startNewSession = (quizId: number, token: string, autoStartNum: number) => {
+export const startNewSession = (quizId: number, token: string, autoStartNum: number): SessionId | HttpError => {
   const data = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -70,13 +91,8 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
   }
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
-  if (countQuizInEndState(data, quizId) > MAX_END_STATE_NUM) {
-    throw httpError(400, 'There is a maximum of 10 session in END state');
-  }
-
-  const numSessionsInEndState = countQuizInEndState(data, quizId);
-  if (numSessionsInEndState > MAX_END_STATE_NUM) {
-    throw httpError(400, 'Maximum of 10 sessions in END state currently exist');
+  if (countQuizNotInEndState(data, quizId) >= MAX_END_STATE_NUM) {
+    throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
   }
 
   // copy quiz of current quizid
@@ -353,12 +369,12 @@ const isSessionIdRepeated = (data: DataStore, sessionId: number): boolean => {
 
 // finds all quizzes in QuizzesCopy with specific quizIds
 // returns the count of quizzes in end state
-function countQuizInEndState(data: DataStore, quizId: number) {
+function countQuizNotInEndState(data: DataStore, quizId: number): number {
   let count = 0;
-  if (data.quizzesCopy.length > 1) {
+  if (data.quizzesCopy.length >= MAX_END_STATE_NUM) {
     for (const quizzesCopy of data.quizzesCopy) {
       if (quizzesCopy.metadata.quizId === quizId) {
-        if (quizzesCopy.session.state === State.END) {
+        if (quizzesCopy.session.state !== State.END) {
           count++;
         }
       }

@@ -24,6 +24,7 @@ import {
 } from './library/route_testing_functions';
 import {
   QuestionBody,
+  QuestionId,
   TokenString,
   requestAdminQuizInfoReturn,
   requestCreateQuestionReturn,
@@ -791,7 +792,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question', () => {
       token,
       validQuestion,
       quizId
-    ) as requestCreateQuestionReturn;
+    ) as QuestionId;
 
     expect(newQuestion).toStrictEqual({
       questionId: expect.any(Number),
@@ -1516,7 +1517,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - E
       token,
       invalidQuestionNoThumbnailUrl,
       quizId
-    ) as requestCreateQuestionReturn;
+    ) as QuestionId;
 
     expect(testResponse).toStrictEqual({
       questionId: expect.any(Number),

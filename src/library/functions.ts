@@ -372,7 +372,7 @@ export function isActionValid(state: State, action: Action) {
 export const isThumbnailUrlValid = (thumbnailUrl: string): void => {
   // Error Check 1: The thumbnailUrl is an empty string
 
-  if (thumbnailUrl.length === 0) {
+  if (thumbnailUrl === '') {
     throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
   }
 

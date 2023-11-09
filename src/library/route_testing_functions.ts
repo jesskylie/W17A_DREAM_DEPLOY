@@ -1,5 +1,5 @@
 import request from 'sync-request-curl';
-import HTTPError from 'http-errors';
+import HTTPError, { HttpError } from 'http-errors';
 import config from '../config.json';
 
 import {
@@ -18,6 +18,8 @@ import {
   RequestGenericReturn,
   RequestUserDetailsReturn,
   RequestAdminDetailsUpdateServerReturn,
+  QuestionId,
+  QuizId,
 } from './interfaces';
 
 import {
@@ -27,6 +29,8 @@ import {
   RESPONSE_ERROR_403,
   WAIT_TIME,
 } from './constants';
+import { Action } from '../dataStore';
+import { SessionId } from '../quiz';
 
 // constants used throughout file - START
 
@@ -54,10 +58,44 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export function requestSessionStart (quizid: number, token: string, autoStartNum: number) {
+export function requestSessionStart (quizid: number, token: string, autoStartNum: number): SessionId | HttpError {
   const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizid}/session/start`, {
     headers: { token },
     json: { quizid, autoStartNum },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
+export function requestViewAllSessions(token: string, quizid: number) {
+  const res = request('GET', SERVER_URL + `/v1/admin/quiz/${quizid}/sessions`, {
+    headers: { token },
+    qs: { quizid },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
+export function requestUpdateSessionState (quizid: number, sessionid: number, token: string, action: Action): Record<string, never> | HttpError {
+  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}`, {
+    headers: { token },
+    json: { quizid, sessionid, action },
   });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
@@ -231,7 +269,7 @@ export const requestAdminQuizCreateV2 = (
   token: string,
   name: string,
   description: string
-) => {
+): QuizId | HttpError => {
   const res = request('POST', SERVER_URL + '/v2/admin/quiz', {
     headers: { token },
     json: { name, description },
@@ -326,11 +364,11 @@ export function requestAdminRegister(
 export function requestCreateQuestionV2(
   token: string,
   question: QuestionBody,
-  quizId: number
-): requestCreateQuestionReturn {
+  quizid: number
+): QuestionId | HttpError {
   const res = request(
     'POST',
-    SERVER_URL + `/v2/admin/quiz/${quizId}/question`,
+    SERVER_URL + `/v2/admin/quiz/${quizid}/question`,
     {
       headers: { token },
       json: {
@@ -470,7 +508,7 @@ export function requestUpdateQuestionV2(
   token: string,
   question: QuestionBody,
   thumbnailUrl: string
-): requestCreateQuestionReturn {
+): Record<string, never> | HttpError {
   const res = request(
     'PUT',
     SERVER_URL + `/v2/admin/quiz/${quizId}/question/${questionId}`,
@@ -531,15 +569,15 @@ export function requestUpdateQuestion(
 
 export const requestDeleteQuizQuestionV2 = (
   token: string,
-  quizId: number,
-  questionId: number
-): RequestDeleteQuizQuestionReturn => {
+  quizid: number,
+  questionid: number
+): Record<string, never> | HttpError => {
   const res = request(
     'DELETE',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
+    SERVER_URL + `/v2/admin/quiz/${quizid}/question/${questionid}`,
     {
       headers: { token },
-      qs: { quizId, token, questionId },
+      qs: { quizid, token, questionid },
       timeout: WAIT_TIME,
     }
   );
@@ -573,16 +611,16 @@ export const requestDeleteQuizQuestion = (
 
 export function requestAdminQuizQuestionMoveV2(
   token: string,
-  quizId: number,
-  questionId: number,
+  quizid: number,
+  questionid: number,
   newPosition: number
-) {
+): Record<string, never> | HttpError {
   const res = request(
     'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/move`,
+    SERVER_URL + `/v1/admin/quiz/${quizid}/question/${questionid}/move`,
     {
       headers: { token },
-      json: { quizId, questionId, token, newPosition },
+      json: { quizid, questionid, token, newPosition },
       timeout: WAIT_TIME,
     }
   );
@@ -617,13 +655,13 @@ export function requestAdminQuizQuestionMove(
 }
 
 export function requestDuplicateQuestionV2(
-  quizId: number,
-  questionId: number,
+  quizid: number,
+  questionid: number,
   token: string
 ): requestCreateQuestionReturn {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/duplicate`,
+    SERVER_URL + `/v2/admin/quiz/${quizid}/question/${questionid}/duplicate`,
     {
       headers: { token },
       json: {},

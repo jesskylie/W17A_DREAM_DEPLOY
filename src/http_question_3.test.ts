@@ -8,6 +8,7 @@ import {
   requestCreateQuestionV2,
   requestDeleteQuizQuestionV2,
   requestDuplicateQuestionV2,
+  requestSessionStart,
   requestUpdateQuestionV2,
 } from './library/route_testing_functions';
 import {
@@ -18,10 +19,14 @@ import {
   requestAdminQuizInfoReturn,
 } from './library/interfaces';
 import {
+  DEFAULT_VALID_THUMBNAIL_URL,
+  INVALID_THUMBNAIL_URL_NOT_A_FILE,
+  INVALID_THUMBNAIL_URL_NOT_JPG_PNG,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
   RESPONSE_OK_200,
+  VALID_THUMBNAIL_URL,
 } from './library/constants';
 import { Quizzes } from './dataStore';
 
@@ -39,10 +44,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
-
+    ) as QuizId;
+      const quizId = newQuiz.quizId;
       const validQuestion = {
         question: 'What color is the sky?',
         duration: 2,
@@ -57,10 +60,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId) as QuestionId;
+      const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 2,
@@ -75,18 +78,16 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         const result = requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         );
         expect(result).toStrictEqual({});
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
-      }
-    }
   });
 
   test('Testing valid question update with timeLastEdited changed', () => {
@@ -102,9 +103,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    ) as QuizId;
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -120,10 +120,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId) as QuestionId;
+        const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 2,
@@ -138,6 +138,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
 
         const quizBeforeUpdate = requestAdminQuizInfo(
@@ -149,16 +150,13 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           questionId,
           token,
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         );
         const quizAfterUpdate = requestAdminQuizInfo(
           token,
           quizId
         ) as requestAdminQuizInfoReturn;
         expect(quizBeforeUpdate).not.toEqual(quizAfterUpdate);
-        expect(result.statusCode).toStrictEqual(RESPONSE_OK_200);
-      }
-    }
   });
 
   test('Testing update question when answers is not between 2 and 6 - error code 400', () => {
@@ -175,8 +173,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -192,11 +190,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
 
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId) as QuestionId;
+        const questionId = question.questionId as number;
         const shortAnswers = {
           question: 'What is the capital of Australia?',
           duration: 2,
@@ -207,6 +205,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: false,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
 
         // question id does not refer to valid question within quiz
@@ -215,7 +214,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           questionId,
           token,
           shortAnswers,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
         const longAnswers = {
           question: 'What is the capital of Australia?',
@@ -251,6 +250,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: false,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
 
         // question id does not refer to valid question within quiz
@@ -259,10 +259,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           questionId,
           token,
           longAnswers,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-      }
-    }
   });
 
   test('Testing update question with invalid question string length - error code 400', () => {
@@ -279,8 +277,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -296,8 +293,9 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
+      const question = requestCreateQuestionV2(token, validQuestion, quizId) as QuestionId;
       if ('questionId' in question) {
         const questionId = question.questionId as number;
         // question string is less than 5 characters and/or greater than 50 characters
@@ -315,6 +313,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
 
         // question length is less than 5 characters
@@ -323,7 +322,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           questionId,
           token,
           shortLength,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
 
         // question string is larger than 50 characters
@@ -341,6 +340,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
 
         // question id does not refer to valid question within quiz
@@ -349,10 +349,9 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
           questionId,
           token,
           longLength,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
       }
-    }
   });
 
   test('Testing question update when question duration is not a positive number - error code 400 ', () => {
@@ -369,8 +368,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -386,10 +384,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId)as QuestionId;
+        const questionId = question.questionId
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: -10,
@@ -404,16 +402,15 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-      }
-    }
   });
 
   test('Testing question  update when question exceeds 3 minutes - error code 400 ', () => {
@@ -430,8 +427,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -447,10 +444,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId) as QuestionId;
+
+        const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 200,
@@ -465,16 +463,15 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-      }
-    }
   });
 
   test('Testing question update when points are between 1 and 10 - error code 400 ', () => {
@@ -491,8 +488,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -508,10 +505,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
       const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+
+      const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 200,
@@ -526,13 +524,14 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
 
         const newQuestionTwo = {
@@ -549,16 +548,15 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           newQuestionTwo,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-      }
-    }
   });
 
   test('Length of answer must be between 1 and 30 characters ', () => {
@@ -575,8 +573,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -592,10 +590,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId)as QuestionId;
+
+      const questionId = question.questionId;
         const oneCharacter = {
           question: 'What is the capital of Australia?',
           duration: 200,
@@ -610,13 +609,14 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           oneCharacter,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
 
         const thirtyCharacters = {
@@ -633,16 +633,15 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           thirtyCharacters,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-      }
-    }
   });
 
   test('Testing invalid question update with duplicate answers - error code 400 ', () => {
@@ -659,8 +658,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -676,10 +675,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId)as QuestionId;
+
+      const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 200,
@@ -694,16 +694,15 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: false,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-      }
-    }
   });
 
   test('Testing invalid question update when there are no correct answers - error code 400 ', () => {
@@ -720,8 +719,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -737,10 +736,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId)as QuestionId;
+
+        const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 200,
@@ -755,16 +755,15 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: false,
             },
           ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           token,
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-      }
-    }
   });
 
   test('Testing invalid/empty token - error code 401', () => {
@@ -781,8 +780,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -798,10 +797,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId) as QuestionId;
+
+      const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 2,
@@ -816,23 +816,22 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           '',
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_401]);
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           'token',
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_401]);
-      }
-    }
   });
 
   test('Testing valid token provided, but wrong user - error code 403', () => {
@@ -856,8 +855,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -873,10 +872,11 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(tokenTwo, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(tokenTwo, validQuestion, quizId) as QuestionId;
+
+      const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 2,
@@ -891,16 +891,15 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
           tokenOne,
           newQuestion,
-          'thumbnailUrl'
+          VALID_THUMBNAIL_URL,
         )).toThrow(HTTPError[RESPONSE_ERROR_403]);
-      }
-    }
   });
 
   test('Testing invalid thumbnailUrl - error code 400', () => {
@@ -917,8 +916,8 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
       'New Quiz One',
       'Quiz Description One'
     );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const validQuestion = {
         question: 'What color is the sky?',
@@ -934,10 +933,10 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const question = requestCreateQuestionV2(token, validQuestion, quizId);
-      if ('questionId' in question.bodyString) {
-        const questionId = question.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, validQuestion, quizId) as QuestionId;
+      const questionId = question.questionId;
         const newQuestion = {
           question: 'What is the capital of Australia?',
           duration: 2,
@@ -952,32 +951,31 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
               correct: true,
             },
           ],
+          thumbnailUrl: VALID_THUMBNAIL_URL,
         } as QuestionBody;
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
-          '',
+          token,
           newQuestion,
           ''
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
-          'token',
+          token,
           newQuestion,
-          'thumbnailUrl'
+          INVALID_THUMBNAIL_URL_NOT_A_FILE
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
         expect(() => requestUpdateQuestionV2(
           quizId,
           questionId,
-          'token',
+          token,
           newQuestion,
-          'thumbnailUrl.ts'
+          INVALID_THUMBNAIL_URL_NOT_JPG_PNG
         )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-      }
-    }
   });
-});
+
 
 describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', () => {
   test('Successful duplicate question', () => {
@@ -993,11 +991,12 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       token,
       'New Quiz One',
       'Quiz Description One'
-    );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
-      const QuestionOne = {
-        question: 'First Question?',
+    ) as QuizId;
+    
+      const quizId = newQuiz.quizId;
+
+      const validQuestion = {
+        question: 'What color is the sky?',
         duration: 2,
         points: 10,
         answers: [
@@ -1010,7 +1009,9 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
+      requestCreateQuestionV2(token, validQuestion, quizId) as QuestionId;
       const QuestionTwo = {
         question: 'Second question?',
         duration: 2,
@@ -1025,12 +1026,11 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
       // creates three questions
-      requestCreateQuestionV2(token, QuestionOne, quizId);
-      const resultTwo = requestCreateQuestionV2(token, QuestionTwo, quizId);
-      if ('questionId' in resultTwo.bodyString) {
-        const questionId = resultTwo.bodyString.questionId as number;
+      const question = requestCreateQuestionV2(token, QuestionTwo, quizId) as QuestionId;
+      const questionId = question.questionId;
         // duplicate second question
         const duplicateResult = requestDuplicateQuestionV2(
           quizId,
@@ -1041,7 +1041,6 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
         expect(duplicateResult).toStrictEqual({
           newQuestionId: expect.any(Number),
         });
-        expect(duplicateResult.statusCode).toStrictEqual(RESPONSE_OK_200);
         const result = requestAdminQuizInfo(token, quizId);
         if ('questions' in result.bodyString) {
           const questions = result.bodyString.questions;
@@ -1051,8 +1050,6 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
           // expect the third question in the array to be the duplicated question
           // expect(questions[2]).toStrictEqual(duplicateResult.bodyString);
         }
-      }
-    }
   });
 
   test('QuestionId does not refer to valid question in this quiz - error code 400', () => {
@@ -1068,9 +1065,9 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       token,
       'New Quiz One',
       'Quiz Description One'
-    );
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    ) as QuizId;
+    
+      const quizId = newQuiz.quizId;
       const QuestionOne = {
         question: 'First Question?',
         duration: 2,
@@ -1085,14 +1082,15 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      requestCreateQuestionV2(token, QuestionOne, quizId);
+      const question = requestCreateQuestionV2(token, QuestionOne, quizId) as QuestionId;
+      const questionId = question.questionId
       expect(() => requestDuplicateQuestionV2(
-        quizId,
-        -1,
+        quizId, 
+        questionId * (-1), 
         token
       )).toThrow(HTTPError[RESPONSE_ERROR_400]);
-    }
   });
 
   test('Token is empty or invalid - error code 401', () => {
@@ -1110,8 +1108,8 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       'Quiz Description One'
     );
 
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const Question = {
         question: 'Second question?',
@@ -1127,11 +1125,11 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
 
-      const resultTwo = requestCreateQuestionV2(token, Question, quizId);
-      if ('questionId' in resultTwo.bodyString) {
-        const questionId = resultTwo.bodyString.questionId as number;
+      const resultTwo = requestCreateQuestionV2(token, Question, quizId) as QuestionId;
+        const questionId = resultTwo.questionId as number;
         expect(() => requestDuplicateQuestionV2(
           quizId,
           questionId,
@@ -1143,8 +1141,6 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
           questionId,
           'token'
         )).toThrow(HTTPError[RESPONSE_ERROR_401]);
-      }
-    }
   });
 
   test('Valid token is provided, but user does not own quiz - error code 403', () => {
@@ -1169,8 +1165,8 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
       'Quiz Description One'
     );
 
-    if ('quizId' in newQuiz.bodyString) {
-      const quizId = newQuiz.bodyString.quizId;
+    
+      const quizId = newQuiz.quizId;
 
       const Question = {
         question: 'Second question?',
@@ -1186,17 +1182,15 @@ describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', (
             correct: false,
           },
         ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
       } as QuestionBody;
-      const result = requestCreateQuestionV2(token, Question, quizId);
-      if ('questionId' in result.bodyString) {
-        const questionId = result.bodyString.questionId as number;
+      const result = requestCreateQuestionV2(token, Question, quizId) as QuestionId;
+        const questionId = result.questionId as number;
         expect(() => requestDuplicateQuestionV2(
           quizId,
           questionId,
           tokenTwo
         )).toThrow(HTTPError[RESPONSE_ERROR_403]);
-      }
-    }
   });
 });
 
@@ -1215,7 +1209,7 @@ describe('deleteQuizQuestion testing', () => {
       testToken,
       'Quiz One',
       'this is my first quiz'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1230,12 +1224,13 @@ describe('deleteQuizQuestion testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
 
     requestDeleteQuizQuestionV2(
       testToken,
@@ -1252,6 +1247,7 @@ describe('deleteQuizQuestion testing', () => {
       numQuestions: 0,
       questions: [],
       duration: 0,
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
     });
   });
 
@@ -1269,7 +1265,7 @@ describe('deleteQuizQuestion testing', () => {
       testToken,
       'Quiz One',
       'this is my first quiz'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1284,15 +1280,60 @@ describe('deleteQuizQuestion testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestDeleteQuizQuestionV2(
       testToken,
       -1 * (QuizOne.quizId + 1531),
+      questionOne.questionId
+    )).toThrow(HTTPError[RESPONSE_ERROR_400]);
+  });
+
+  test('Error 400: Not all session of this quiz is in END state', () => {
+    requestClear();
+    const returnTokenObj = requestAdminRegister(
+      'jack@hotmail.com',
+      '123456ab',
+      'Jack',
+      'Harlow'
+    ).body as TokenString;
+    const testToken = returnTokenObj.token;
+
+    const QuizOne = requestAdminQuizCreateV2(
+      testToken,
+      'Quiz One',
+      'this is my first quiz'
+    ) as QuizId;
+    const validQuestion = {
+      question: 'What color is the sky?',
+      duration: 2,
+      points: 10,
+      answers: [
+        {
+          answer: 'Blue',
+          correct: true,
+        },
+        {
+          answer: 'Green',
+          correct: false,
+        },
+      ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
+    } as QuestionBody;
+    const questionOne = requestCreateQuestionV2(
+      testToken,
+      validQuestion,
+      QuizOne.quizId
+    ) as QuestionId;
+    requestSessionStart(QuizOne.quizId, testToken, 2);
+    expect(() => requestDeleteQuizQuestionV2(
+      testToken,
+      QuizOne.quizId,
       questionOne.questionId
     )).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
@@ -1311,7 +1352,7 @@ describe('deleteQuizQuestion testing', () => {
       testToken,
       'Quiz One',
       'this is my first quiz'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1326,12 +1367,13 @@ describe('deleteQuizQuestion testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestDeleteQuizQuestionV2(
       testToken,
       QuizOne.quizId,
@@ -1353,7 +1395,7 @@ describe('deleteQuizQuestion testing', () => {
       testToken,
       'Quiz One',
       'this is my first quiz'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1368,12 +1410,13 @@ describe('deleteQuizQuestion testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestDeleteQuizQuestionV2(
       'invalid',
       QuizOne.quizId,
@@ -1395,7 +1438,7 @@ describe('deleteQuizQuestion testing', () => {
       testToken,
       'Quiz One',
       'this is my first quiz'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestion = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1410,12 +1453,13 @@ describe('deleteQuizQuestion testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       QuizOne.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestDeleteQuizQuestionV2(
       '',
       -1 * QuizOne.quizId,
@@ -1450,7 +1494,7 @@ describe('deleteQuizQuestion testing', () => {
       testToken,
       'Quiz 1',
       'This a quiz by Jack'
-    ).bodyString as QuizId;
+    ) as QuizId;
 
     const validQuestion = {
       question: 'What color is the sky?',
@@ -1466,12 +1510,13 @@ describe('deleteQuizQuestion testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       testToken,
       validQuestion,
       JackQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestDeleteQuizQuestionV2(
       testToken2,
       JackQuiz.quizId,
@@ -1494,7 +1539,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestionOne = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1509,12 +1554,13 @@ describe('AdminQuizQuestionMove testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       token,
       validQuestionOne,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
       duration: 2,
@@ -1523,13 +1569,14 @@ describe('AdminQuizQuestionMove testing', () => {
         { answer: 'Canberra', correct: true },
         { answer: 'Sydney', correct: false },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
 
     const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     const oldQuizInfo = requestAdminQuizInfo(token, newQuiz.quizId)
       .bodyString as Quizzes;
     const TimeBefore = expect(oldQuizInfo.timeLastEdited);
@@ -1540,13 +1587,14 @@ describe('AdminQuizQuestionMove testing', () => {
         { answer: 'Washington, D.C', correct: true },
         { answer: 'New York', correct: false },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
 
     const questionThree = requestCreateQuestionV2(
       token,
       validQuestionThree,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     requestAdminQuizQuestionMoveV2(
       token,
       newQuiz.quizId,
@@ -1581,7 +1629,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestionOne = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1590,12 +1638,13 @@ describe('AdminQuizQuestionMove testing', () => {
         { answer: 'Blue', correct: true },
         { answer: 'Green', correct: false },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       token,
       validQuestionOne,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestAdminQuizQuestionMoveV2(
       token,
       newQuiz.quizId,
@@ -1617,7 +1666,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestionOne = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1626,12 +1675,13 @@ describe('AdminQuizQuestionMove testing', () => {
         { answer: 'Blue', correct: true },
         { answer: 'Green', correct: false },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       token,
       validQuestionOne,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
 
     expect(() => requestAdminQuizQuestionMoveV2(
       token,
@@ -1654,7 +1704,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestionOne = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1669,12 +1719,13 @@ describe('AdminQuizQuestionMove testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
     const questionOne = requestCreateQuestionV2(
       token,
       validQuestionOne,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
 
     expect(() => requestAdminQuizQuestionMoveV2(
       token,
@@ -1697,7 +1748,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestionOne = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1712,9 +1763,9 @@ describe('AdminQuizQuestionMove testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
-    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId)
-      .bodyString as QuestionId;
+    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId) as QuestionId;
 
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
@@ -1730,13 +1781,14 @@ describe('AdminQuizQuestionMove testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
 
     const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestAdminQuizQuestionMoveV2(
       token,
       newQuiz.quizId,
@@ -1758,7 +1810,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestionOne = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1773,9 +1825,9 @@ describe('AdminQuizQuestionMove testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
-    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId)
-      .bodyString as QuestionId;
+    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId) as QuestionId;
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
       duration: 2,
@@ -1784,13 +1836,14 @@ describe('AdminQuizQuestionMove testing', () => {
         { answer: 'Canberra', correct: true },
         { answer: 'Sydney', correct: false },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
 
     const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestAdminQuizQuestionMoveV2(
       'token',
       newQuiz.quizId,
@@ -1812,7 +1865,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestionOne = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1821,10 +1874,10 @@ describe('AdminQuizQuestionMove testing', () => {
         { answer: 'Blue', correct: true },
         { answer: 'Green', correct: false },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
 
-    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId)
-      .bodyString as QuestionId;
+    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId) as QuestionId;
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
       duration: 2,
@@ -1839,13 +1892,14 @@ describe('AdminQuizQuestionMove testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
 
     const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestAdminQuizQuestionMoveV2(
       '',
       newQuiz.quizId,
@@ -1874,7 +1928,7 @@ describe('AdminQuizQuestionMove testing', () => {
       token,
       'New Quiz One',
       'Quiz Description One'
-    ).bodyString as QuizId;
+    ) as QuizId;
     const validQuestionOne = {
       question: 'What color is the sky?',
       duration: 2,
@@ -1889,9 +1943,9 @@ describe('AdminQuizQuestionMove testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
-    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId)
-      .bodyString as QuestionId;
+    requestCreateQuestionV2(token, validQuestionOne, newQuiz.quizId) as QuestionId;
 
     const validQuestionTwo = {
       question: 'What is the capital of Australia?',
@@ -1907,13 +1961,14 @@ describe('AdminQuizQuestionMove testing', () => {
           correct: false,
         },
       ],
+        thumbnailUrl: VALID_THUMBNAIL_URL,
     } as QuestionBody;
 
     const questionTwo = requestCreateQuestionV2(
       token,
       validQuestionTwo,
       newQuiz.quizId
-    ).bodyString as QuestionId;
+    ) as QuestionId;
     expect(() => requestAdminQuizQuestionMoveV2(
       token2,
       newQuiz.quizId,
@@ -1921,4 +1976,5 @@ describe('AdminQuizQuestionMove testing', () => {
       0
     )).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
+});
 });
