@@ -59,10 +59,14 @@ export function requestAdminQuizDescriptionUpdateV2(
   quizid: number,
   description: string
 ): RequestAdminQuizDescriptionUpdateReturn {
-  const res = request('PUT', SERVER_URL + `/v2/admin/quiz/${quizid}/description`, {
-    headers: { token },
-    json: { quizid, description },
-  });
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v2/admin/quiz/${quizid}/description`,
+    {
+      headers: { token },
+      json: { quizid, description },
+    }
+  );
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -742,3 +746,30 @@ export function requestTransferQuestionV2(
   }
 }
 //* *************************************************************
+
+// PUT /v1/admin/quiz/{quizid}/thumbnail Update the quiz thumbnail
+export const requestAdminUpdateQuizThumbnail = (
+  quizid: number,
+  token: string,
+  imgUrl: string
+): Record<string, never> => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v2/admin/quiz/${quizid}/thumbnail`,
+    {
+      headers: { token },
+      json: { imgUrl },
+    }
+  );
+
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+};

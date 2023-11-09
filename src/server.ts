@@ -44,6 +44,7 @@ import {
   adminQuizInfoV2,
   adminQuizNameUpdateV2,
   adminQuizDescriptionUpdateV2,
+  adminQuizThumbnailUrlUpdate,
 } from './quizV2';
 
 import {
@@ -549,6 +550,16 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
     }
   }
   res.status(RESPONSE_OK_200).json(response);
+});
+
+// Iteration 3 v1 route
+app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  const { imgUrl } = req.body;
+  const response = adminQuizThumbnailUrlUpdate(quizId, token, imgUrl);
+
+  res.json(response);
 });
 
 app.put(
