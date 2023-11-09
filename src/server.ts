@@ -248,7 +248,7 @@ app.put(
         questionId,
         token,
         questionBody,
-        thumbnailUrl,
+        thumbnailUrl
       )
     );
   }

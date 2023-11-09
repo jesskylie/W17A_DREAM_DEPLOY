@@ -27,7 +27,6 @@ import {
   QuestionId,
   TokenString,
   requestAdminQuizInfoReturn,
-  requestCreateQuestionReturn,
 } from './library/interfaces';
 import {
   RESPONSE_ERROR_400,
