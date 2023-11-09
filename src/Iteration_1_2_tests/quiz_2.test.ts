@@ -446,6 +446,7 @@ describe('adminTrashQuizRestore testing', () => {
     const testToken = returnTokenObj.body.token;
 
     const quizIdIsInvalid = requestAdminTrashQuizRestore(testToken, -1 * 1531);
+
     expect(quizIdIsInvalid.statusCode).toBe(RESPONSE_ERROR_400);
     expect(quizIdIsInvalid.bodyString).toStrictEqual({
       error: expect.any(String),

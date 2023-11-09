@@ -12,12 +12,11 @@ import {
   requestCreateQuestionV2,
   requestAdminQuizCreate,
   requestAdminQuizRemove,
-  
   requestAdminQuizListV2,
   requestAdminTrashQuizRestoreV2,
   requestAdminTrashQuizEmptyV2,
   requestAdminTrashQuizListV2,
-  requestTransferQuestionV2
+  requestTransferQuestionV2,
 } from './library/route_testing_functions';
 
 import {
@@ -26,7 +25,6 @@ import {
   requestAdminQuizInfoReturn,
   requestCreateQuestionReturn,
   CreateQuizQuestionReturn,
-  
   TransferQuizServerReturn,
   requestAdminQuizListReturn,
   requestAdminTrashQuizRestoreReturn,
@@ -38,7 +36,6 @@ import {
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
   RESPONSE_OK_200,
-  THUMBNAIL_URL_PLACEHOLDER,
 } from './library/constants';
 
 interface QuizId {
@@ -124,7 +121,7 @@ describe('Testing POST adminQuizTransfer', () => {
     const transferResponseTest = responseTransfer.bodyString;
 
     // Check for blank object
-    
+
     expect(transferResponseTest).toStrictEqual({});
 
     // check for status code 200
@@ -198,10 +195,9 @@ describe('Testing POST adminQuizTransfer', () => {
     const transfereeEmail = user1Email;
     // Trasnferor's token
     const transferorToken = tokenUser2;
-    expect(() => requestTransferQuestionV2( transferorToken,
-      transfereeEmail,
-      quizId1User2)
-  ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+    expect(() =>
+      requestTransferQuestionV2(transferorToken, transfereeEmail, quizId1User2)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Testing transferee userEmail is not a real user (invalid email) - error code 400', () => {
@@ -234,7 +230,9 @@ describe('Testing POST adminQuizTransfer', () => {
     const transfereeEmail = user1Email;
     // Trasnferor's token
     const transferorToken = tokenUser2;
-    expect(() => requestTransferQuestionV2( transferorToken, transfereeEmail, quizId1User2)).toThrow(HTTPError[RESPONSE_ERROR_400]);
+    expect(() =>
+      requestTransferQuestionV2(transferorToken, transfereeEmail, quizId1User2)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Testing userEmail is the current logged in user - error code 400', () => {
@@ -266,9 +264,9 @@ describe('Testing POST adminQuizTransfer', () => {
     const transfereeEmail = user2Email;
     // Trasnferor's token
     const transferorToken = tokenUser2;
-    expect(() => requestTransferQuestionV2(  transferorToken,
-      transfereeEmail,
-      quizId1User2)).toThrow(HTTPError[RESPONSE_ERROR_400]);
+    expect(() =>
+      requestTransferQuestionV2(transferorToken, transfereeEmail, quizId1User2)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Quiz ID refers to a quiz that has a name that is already used by the target user - error code 400', () => {
@@ -305,9 +303,9 @@ describe('Testing POST adminQuizTransfer', () => {
     // Trasnferor's token
     const transferorToken = tokenUser2;
 
-    expect(() => requestTransferQuestionV2(  transferorToken,
-      transfereeEmail,
-      quizId1User2)).toThrow(HTTPError[RESPONSE_ERROR_400]);
+    expect(() =>
+      requestTransferQuestionV2(transferorToken, transfereeEmail, quizId1User2)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Token is empty or invalid (does not refer to valid logged in user session) - error code 401', () => {
@@ -342,10 +340,9 @@ describe('Testing POST adminQuizTransfer', () => {
     // Trasnferor's token
     let invalidToken = 'inergogne';
 
-    expect(() => requestTransferQuestionV2( invalidToken,
-      transfereeEmail,
-      quizId1User2)).toThrow(HTTPError[RESPONSE_ERROR_401]);
-    
+    expect(() =>
+      requestTransferQuestionV2(invalidToken, transfereeEmail, quizId1User2)
+    ).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
   test('Valid token is provided, but user is not an owner of this quiz - error code 403', () => {
@@ -389,10 +386,9 @@ describe('Testing POST adminQuizTransfer', () => {
     const transfereeEmail = user2Email;
     // Trasnferor's token
     const transferorToken = tokenUser1;
-    expect(() => requestTransferQuestionV2( transferorToken,
-      transfereeEmail,
-      quizId1User2)).toThrow(HTTPError[RESPONSE_ERROR_403]);
-    
+    expect(() =>
+      requestTransferQuestionV2(transferorToken, transfereeEmail, quizId1User2)
+    ).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
 });
 
@@ -421,7 +417,7 @@ describe('adminQuizList testing', () => {
       'Quiz Two',
       'this is my second quiz'
     ).bodyString as QuizId;
-    
+
     const QuizPrint = requestAdminQuizListV2(testToken);
     expect(QuizPrint).toStrictEqual({
       quizzes: [
@@ -435,9 +431,8 @@ describe('adminQuizList testing', () => {
         },
       ],
     });
-    
   });
-  
+
   test('Error 401: invalid token', () => {
     requestClear();
     expect(() => requestAdminQuizListV2('invalid')).toThrow(
@@ -515,7 +510,7 @@ describe('adminTrashQuizRestore testing', () => {
     );
 
     const testToken = returnTokenObj.body.token;
-    expect(() =>requestAdminTrashQuizRestoreV2(testToken, -9999)).toThrow(
+    expect(() => requestAdminTrashQuizRestoreV2(testToken, -9999)).toThrow(
       HTTPError[RESPONSE_ERROR_400]
     );
   });
@@ -538,9 +533,9 @@ describe('adminTrashQuizRestore testing', () => {
     ).bodyString as QuizId;
     requestAdminQuizRemove(testToken, quiz1.quizId);
     requestAdminQuizCreate(testToken, 'Quiz 1', 'this is my second quiz');
-    expect(() =>requestAdminTrashQuizRestoreV2(testToken, quiz1.quizId)).toThrow(
-      HTTPError[RESPONSE_ERROR_400]
-    );
+    expect(() =>
+      requestAdminTrashQuizRestoreV2(testToken, quiz1.quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 400: Quiz ID refers to a quiz that is not currently in the trash', () => {
@@ -559,9 +554,9 @@ describe('adminTrashQuizRestore testing', () => {
       'Quiz 1',
       'this is my first quiz'
     ).bodyString as QuizId;
-    expect(() => requestAdminTrashQuizRestoreV2(testToken, quiz1.quizId)).toThrow(
-      HTTPError[RESPONSE_ERROR_400]
-    );
+    expect(() =>
+      requestAdminTrashQuizRestoreV2(testToken, quiz1.quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 401: Token is empty', () => {
@@ -580,7 +575,7 @@ describe('adminTrashQuizRestore testing', () => {
       'Quiz test 1',
       'this is my first quiz'
     ).bodyString as QuizId;
-    expect(() => requestAdminTrashQuizRestoreV2('',  Quiz.quizId)).toThrow(
+    expect(() => requestAdminTrashQuizRestoreV2('', Quiz.quizId)).toThrow(
       HTTPError[RESPONSE_ERROR_401]
     );
   });
@@ -601,9 +596,9 @@ describe('adminTrashQuizRestore testing', () => {
       'Quiz test 2',
       'this is my second quiz'
     ).bodyString as QuizId;
-    expect(() => requestAdminTrashQuizRestoreV2('invalid', Quiz.quizId)).toThrow(
-      HTTPError[RESPONSE_ERROR_401]
-    );
+    expect(() =>
+      requestAdminTrashQuizRestoreV2('invalid', Quiz.quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
   test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
@@ -627,13 +622,13 @@ describe('adminTrashQuizRestore testing', () => {
       'Tony quiz'
     ).bodyString as QuizId;
     // priority Error test: 403 > 400
-    expect(() => requestAdminTrashQuizRestoreV2(testToken, TonyQuiz.quizId)).toThrow(
-      HTTPError[RESPONSE_ERROR_403]
-    );
+    expect(() =>
+      requestAdminTrashQuizRestoreV2(testToken, TonyQuiz.quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_403]);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
-    expect(() => requestAdminTrashQuizRestoreV2(testToken, TonyQuiz.quizId)).toThrow(
-      HTTPError[RESPONSE_ERROR_403]
-    );
+    expect(() =>
+      requestAdminTrashQuizRestoreV2(testToken, TonyQuiz.quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
 });
 //******************************************************** adminTrashQuizEmpty
@@ -672,11 +667,10 @@ describe('adminTrashQuizEmpty testing', () => {
     expect(quizOneRestoredfail.bodyString).toStrictEqual({
       error: expect.any(String),
     });
-    expect(() => requestAdminTrashQuizRestoreV2(testToken, QuizTwo.quizId)).toThrow(
-      HTTPError[RESPONSE_ERROR_403]
-    );
+    expect(() =>
+      requestAdminTrashQuizRestoreV2(testToken, QuizTwo.quizId)
+    ).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
-  
 
   test('Error 400: Quiz ID does not refer to a valid quiz', () => {
     requestClear();
@@ -689,9 +683,9 @@ describe('adminTrashQuizEmpty testing', () => {
     );
 
     const testToken = returnTokenObj.body.token;
-    expect(() =>requestAdminTrashQuizEmptyV2(testToken, JSON.stringify([-1 * 1531]))).toThrow(
-      HTTPError[RESPONSE_ERROR_400]
-    );
+    expect(() =>
+      requestAdminTrashQuizEmptyV2(testToken, JSON.stringify([-1 * 1531]))
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 400: Quiz ID refers to a quiz that is not currently in the trash', () => {
@@ -710,9 +704,9 @@ describe('adminTrashQuizEmpty testing', () => {
       'Quiz 1',
       'this is my first quiz'
     ).bodyString as QuizId;
-    expect(() =>requestAdminTrashQuizEmptyV2(testToken, JSON.stringify([quiz1.quizId]))).toThrow(
-      HTTPError[RESPONSE_ERROR_400]
-    );
+    expect(() =>
+      requestAdminTrashQuizEmptyV2(testToken, JSON.stringify([quiz1.quizId]))
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 401: Token is empty', () => {
@@ -731,9 +725,9 @@ describe('adminTrashQuizEmpty testing', () => {
       'Quiz a',
       'this is my first quiz'
     ).bodyString as QuizId;
-    expect(() =>requestAdminTrashQuizEmptyV2('', JSON.stringify([Quiz.quizId]))).toThrow(
-      HTTPError[RESPONSE_ERROR_401]
-    );
+    expect(() =>
+      requestAdminTrashQuizEmptyV2('', JSON.stringify([Quiz.quizId]))
+    ).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
   test('Error 401: Token is invalid', () => {
@@ -752,9 +746,9 @@ describe('adminTrashQuizEmpty testing', () => {
       'Quiz b',
       'this is my second quiz'
     ).bodyString as QuizId;
-      expect(() =>requestAdminTrashQuizEmptyV2('invalid',JSON.stringify([Quiz.quizId]))).toThrow(
-      HTTPError[RESPONSE_ERROR_401]
-    );
+    expect(() =>
+      requestAdminTrashQuizEmptyV2('invalid', JSON.stringify([Quiz.quizId]))
+    ).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
   test('Error 403: Quiz ID does not refer to a quiz that this user owns', () => {
@@ -782,10 +776,9 @@ describe('adminTrashQuizEmpty testing', () => {
     //   requestAdminTrashQuizRestoreV2(testToken, TonyQuiz.quizId).statusCode
     // ).toBe(RESPONSE_ERROR_403);
     requestAdminQuizRemove(returnToken2.token, TonyQuiz.quizId);
-    expect(() =>requestAdminTrashQuizEmptyV2(testToken,
-      JSON.stringify([TonyQuiz.quizId]))).toThrow(
-      HTTPError[RESPONSE_ERROR_403]
-    );
+    expect(() =>
+      requestAdminTrashQuizEmptyV2(testToken, JSON.stringify([TonyQuiz.quizId]))
+    ).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
 });
 
@@ -802,7 +795,6 @@ describe('adminTrashQuizList testing', () => {
       'Pie'
     );
     const testToken = response.body.token;
-    
 
     // Create quiz 1
     const QuizOne = requestAdminQuizCreate(
