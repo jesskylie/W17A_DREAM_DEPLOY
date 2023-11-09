@@ -557,6 +557,7 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const token = req.headers.token as string;
   const quizId = parseInt(req.params.quizid);
   const { imgUrl } = req.body;
+
   const response = adminQuizThumbnailUrlUpdate(quizId, token, imgUrl);
 
   res.json(response);

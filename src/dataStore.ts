@@ -72,10 +72,10 @@ Example usage
 // TypeScript interfaces for Iteration 2 - START
 
 export interface ResultForEachQuestion {
-  questionId: number,
-  playersCorrectList: string[],
-  averageAnswerTime : number,
-  percentCorrect: number
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
 }
 
 export interface Player {
@@ -161,6 +161,7 @@ export interface Quizzes {
   numQuestions: number;
   questions: Question[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 export interface DataStore {

@@ -29,3 +29,6 @@ export const INVALID_THUMBNAIL_URL_NOT_A_FILE =
 
 export const INVALID_THUMBNAIL_URL_NOT_JPG_PNG =
   'https://pixels.com/featured/1-long-haired-miniature-dachshund-lee-feldstein.html';
+
+export const DEFAULT_VALID_THUMBNAIL_URL =
+  'https://www.gliding.com.au/assets/images/sx/pages/pawnee247133.jpg';

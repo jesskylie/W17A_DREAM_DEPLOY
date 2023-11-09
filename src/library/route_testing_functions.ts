@@ -264,7 +264,7 @@ export const requestAdminQuizListV2 = (
     headers: { token },
     qs: { token },
   });
-  const bodyString = JSON.parse(res.body.toString());
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -423,7 +423,7 @@ export const requestAdminTrashQuizRestoreV2 = (
   const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
     json: { token, quizId },
   });
-  const bodyString = JSON.parse(res.body.toString());
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -655,7 +655,7 @@ export const requestAdminTrashQuizEmptyV2 = (
     headers: { token },
     qs: { quizIds: quizids, token: token },
   });
-  const bodyString = JSON.parse(res.body.toString());
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -685,7 +685,7 @@ export const requestAdminTrashQuizListV2 = (
     headers: { token },
     qs: { token },
   });
-  const bodyString = JSON.parse(res.body.toString());
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -733,8 +733,7 @@ export function requestTransferQuestionV2(
       json: { token, userEmail },
     }
   );
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
+
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -755,10 +754,10 @@ export const requestAdminUpdateQuizThumbnail = (
 ): Record<string, never> => {
   const res = request(
     'PUT',
-    SERVER_URL + `/v2/admin/quiz/${quizid}/thumbnail`,
+    SERVER_URL + `/v1/admin/quiz/${quizid}/thumbnail`,
     {
       headers: { token },
-      json: { imgUrl },
+      json: { imgUrl: imgUrl },
     }
   );
 

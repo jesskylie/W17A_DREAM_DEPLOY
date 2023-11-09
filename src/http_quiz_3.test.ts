@@ -1,4 +1,6 @@
 import HTTPError from 'http-errors';
+
+import { DEFAULT_VALID_THUMBNAIL_URL } from './library/constants';
 import {
   requestAdminQuizCreateV2,
   requestAdminRegister,
@@ -187,6 +189,7 @@ describe('Testing GET /v2/admin/quiz/:quizid', () => {
       description: 'Quiz description',
       numQuestions: 0,
       questions: expect.arrayContaining([]),
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
     };
     expect(
       requestAdminQuizInfoV2(userOne.body.token, quizId.quizId)
