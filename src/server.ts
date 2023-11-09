@@ -67,7 +67,7 @@ import {
 } from './library/constants';
 
 import {
-  startNewSession
+  startNewSession, updateSessionState, viewAllSessions
 } from './session';
 
 // Set up web app
@@ -114,10 +114,10 @@ app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
   res.json(adminAuthLogoutV2(token));
 });
 
-app.post('/v2/admin/quiz/:quizId/question', (req: Request, res: Response) => {
+app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const token = req.headers.token as string;
 
-  const quizId = parseInt(req.params.quizId);
+  const quizId = parseInt(req.params.quizid);
 
   const { questionBody } = req.body;
 
@@ -131,11 +131,11 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
 });
 
 app.post(
-  '/v2/admin/quiz/:quizId/question/:questionId/duplicate',
+  '/v2/admin/quiz/:quizid/question/:questionid/duplicate',
   (req: Request, res: Response) => {
     const token = req.headers.token as string;
-    const quizId = parseInt(req.params.quizId);
-    const questionId = parseInt(req.params.questionId);
+    const quizId = parseInt(req.params.quizid);
+    const questionId = parseInt(req.params.questionid);
     res.json(duplicateQuestionV2(quizId, questionId, token));
   }
 );
@@ -188,22 +188,38 @@ app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
 });
 
 app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
-  const token = req.query.token as string;
+  const token = req.headers.token as string;
 
   const result = adminTrashQuizListV2(token);
   res.json(result);
 });
 
 app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
-  const token = req.query.token as string;
+  const token = req.headers.token as string;
 
   const result = getQuizzesInTrashForLoggedInUser(token);
+  res.json(result);
+});
+
+app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  const result = viewAllSessions(token, quizId);
   res.json(result);
 });
 
 // --------------------------- GET REQUESTS - END -----------------------------
 
 // --------------------------- PUT REQUESTS - START ---------------------------
+
+app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  const sessionId = parseInt(req.params.sessionid);
+  const action = req.body;
+  const result = updateSessionState(quizId, sessionId, token, action);
+  res.json(result);
+});
 
 app.put('/v2/admin/user/details', (req: Request, res: Response) => {
   const token = req.headers.token as string;
@@ -220,29 +236,29 @@ app.put('/v2/admin/user/password', (req: Request, res: Response) => {
 });
 
 app.put(
-  '/v2/admin/quiz/:quizId/question/:questionId',
+  '/v2/admin/quiz/:quizid/question/:questionid',
   (req: Request, res: Response) => {
     const token = req.headers.token as string;
     const { questionBody, thumbnailUrl } = req.body;
-    const quizId = parseInt(req.params.quizId);
-    const questionId = parseInt(req.params.questionId);
+    const quizId = parseInt(req.params.quizid);
+    const questionId = parseInt(req.params.questionid);
     res.json(
       updateQuizQuestionV2(
         quizId,
         questionId,
         token,
         questionBody,
-        thumbnailUrl
+        thumbnailUrl,
       )
     );
   }
 );
 
 app.put(
-  '/v2/admin/quiz/:quizId/question/:questionId/move',
+  '/v2/admin/quiz/:quizid/question/:questionid/move',
   (req: Request, res: Response) => {
-    const quizId = parseInt(req.params.quizId);
-    const questionId = parseInt(req.params.questionId);
+    const quizId = parseInt(req.params.quizid);
+    const questionId = parseInt(req.params.questionid);
     const token = req.headers.token as string;
     const newPosition = req.body;
     res.json(adminQuizQuestionMoveV2(token, quizId, questionId, newPosition));

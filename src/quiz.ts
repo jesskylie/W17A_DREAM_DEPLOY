@@ -31,6 +31,10 @@ export interface QuizId {
   quizId: number;
 }
 
+export interface SessionId {
+  sessionId: number;
+}
+
 export interface ErrorObjectWithCode {
   error: string;
   errorCode: number;
