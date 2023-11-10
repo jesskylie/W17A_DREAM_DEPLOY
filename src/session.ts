@@ -19,7 +19,7 @@ import {
 import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
 
 const MAX_AUTO_START_NUM = 50;
-const MAX_END_STATE_NUM = 10;
+const MAX_NOT_IN_END_STATE_NUM = 10;
 
 export const viewAllSessions = (token: string, quizId: number) => {
   const data = retrieveDataFromFile();
@@ -91,7 +91,7 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
   }
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
-  if (countQuizNotInEndState(data, quizId) >= MAX_END_STATE_NUM) {
+  if (countQuizNotInEndState(data, quizId) >= MAX_NOT_IN_END_STATE_NUM) {
     throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
   }
 
@@ -118,6 +118,7 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
       copyQuiz.timeCreated = quiz.timeCreated;
       copyQuiz.timeLastEdited = quiz.timeLastEdited;
       copyQuiz.userId = quiz.userId;
+      copyQuiz.questions = quiz.questions;
       copyQuiz.thumbnailUrl = quiz.thumbnailUrl;
     }
   }
@@ -184,7 +185,7 @@ export const updateSessionState = (quizId: number, sessionId: number, token: str
   }
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
-  if (countQuizNotInEndState(data, quizId) >= MAX_END_STATE_NUM) {
+  if (countQuizNotInEndState(data, quizId) >= MAX_NOT_IN_END_STATE_NUM) {
     throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
   }
 
@@ -405,10 +406,9 @@ const isSessionIdRepeated = (data: DataStore, sessionId: number): boolean => {
 };
 
 // finds all quizzes in QuizzesCopy with specific quizIds
-// returns the count of quizzes in end state
+// returns the count of quizzes NOT in end state 
 function countQuizNotInEndState(data: DataStore, quizId: number): number {
   let count = 0;
-  if (data.quizzesCopy.length >= MAX_END_STATE_NUM) {
     for (const quizzesCopy of data.quizzesCopy) {
       if (quizzesCopy.metadata.quizId === quizId) {
         if (quizzesCopy.session.state !== State.END) {
@@ -416,7 +416,6 @@ function countQuizNotInEndState(data: DataStore, quizId: number): number {
         }
       }
     }
-  }
   return count;
 }
 

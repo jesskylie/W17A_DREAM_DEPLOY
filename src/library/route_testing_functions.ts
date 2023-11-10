@@ -59,6 +59,14 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export function requestAnswerQuestion(
+  playerid: number, 
+  answerId: number|string,
+  questionposition: number
+): Record<string, never> | HttpError {
+  return {};
+};
+
 export function requestPlayerCreate(
   sessionId: number,
   name: string
