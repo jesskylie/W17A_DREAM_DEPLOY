@@ -43,6 +43,7 @@ describe('Test: POST /v1/player/join', () => {
       quizId.quizId, 
       result.body.token, 
       5) as SessionId;
+      expect(requestPlayerCreate(sessionId.sessionId, '')).toStrictEqual({ playerId: expect.any(Number) });
     expect(requestPlayerCreate(sessionId.sessionId, 'valid')).toStrictEqual({ playerId: expect.any(Number) });
   });
 
