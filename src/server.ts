@@ -72,6 +72,7 @@ import {
   updateSessionState,
   viewAllSessions,
 } from './session';
+import { playerCreate } from './player';
 
 // Set up web app
 const app = express();
@@ -176,6 +177,11 @@ app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
     }
   }
   res.status(RESPONSE_OK_200).json(result);
+});
+
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  const { sessionId, name } = req.body;
+  res.json(playerCreate(sessionId, name));
 });
 
 // --------------------------- V2 POST REQUESTS - END ----------------------------s
