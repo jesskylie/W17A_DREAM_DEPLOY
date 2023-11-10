@@ -1,8 +1,8 @@
-import { DEFAULT_VALID_THUMBNAIL_URL } from "./library/constants";
+import { DEFAULT_VALID_THUMBNAIL_URL } from './library/constants';
 import HTTPError from 'http-errors';
-import { requestAdminQuizCreateV2, requestAdminRegister, requestClear, requestCreateQuestionV2, requestPlayerCreate, requestSessionStart, requestUpdateSessionState } from "./library/route_testing_functions";
-import { SessionId } from "./quiz";
-import { Action } from "./dataStore";
+import { requestAdminQuizCreateV2, requestAdminRegister, requestClear, requestCreateQuestionV2, requestPlayerCreate, requestSessionStart, requestUpdateSessionState } from './library/route_testing_functions';
+import { SessionId } from './quiz';
+import { Action } from './dataStore';
 
 describe('Test: POST /v1/player/join', () => {
   test('Success - valid input', () => {
@@ -40,10 +40,10 @@ describe('Test: POST /v1/player/join', () => {
     };
     requestCreateQuestionV2(result.body.token, question, quizId.quizId);
     const sessionId = requestSessionStart(
-      quizId.quizId, 
-      result.body.token, 
+      quizId.quizId,
+      result.body.token,
       5) as SessionId;
-      expect(requestPlayerCreate(sessionId.sessionId, '')).toStrictEqual({ playerId: expect.any(Number) });
+    expect(requestPlayerCreate(sessionId.sessionId, '')).toStrictEqual({ playerId: expect.any(Number) });
     expect(requestPlayerCreate(sessionId.sessionId, 'valid')).toStrictEqual({ playerId: expect.any(Number) });
   });
 
@@ -82,8 +82,8 @@ describe('Test: POST /v1/player/join', () => {
     };
     requestCreateQuestionV2(result.body.token, question, quizId.quizId);
     const sessionId = requestSessionStart(
-      quizId.quizId, 
-      result.body.token, 
+      quizId.quizId,
+      result.body.token,
       5) as SessionId;
     requestPlayerCreate(sessionId.sessionId, 'repeated');
     expect(() => requestPlayerCreate(sessionId.sessionId, 'repeated')).toThrow(HTTPError[400]);
@@ -124,8 +124,8 @@ describe('Test: POST /v1/player/join', () => {
     };
     requestCreateQuestionV2(result.body.token, question, quizId.quizId);
     const sessionId = requestSessionStart(
-      quizId.quizId, 
-      result.body.token, 
+      quizId.quizId,
+      result.body.token,
       5) as SessionId;
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.END);
     expect(() => requestPlayerCreate(sessionId.sessionId, 'valid')).toThrow(HTTPError[400]);

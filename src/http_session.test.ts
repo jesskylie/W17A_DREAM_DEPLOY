@@ -354,7 +354,6 @@ describe('Test: GET /v1/admin/quiz/{quizid}/sessions', () => {
   });
 });
 
-
 describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
   test('successful case', () => {
     requestClear();
@@ -405,7 +404,7 @@ describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       requestViewAllSessions(result.body.token, quizId.quizId)
     ).toStrictEqual({
       activeSessions: [session1.sessionId],
-      inactiveSessions: [ session2.sessionId],
+      inactiveSessions: [session2.sessionId],
     });
   });
 
@@ -448,7 +447,7 @@ describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       result.body.token,
       5
     ) as SessionId;
-    expect(() => requestUpdateSessionState(quizId.quizId, -1 * session1.sessionId , result.body.token, Action.END)).toThrow(HTTPError(RESPONSE_ERROR_400));
+    expect(() => requestUpdateSessionState(quizId.quizId, -1 * session1.sessionId, result.body.token, Action.END)).toThrow(HTTPError(RESPONSE_ERROR_400));
   });
 
   test('Action enum cannot be applied in the current state - error 400', () => {
@@ -492,13 +491,13 @@ describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       5
     ) as SessionId;
     requestUpdateSessionState(quizId.quizId, session1.sessionId, result.body.token, Action.END);
-    expect(() => requestUpdateSessionState(quizId.quizId, session1.sessionId , result.body.token, Action.END)).toThrow(HTTPError(RESPONSE_ERROR_400));
+    expect(() => requestUpdateSessionState(quizId.quizId, session1.sessionId, result.body.token, Action.END)).toThrow(HTTPError(RESPONSE_ERROR_400));
   });
 
   test('Token is empty or invalid (does not refer to valid logged in user session) - error 401', () => {
     requestClear();
-    expect(() => requestUpdateSessionState(1, 1 , '', Action.END)).toThrow(HTTPError(401));
-    expect(() => requestUpdateSessionState(1, 1 , 'invalid', Action.END)).toThrow(HTTPError(401));
+    expect(() => requestUpdateSessionState(1, 1, '', Action.END)).toThrow(HTTPError(401));
+    expect(() => requestUpdateSessionState(1, 1, 'invalid', Action.END)).toThrow(HTTPError(401));
   });
 
   test('Valid token is provided, but user is not authorised to modify this session - error 403', () => {
@@ -547,7 +546,7 @@ describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       5
     ) as SessionId;
     expect(() =>
-    requestUpdateSessionState(userOneQuizId.quizId, session1.sessionId, userTwo.body.token, Action.END)
+      requestUpdateSessionState(userOneQuizId.quizId, session1.sessionId, userTwo.body.token, Action.END)
     ).toThrow(HTTPError[403]);
   });
 });

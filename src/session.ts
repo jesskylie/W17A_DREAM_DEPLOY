@@ -177,7 +177,7 @@ export const updateSessionState = (quizId: number, sessionId: number, token: str
       }
     }
   }
-  
+
   // Invalid SessionId - error 400
   if (!isSessionIdValid(data, quizId, sessionId)) {
     throw httpError(400, 'Session Id does not refer to a valid session within this quiz');
@@ -420,7 +420,7 @@ function countQuizNotInEndState(data: DataStore, quizId: number): number {
   return count;
 }
 
-function isSessionIdValid(data: DataStore, quizId: number, sessionId: Number): boolean {
+function isSessionIdValid(data: DataStore, quizId: number, sessionId: number): boolean {
   for (const check of data.quizzesCopy) {
     if (check.metadata.quizId === quizId) {
       if (check.session.sessionId === sessionId) {

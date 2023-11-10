@@ -65,7 +65,7 @@ export function requestPlayerCreate(
 ): PlayerId | HttpError {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/player/join`,
+    SERVER_URL + '/v1/player/join',
     {
       json: { sessionId, name },
     }

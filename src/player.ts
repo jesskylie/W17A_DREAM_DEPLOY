@@ -1,5 +1,5 @@
 import httpError, { HttpError } from 'http-errors';
-import { getRandomInt, getState, retrieveDataFromFile, saveDataInFile } from "./library/functions";
+import { getRandomInt, getState, retrieveDataFromFile, saveDataInFile } from './library/functions';
 import { DataStore, State } from './dataStore';
 import { ONE_MILLION } from './library/constants';
 
@@ -48,7 +48,7 @@ export const playerCreate = (sessionId: number, name: string): PlayerId | HttpEr
 };
 
 // helper function
-function isSessionIdValid(data: DataStore, sessionId: Number): boolean {
+function isSessionIdValid(data: DataStore, sessionId: number): boolean {
   for (const check of data.quizzesCopy) {
     if (check.session.sessionId === sessionId) {
       return true;
@@ -57,7 +57,7 @@ function isSessionIdValid(data: DataStore, sessionId: Number): boolean {
   return false;
 }
 
- function isPlayerIdRepeated(data: DataStore, playerId: number): boolean {
+function isPlayerIdRepeated(data: DataStore, playerId: number): boolean {
   for (const check of data.quizzesCopy) {
     for (const player of check.session.players) {
       if (player.playerId === playerId) {
@@ -66,9 +66,9 @@ function isSessionIdValid(data: DataStore, sessionId: Number): boolean {
     }
   }
   return false;
- }
+}
 
- function isPlayerNameRepeated(data: DataStore, name: string): boolean {
+function isPlayerNameRepeated(data: DataStore, name: string): boolean {
   for (const check of data.quizzesCopy) {
     for (const checkname of check.session.players) {
       if (checkname.name === name) {
@@ -77,9 +77,9 @@ function isSessionIdValid(data: DataStore, sessionId: Number): boolean {
     }
   }
   return false;
- }
+}
 
- function generateRandomName(): string {
+function generateRandomName(): string {
   const allLetters: string[] = Array.from({ length: 26 }, (_, index) => String.fromCharCode(97 + index));
   let randomName = '';
   while (randomName.length < 5) {
@@ -89,4 +89,4 @@ function isSessionIdValid(data: DataStore, sessionId: Number): boolean {
     randomName = randomName + getRandomInt(9);
   }
   return randomName;
- }
+}
