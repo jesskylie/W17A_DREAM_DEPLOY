@@ -6,11 +6,12 @@ import {
   Player,
   Quizzes,
   ResultForEachQuestion,
+  Session,
   State,
 } from './dataStore';
 import { ONE_MILLION } from './library/constants';
 import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from './library/functions';
-import { MessageBody } from './library/interfaces';
+import { MessageBody, PlayerId, PlayerStatus, PlayerWithScore, SessionFinalResult } from './library/interfaces';
 import {
   isQuizIdValid,
   isAuthUserIdMatchQuizId,
@@ -311,18 +312,77 @@ export const getQuizFinalResultCSV = (quizId: number, sessionId: number, token: 
   };
 };
 
-export const playerJoinSession = (sessionId: number, name: string) => {
-  return {
-    playerId: 0
+export const playerCreate = (sessionId: number, name: string): PlayerId | HttpError => {
+  const data = retrieveDataFromFile();
+  if (!isSessionIdValidWithoutQuizId(data, sessionId)) {
+    throw httpError(400, 'SessionId is invalid');
+  }
+
+  if (getState(data, sessionId) !== State.LOBBY) {
+    throw httpError(400, 'Session is not in LOBBY state');
+  }
+
+  if (name === '') {
+    name = generateRandomName();
+    while (isPlayerNameRepeated(data, name)) {
+      name = generateRandomName();
+    }
+  }
+
+  if (isPlayerNameRepeated(data, name)) {
+    throw httpError(400, 'Name of user entered is not unique');
+  }
+
+  let playerId = getRandomInt(ONE_MILLION);
+  while (isPlayerIdRepeated(data, playerId)) {
+    playerId = getRandomInt(ONE_MILLION);
+  }
+  const newPlayer = {
+    playerId: playerId,
+    name: name,
+    selectedAnswer: [[]] as number[][],
   };
+
+  const newdata = data;
+  for (const check of newdata.quizzesCopy) {
+    if (check.session.sessionId === sessionId) {
+      check.session.players.push(newPlayer);
+    }
+  }
+  if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
+    for (const check of newdata.quizzesCopy) {
+      if (check.session.sessionId === sessionId) {
+        check.session.state = State.QUESTION_COUNTDOWN;
+      }
+    }
+  }
+  saveDataInFile(newdata);
+  return { playerId: playerId };
 };
 
-export const playerStatus = (playerId: number) => {
-  return {
-    state: 'LOBBY',
-    numQuestions: 1,
-    atQuestion: 3
-  };
+export const playerStatus = (playerId: number): PlayerStatus => {
+  const data = retrieveDataFromFile();
+  if (!isPlayerIdRepeated(data, playerId)) {
+    throw httpError(400, 'PlayerId does not exist');
+  }
+
+  for (const check of data.quizzesCopy) {
+    for (const player of check.session.players) {
+      if (player.playerId === playerId) {
+        const state = check.session.state;
+        let atQuestion = 0;
+        if (state !== State.LOBBY && state !== State.FINAL_RESULTS && state !== State.END) {
+          atQuestion = check.session.atQuestion;
+        }
+        const uppercaseState = state.toUpperCase();
+        return {
+          state: uppercaseState,
+          numQuestions: check.session.numQuestions,
+          atQuestion: atQuestion,
+        };
+      }
+    }
+  }
 };
 
 export const playerCurrentQuestionInfo = (playerId: number, questionposition: number) => {
@@ -357,25 +417,42 @@ export const questionResult = (playerId: number, questionposition: number) => {
   };
 };
 
-export const sessionFinalResult = (playerId: number) => {
-  return {
-    usersRankedByScore: [
-      {
-        name: 'Hayden',
-        score: 45
+export const sessionFinalResult = (playerId: number): SessionFinalResult | HttpError => {
+  const data = retrieveDataFromFile();
+  if (!isPlayerIdRepeated(data, playerId)) {
+    throw httpError(400, 'playerId does not exist');
+  }
+  for (const check of data.quizzesCopy) {
+    for (const player of check.session.players) {
+      if (player.playerId === playerId) {
+        if (check.session.state !== State.FINAL_RESULTS) {
+          throw httpError(400, 'Session is not in FINAL_RESULTS state');
+        }
       }
-    ],
-    questionResults: [
-      {
-        questionId: 5546,
-        playersCorrectList: [
-          'Hayden'
-        ],
-        averageAnswerTime: 45,
-        percentCorrect: 54
+    }
+  }
+
+  const playerArray = [];
+  for (const session of data.quizzesCopy) {
+    for (const player of session.session.players) {
+      if (player.playerId === playerId) {
+        for (const player of session.session.players) {
+          playerArray.push(playerScore(data, session.session, player.name));
+        }
       }
-    ]
-  };
+    }
+  }
+  
+  for (const session of data.quizzesCopy) {
+    for (const player of session.session.players) {
+      if (player.playerId === playerId) {
+        return {
+          usersRankedByScore: playerArray,
+          questionResults: session.session.result
+        };
+      }
+    }
+  }
 };
 
 export const getAllChatMessage = (playerId: number) => {
@@ -394,6 +471,8 @@ export const getAllChatMessage = (playerId: number) => {
 export const sendChatMessage = (message: MessageBody, playerId: number) => {
   return {};
 };
+
+// helper function:
 
 const isSessionIdRepeated = (data: DataStore, sessionId: number): boolean => {
   const sessionIdArr = data.quizzesCopy;
@@ -428,4 +507,83 @@ function isSessionIdValid(data: DataStore, quizId: number, sessionId: number): b
     }
   }
   return false;
+}
+
+function isSessionIdValidWithoutQuizId(data: DataStore, sessionId: number): boolean {
+  for (const check of data.quizzesCopy) {
+    if (check.session.sessionId === sessionId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isPlayerIdRepeated(data: DataStore, playerId: number): boolean {
+  for (const check of data.quizzesCopy) {
+    for (const player of check.session.players) {
+      if (player.playerId === playerId) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function isPlayerNameRepeated(data: DataStore, name: string): boolean {
+  for (const check of data.quizzesCopy) {
+    for (const checkname of check.session.players) {
+      if (checkname.name === name) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function generateRandomName(): string {
+  const allLetters: string[] = Array.from({ length: 26 }, (_, index) => String.fromCharCode(97 + index));
+  let randomName = '';
+  while (randomName.length < 5) {
+    randomName = randomName + allLetters[getRandomInt(allLetters.length)];
+  }
+  while (randomName.length < 8) {
+    randomName = randomName + getRandomInt(9);
+  }
+  return randomName;
+}
+
+function isNumOfPlayerEnoughToLeaveLobby(data: DataStore, sessionId: number): boolean {
+  for (const session of data.quizzesCopy) {
+    if (session.session.sessionId === sessionId) {
+      if (session.session.players.length === session.session.autoStartNum) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function checkPointofQuestion(data: DataStore, questionId: number): number {
+  for (const quiz of data.quizzes) {
+    for (const question of quiz.questions) {
+      if (question.questionId === questionId) {
+        return question.points;
+      }
+    }
+  }
+}
+
+function playerScore(data: DataStore, session:Session, playerName: string): PlayerWithScore {
+  const playerResult = {
+    name: playerName,
+    score: 0
+  };
+  for (const result of session.result) {
+    for (const player of result.playersCorrectList) {
+      if (playerName === player) {
+        playerResult.score +=  checkPointofQuestion(data, result.questionId);
+      }
+    }
+  }
+  return playerResult;
 }
