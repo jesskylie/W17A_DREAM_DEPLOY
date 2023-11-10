@@ -67,7 +67,9 @@ import {
 } from './library/constants';
 
 import {
-  startNewSession, updateSessionState, viewAllSessions
+  startNewSession,
+  updateSessionState,
+  viewAllSessions,
 } from './session';
 
 // Set up web app
@@ -140,13 +142,15 @@ app.post(
   }
 );
 
-app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
-  const quizId = parseInt(req.params.quizid);
-  const { autoStartNum } = req.body;
-  res.json(startNewSession(quizId, token, autoStartNum));
-});
-// --------------------------- POST REQUESTS - END ----------------------------
+app.post(
+  '/v1/admin/quiz/:quizid/session/start',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizid);
+    const { autoStartNum } = req.body;
+    res.json(startNewSession(quizId, token, autoStartNum));
+  }
+);
 
 app.post('/v2/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const token = req.body.token;
@@ -172,6 +176,8 @@ app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   }
   res.status(RESPONSE_OK_200).json(result);
 });
+
+// --------------------------- POST REQUESTS - END ----------------------------s
 
 // --------------------------- GET REQUESTS - START ---------------------------
 
@@ -212,14 +218,17 @@ app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
 
 // --------------------------- PUT REQUESTS - START ---------------------------
 
-app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
-  const quizId = parseInt(req.params.quizid);
-  const sessionId = parseInt(req.params.sessionid);
-  const action = req.body;
-  const result = updateSessionState(quizId, sessionId, token, action);
-  res.json(result);
-});
+app.put(
+  '/v1/admin/quiz/:quizid/session/:sessionid',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizid);
+    const sessionId = parseInt(req.params.sessionid);
+    const action = req.body;
+    const result = updateSessionState(quizId, sessionId, token, action);
+    res.json(result);
+  }
+);
 
 app.put('/v2/admin/user/details', (req: Request, res: Response) => {
   const token = req.headers.token as string;

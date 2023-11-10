@@ -58,11 +58,19 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export function requestSessionStart (quizid: number, token: string, autoStartNum: number): SessionId | HttpError {
-  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizid}/session/start`, {
-    headers: { token },
-    json: { quizid, autoStartNum },
-  });
+export function requestSessionStart(
+  quizid: number,
+  token: string,
+  autoStartNum: number
+): SessionId | HttpError {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizid}/session/start`,
+    {
+      headers: { token },
+      json: { quizid, autoStartNum },
+    }
+  );
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -92,11 +100,20 @@ export function requestViewAllSessions(token: string, quizid: number) {
   }
 }
 
-export function requestUpdateSessionState (quizid: number, sessionid: number, token: string, action: Action): Record<string, never> | HttpError {
-  const res = request('POST', SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}`, {
-    headers: { token },
-    json: { quizid, sessionid, action },
-  });
+export function requestUpdateSessionState(
+  quizid: number,
+  sessionid: number,
+  token: string,
+  action: Action
+): Record<string, never> | HttpError {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}`,
+    {
+      headers: { token },
+      json: { quizid, sessionid, action },
+    }
+  );
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -813,6 +830,32 @@ export const requestAdminUpdateQuizThumbnail = (
     {
       headers: { token },
       json: { imgUrl: imgUrl },
+    }
+  );
+
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+};
+
+// GET /v1/admin/quiz/{quizid}/session/{sessionid} get session status
+export const requestAdminGetSessionStatus = (
+  quizid: number,
+  sessionid: number,
+  token: string
+): Record<string, never> => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}`,
+    {
+      headers: { token },
     }
   );
 
