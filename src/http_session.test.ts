@@ -6,10 +6,12 @@ import {
   requestAdminRegister,
   requestCreateQuestionV2,
   requestViewAllSessions,
+  requestUpdateSessionState,
 } from './library/route_testing_functions';
-import { DEFAULT_VALID_THUMBNAIL_URL } from './library/constants';
+import { DEFAULT_VALID_THUMBNAIL_URL, RESPONSE_ERROR_400 } from './library/constants';
 
 import { QuizId, SessionId } from './quiz';
+import { Action } from './dataStore';
 
 describe('Testing POST /v2/admin/quiz', () => {
   test('Success - valid input', () => {
@@ -348,6 +350,204 @@ describe('Test: GET /v1/admin/quiz/{quizid}/sessions', () => {
     requestSessionStart(userOneQuizId.quizId, userOne.body.token, 5);
     expect(() =>
       requestViewAllSessions(userTwo.body.token, userOneQuizId.quizId)
+    ).toThrow(HTTPError[403]);
+  });
+});
+
+
+describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
+  test('successful case', () => {
+    requestClear();
+    const result = requestAdminRegister(
+      'hayley@hotmail.com',
+      '12345abced',
+      'Haley',
+      'Berry'
+    );
+    const quizId = requestAdminQuizCreateV2(
+      result.body.token,
+      'New Quiz',
+      'Quiz description'
+    ) as QuizId;
+    const question = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answerId: 0,
+          answer: 'Prince Henry',
+          colour: 'red',
+          correct: true,
+        },
+        {
+          answerId: 1,
+          answer: 'Prince Charles',
+          colour: 'yellow',
+          correct: false,
+        },
+      ],
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
+    };
+    requestCreateQuestionV2(result.body.token, question, quizId.quizId);
+    const session1 = requestSessionStart(
+      quizId.quizId,
+      result.body.token,
+      5
+    ) as SessionId;
+    const session2 = requestSessionStart(
+      quizId.quizId,
+      result.body.token,
+      5
+    ) as SessionId;
+    requestUpdateSessionState(quizId.quizId, session2.sessionId, result.body.token, Action.END);
+    expect(
+      requestViewAllSessions(result.body.token, quizId.quizId)
+    ).toStrictEqual({
+      activeSessions: [session1.sessionId],
+      inactiveSessions: [ session2.sessionId],
+    });
+  });
+
+  test('SessionId is invalid (does not refer to valid session within this quiz) - error 400', () => {
+    requestClear();
+    const result = requestAdminRegister(
+      'hayley@hotmail.com',
+      '12345abced',
+      'Haley',
+      'Berry'
+    );
+    const quizId = requestAdminQuizCreateV2(
+      result.body.token,
+      'New Quiz',
+      'Quiz description'
+    ) as QuizId;
+    const question = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answerId: 0,
+          answer: 'Prince Henry',
+          colour: 'red',
+          correct: true,
+        },
+        {
+          answerId: 1,
+          answer: 'Prince Charles',
+          colour: 'yellow',
+          correct: false,
+        },
+      ],
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
+    };
+    requestCreateQuestionV2(result.body.token, question, quizId.quizId);
+    const session1 = requestSessionStart(
+      quizId.quizId,
+      result.body.token,
+      5
+    ) as SessionId;
+    expect(() => requestUpdateSessionState(quizId.quizId, -1 * session1.sessionId , result.body.token, Action.END)).toThrow(HTTPError(RESPONSE_ERROR_400));
+  });
+
+  test('Action enum cannot be applied in the current state - error 400', () => {
+    requestClear();
+    requestClear();
+    const result = requestAdminRegister(
+      'hayley@hotmail.com',
+      '12345abced',
+      'Haley',
+      'Berry'
+    );
+    const quizId = requestAdminQuizCreateV2(
+      result.body.token,
+      'New Quiz',
+      'Quiz description'
+    ) as QuizId;
+    const question = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answerId: 0,
+          answer: 'Prince Henry',
+          colour: 'red',
+          correct: true,
+        },
+        {
+          answerId: 1,
+          answer: 'Prince Charles',
+          colour: 'yellow',
+          correct: false,
+        },
+      ],
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
+    };
+    requestCreateQuestionV2(result.body.token, question, quizId.quizId);
+    const session1 = requestSessionStart(
+      quizId.quizId,
+      result.body.token,
+      5
+    ) as SessionId;
+    requestUpdateSessionState(quizId.quizId, session1.sessionId, result.body.token, Action.END);
+    expect(() => requestUpdateSessionState(quizId.quizId, session1.sessionId , result.body.token, Action.END)).toThrow(HTTPError(RESPONSE_ERROR_400));
+  });
+
+  test('Token is empty or invalid (does not refer to valid logged in user session) - error 401', () => {
+    requestClear();
+    expect(() => requestUpdateSessionState(1, 1 , '', Action.END)).toThrow(HTTPError(401));
+    expect(() => requestUpdateSessionState(1, 1 , 'invalid', Action.END)).toThrow(HTTPError(401));
+  });
+
+  test('Valid token is provided, but user is not authorised to modify this session - error 403', () => {
+    requestClear();
+    const userOne = requestAdminRegister(
+      'hayley@hotmail.com',
+      '12345abced',
+      'Haley',
+      'Berry'
+    );
+    const userTwo = requestAdminRegister(
+      'bob@hotmail.com',
+      '12345abced',
+      'Bob',
+      'Smith'
+    );
+    const userOneQuizId = requestAdminQuizCreateV2(
+      userOne.body.token,
+      'New Quiz',
+      'Quiz description'
+    );
+    const question = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answerId: 0,
+          answer: 'Prince Henry',
+          colour: 'red',
+          correct: true,
+        },
+        {
+          answerId: 1,
+          answer: 'Prince Charles',
+          colour: 'yellow',
+          correct: false,
+        },
+      ],
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
+    };
+    requestCreateQuestionV2(userOne.body.token, question, userOneQuizId.quizId);
+    const session1 = requestSessionStart(
+      userOneQuizId.quizId,
+      userOne.body.token,
+      5
+    ) as SessionId;
+    expect(() =>
+    requestUpdateSessionState(userOneQuizId.quizId, session1.sessionId, userTwo.body.token, Action.END)
     ).toThrow(HTTPError[403]);
   });
 });
