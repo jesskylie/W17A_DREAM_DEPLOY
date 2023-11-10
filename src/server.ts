@@ -45,6 +45,7 @@ import {
   adminQuizNameUpdateV2,
   adminQuizDescriptionUpdateV2,
   adminQuizThumbnailUrlUpdate,
+  adminQuizGetSessionStatus,
 } from './quizV2';
 
 import {
@@ -67,7 +68,9 @@ import {
 } from './library/constants';
 
 import {
-  startNewSession, updateSessionState, viewAllSessions
+  startNewSession,
+  updateSessionState,
+  viewAllSessions,
 } from './session';
 
 // Set up web app
@@ -106,7 +109,7 @@ app.get('/echo', (req: Request, res: Response) => {
 // =================== v2 ROUTES BELOW THIS LINE =======================
 // ============================================================================
 
-// --------------------------- POST REQUESTS - START --------------------------
+// --------------------------- V2 POST REQUESTS - START --------------------------
 
 app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
   const token = req.headers.token as string;
@@ -140,13 +143,15 @@ app.post(
   }
 );
 
-app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
-  const quizId = parseInt(req.params.quizid);
-  const { autoStartNum } = req.body;
-  res.json(startNewSession(quizId, token, autoStartNum));
-});
-// --------------------------- POST REQUESTS - END ----------------------------
+app.post(
+  '/v1/admin/quiz/:quizid/session/start',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizid);
+    const { autoStartNum } = req.body;
+    res.json(startNewSession(quizId, token, autoStartNum));
+  }
+);
 
 app.post('/v2/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const token = req.body.token;
@@ -173,7 +178,9 @@ app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   res.status(RESPONSE_OK_200).json(result);
 });
 
-// --------------------------- GET REQUESTS - START ---------------------------
+// --------------------------- V2 POST REQUESTS - END ----------------------------s
+
+// --------------------------- V2 GET REQUESTS - START ---------------------------
 
 app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   const token = req.headers.token as string;
@@ -208,18 +215,21 @@ app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
   res.json(result);
 });
 
-// --------------------------- GET REQUESTS - END -----------------------------
+// --------------------------- V2 GET REQUESTS - END -----------------------------
 
-// --------------------------- PUT REQUESTS - START ---------------------------
+// --------------------------- V2 PUT REQUESTS - START ---------------------------
 
-app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
-  const quizId = parseInt(req.params.quizid);
-  const sessionId = parseInt(req.params.sessionid);
-  const action = req.body;
-  const result = updateSessionState(quizId, sessionId, token, action);
-  res.json(result);
-});
+app.put(
+  '/v1/admin/quiz/:quizid/session/:sessionid',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizid);
+    const sessionId = parseInt(req.params.sessionid);
+    const action = req.body;
+    const result = updateSessionState(quizId, sessionId, token, action);
+    res.json(result);
+  }
+);
 
 app.put('/v2/admin/user/details', (req: Request, res: Response) => {
   const token = req.headers.token as string;
@@ -279,9 +289,9 @@ app.put('/v2/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   res.json(adminQuizDescriptionUpdateV2(token, quizId, description));
 });
 
-// --------------------------- PUT REQUESTS - END -----------------------------
+// --------------------------- V2 PUT REQUESTS - END -----------------------------
 
-// --------------------------- DELETE REQUESTS - START ------------------------
+// --------------------------- V2 DELETE REQUESTS - START ------------------------
 app.delete(
   '/v2/admin/quiz/:quizid/question/:questionid',
   (req: Request, res: Response) => {
@@ -315,7 +325,7 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
 // =================== v1 ROUTES BELOW THIS LINE =======================
 // ============================================================================
 
-// --------------------------- POST REQUESTS - START --------------------------
+// --------------------------- V1 POST REQUESTS - START --------------------------
 
 // POST request to route /v1/admin/auth/login
 // From swagger.yaml:
@@ -462,9 +472,9 @@ app.post(
   }
 );
 
-// --------------------------- POST REQUESTS - END --------------------------
+// --------------------------- V1 POST REQUESTS - END --------------------------
 
-// --------------------------- GET REQUESTS - START --------------------------
+// --------------------------- V1 GET REQUESTS - START --------------------------
 
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   const token = req.query.token as string;
@@ -513,9 +523,23 @@ app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   res.status(RESPONSE_OK_200).json(result);
 });
 
-// --------------------------- GET REQUESTS - END --------------------------
+// Iteration 3 v1 route
+app.get(
+  '/v1/admin/quiz/:quizid/session/:sessionid',
+  (req: Request, res: Response) => {
+    const quizId = parseInt(req.params.quizid);
+    const sessionId = parseInt(req.params.sessionid);
+    const token = req.headers.token as string;
 
-// --------------------------- PUT REQUESTS - START --------------------------
+    const response = adminQuizGetSessionStatus(quizId, sessionId, token);
+
+    res.json(response);
+  }
+);
+
+// --------------------------- V1 GET REQUESTS - END --------------------------
+
+// --------------------------- V1 PUT REQUESTS - START --------------------------
 
 // PUT request to route /v1/admin/user/details
 // From swagger.yaml:
@@ -658,9 +682,9 @@ app.put(
   }
 );
 
-// --------------------------- PUT REQUESTS - END --------------------------
+// --------------------------- V1 PUT REQUESTS - END --------------------------
 
-// --------------------------- DELETE REQUESTS - START --------------------------
+// --------------------------- V1 DELETE REQUESTS - START --------------------------
 
 app.delete('/v1/clear', (req: Request, res: Response) => {
   const response = newClear();
@@ -724,7 +748,7 @@ app.delete(
   }
 );
 
-// --------------------------- DELETE REQUESTS - END --------------------------
+// --------------------------- V1 DELETE REQUESTS - END --------------------------
 
 // ============================================================================
 // =================== v1 ROUTES ABOVE THIS LINE =======================

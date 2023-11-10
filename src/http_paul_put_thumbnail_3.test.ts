@@ -50,7 +50,7 @@ interface RequestAdminRegisterReturn {
 // From swagger.yaml:
 // Should be called with a token that is returned after either a login or register has been made.
 
-describe('test /v1/admin/quiz/{quizid}/thumbnail: Returns an empty object -> EXPECT 200 SUCCESS', () => {
+describe('test /v1/admin/quiz/{quizid}/thumbnail: Confirms thumbnailUrl has changed -> EXPECT 200 SUCCESS', () => {
   test('Returns imgUrl object object -> EXPECT SUCESS CODE 200', () => {
     requestClear();
     // Create user
