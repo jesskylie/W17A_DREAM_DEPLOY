@@ -82,6 +82,7 @@ export interface Player {
   playerId: number;
   name: string;
   selectedAnswer: number[][];
+  timeAnswered?: number;
 }
 
 export interface Message {
@@ -126,6 +127,7 @@ export interface Question {
   duration: number;
   thumbnailUrl: string;
   points: number;
+  questionStartTime?: number;
   answers: {
     answerId: number;
     answer: string;
@@ -135,21 +137,21 @@ export interface Question {
 }
 
 export enum State {
-  LOBBY = 'lobby',
-  QUESTION_COUNTDOWN = 'question_countdown',
-  QUESTION_OPEN = 'question_open',
-  QUESTION_CLOSE = 'question_close',
-  ANSWER_SHOW = 'answer_show',
-  FINAL_RESULTS = 'final results',
-  END = 'end',
+  LOBBY = 'LOBBY',
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN',
+  QUESTION_OPEN = 'QUESTION_OPEN',
+  QUESTION_CLOSE = 'QUESTION_CLOSE',
+  ANSWER_SHOW = 'ANSWER_SHOW',
+  FINAL_RESULTS = 'FINAL_RESULTS',
+  END = 'END',
 }
 
 export enum Action {
-  NEXT_QUESTION = 'next_question',
-  SKIP_COUNTDOWN = 'skip_countdown',
-  GO_TO_ANSWER = 'go_to_answer',
-  GO_TO_FINAL_RESULTS = 'go_to_final_results',
-  END = 'end',
+  NEXT_QUESTION = 'NEXT_QUESTION',
+  SKIP_COUNTDOWN = 'SKIP_COUNTDOWN',
+  GO_TO_ANSWER = 'GO_TO_ANSWER',
+  GO_TO_FINAL_RESULTS = 'GO_TO_FINAL_RESULTS',
+  END = 'END',
 }
 
 export interface Quizzes {

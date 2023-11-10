@@ -1,4 +1,4 @@
-import { Quizzes, State } from '../dataStore';
+import { Quizzes } from '../dataStore';
 
 export interface QuestionBody {
   question: string;

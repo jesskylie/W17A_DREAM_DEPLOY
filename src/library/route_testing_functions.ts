@@ -61,8 +61,21 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export function requestResultsOfAnswers(playerid: number, questionposition: number) {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
+    {
+      qs: { playerid, questionposition },
+    });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
 export function requestSessionFinalResult(playerid: number): SessionFinalResult | HttpError {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/results`, { qs: { playerid }});
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/results`, { qs: { playerid } });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -72,7 +85,7 @@ export function requestSessionFinalResult(playerid: number): SessionFinalResult 
 }
 
 export function requestPlayerStatus(playerid: number): PlayerStatus | HttpError {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, { qs: { playerid }});
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, { qs: { playerid } });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());

@@ -77,7 +77,7 @@ import {
   viewAllSessions,
 } from './session';
 
-import { submissionOfAnswers } from './answers';
+import { getResultsOfAnswers, submissionOfAnswers } from './answers';
 
 // Set up web app
 const app = express();
@@ -230,7 +230,6 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
   const result = sessionFinalResult(playerId);
   res.json(result);
 });
-
 
 // --------------------------- V2 GET REQUESTS - END -----------------------------
 
@@ -551,6 +550,14 @@ app.get(
     const response = adminQuizGetSessionStatus(quizId, sessionId, token);
 
     res.json(response);
+  }
+);
+
+app.get('/v1/player/:playerid/question/:questionposition/result',
+  (req: Request, res: Response) => {
+    const playerId = parseInt(req.params.playerid);
+    const questionPosition = parseInt(req.params.questionposition);
+    res.json(getResultsOfAnswers(playerId, questionPosition));
   }
 );
 
