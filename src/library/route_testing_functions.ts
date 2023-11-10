@@ -61,7 +61,7 @@ export const requestClear = () => {
 
 export function requestAnswerQuestion(
   playerid: number,
-  answerIds: number | number[],
+  answerIds: number[],
   questionposition: number
 ): Record<string, never> | HttpError {
   const res = request(
