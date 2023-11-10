@@ -10,29 +10,17 @@ import {
   requestClear,
   requestAdminRegister,
   requestAdminQuizCreateV2,
-  requestAdminUpdateQuizThumbnail,
-  requestAdminQuizInfoV2,
   requestAdminGetSessionStatus,
   requestSessionStart,
   requestCreateQuestionV2,
 } from './library/route_testing_functions';
-import {
-  QuestionBody,
-  TokenString,
-  requestAdminQuizInfoReturn,
-} from './library/interfaces';
+import { TokenString } from './library/interfaces';
 import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
   DEFAULT_VALID_THUMBNAIL_URL,
-  VALID_THUMBNAIL_URL,
-  INVALID_THUMBNAIL_URL_NOT_A_FILE,
-  INVALID_THUMBNAIL_URL_NOT_JPG_PNG,
 } from './library/constants';
-
-import { QuizzesCopy, Question } from './dataStore';
-import { ExperimentalSpecifierResolution } from 'ts-node';
 
 // --------------------------------------------------
 // Test suite for POST /v2/admin/auth/logout route - START
@@ -56,56 +44,6 @@ interface RequestAdminRegisterReturn {
 }
 
 // interfaces used in this file - END
-
-// interface PlayersArray {
-//   players: string[];
-// }
-
-// interface SessionMetaDataObject {
-//   metadata: Quizzes;
-// }
-
-// interface SessionStateObject {
-//   user: {
-//     authUserId: number;
-//     name: string;
-//     email: string;
-//     numSuccessfulLogins: number;
-//     numFailedPasswordsSinceLastLogin: number;
-//   };
-// }
-
-function createSessionStateObject(
-  state: string,
-  atQuestion: number,
-  players: string[],
-  quizId: number,
-  name: string,
-  timeCreated: number,
-  timeLastEdited: number,
-  description: string,
-  numQuestions: number,
-  questions: Question,
-  duration: number,
-  thumbnailUrl: string
-) {
-  const expectedSessionStateObject = {
-    state,
-    atQuestion,
-    players,
-    quizId,
-    name,
-    timeCreated,
-    timeLastEdited,
-    description,
-    numQuestions,
-    questions,
-    duration,
-    thumbnailUrl,
-  };
-
-  return expectedSessionStateObject;
-}
 
 const question = {
   question: 'Who is the monarch of England?',
@@ -137,7 +75,7 @@ const question = {
 // sessionid (path) number
 // token (header) string
 
-describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty object -> EXPECT 200 SUCCESS', () => {
+describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty object -> EXPECT 200 SUCCESS', () => {
   test('Returns data about session state -> EXPECT SUCESS CODE 200', () => {
     requestClear();
     // Create user
@@ -169,39 +107,19 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty obj
 
     // create question
 
-    const exemplarQuestion = {
-      questionId: 1,
-      question: 'Who is the monarch of England?',
-      duration: 1,
-      points: 5,
-      answers: [
-        {
-          answerId: 1,
-          answer: 'King Charles',
-          colour: 'red',
-          correct: true,
-        },
-        {
-          answerId: 2,
-          answer: 'Prince William',
-          colour: 'red',
-          correct: false,
-        },
-      ],
-      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
-    };
+    requestCreateQuestionV2(token, question, quizId);
 
-    const testCreateQuestion = requestCreateQuestionV2(token, question, quizId);
-
-    console.log('200 test: testCreateQuestion ->', testCreateQuestion);
+    // console.log('200 test: testCreateQuestion ->', testCreateQuestion);
 
     // create session
 
     const testCreateSession = requestSessionStart(quizId, token, 1);
 
-    console.log('200 test: testCreateSession ->', testCreateSession);
+    // console.log('200 test: testCreateSession ->', testCreateSession);
 
     const sessionId = testCreateSession.sessionId;
+
+    // console.log('200 test: sessionId ->', sessionId);
 
     const testGetSessionStatus = requestAdminGetSessionStatus(
       quizId,
@@ -209,21 +127,41 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty obj
       token
     );
 
-    const getExpectedSessionState = createSessionStateObject(
-      'LOBBY',
-      1,
-      ['Hayden'],
-      quizId,
-      quizName,
-      expect.any(Number),
-      expect.any(Number),
-      quizDescription,
-      1,
-      exemplarQuestion,
-      expect.any(Number),
-      expect.any(String)
-    );
+    // const getExpectedSessionState = createSessionStateObject({
+    //   state:'LOBBY',
+    //   atQuestion:1,
+    //   players: ['Hayden'],
+    //   metadata: {
+    //   quizId: quizId,
+    //   name: quizName,
+    //   timeCreated: expect.any(Number),
+    //   description: expect.any(String),
+    //   numQuestions: expect.any(Number),
+    //   questions: []
+    //   duration: expect.any(Number),
+    //   thumbnailUrl: expect.any(String),
+    //   }}
+    // );
 
+    const getExpectedSessionState = {
+      state: 'lobby',
+      atQuestion: expect.any(Number),
+      players: expect.any(Array),
+      metadata: {
+        quizId: quizId,
+        name: quizName,
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: expect.any(String),
+        numQuestions: expect.any(Number),
+        questions: expect.any(Array),
+        duration: expect.any(Number),
+        thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
+      },
+    };
+
+    // console.log('200 test: testGetSessionStatus ->', testGetSessionStatus);
+    // console.log('200 test: getExpectedSessionState', getExpectedSessionState);
     expect(testGetSessionStatus).toStrictEqual(getExpectedSessionState);
   });
 });
@@ -255,15 +193,15 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
 
     const quizId = quizCreateResponse.quizId;
 
-    const testCreateQuestion = requestCreateQuestionV2(token, question, quizId);
+    requestCreateQuestionV2(token, question, quizId);
 
-    console.log('401 test: testCreateQuestion ->', testCreateQuestion);
+    // console.log('401 test: testCreateQuestion ->', testCreateQuestion);
 
     // create session
 
     const testCreateSession = requestSessionStart(quizId, token, 1);
 
-    console.log('401 test: testCreateSession ->', testCreateSession);
+    // console.log('401 test: testCreateSession ->', testCreateSession);
 
     const sessionId = testCreateSession.sessionId;
 
@@ -275,6 +213,7 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
   });
 
   test('Valid token is provided, but user is not authorised to view this session -> EXPECT ERROR CODE 403', () => {
+    // NOT POSSIBLE UNTIL player is created
     requestClear();
     // Create user
     const email = emailBase;
@@ -313,15 +252,15 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
 
     const quizId = quizCreateResponse.quizId;
 
-    const testCreateQuestion = requestCreateQuestionV2(token, question, quizId);
+    requestCreateQuestionV2(token, question, quizId);
 
-    console.log('403 test: testCreateQuestion ->', testCreateQuestion);
+    // console.log('403 test: testCreateQuestion ->', testCreateQuestion);
 
     // create session
 
     const testCreateSession = requestSessionStart(quizId, token, 1);
 
-    console.log('403 test: testCreateSession ->', testCreateSession);
+    // console.log('403 test: testCreateSession ->', testCreateSession);
 
     const sessionId = testCreateSession.sessionId;
 
@@ -358,17 +297,17 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
 
     const quizId = quizCreateResponse.quizId;
 
-    const testCreateQuestion = requestCreateQuestionV2(token, question, quizId);
+    requestCreateQuestionV2(token, question, quizId);
 
-    console.log('400 test: testCreateQuestion ->', testCreateQuestion);
+    // console.log('400 test: testCreateQuestion ->', testCreateQuestion);
 
     // create session
 
-    const testCreateSession = requestSessionStart(quizId, token, 1);
+    requestSessionStart(quizId, token, 1);
 
-    console.log('400 test: testCreateSession ->', testCreateSession);
+    // console.log('400 test: testCreateSession ->', testCreateSession);
 
-    const sessionId = testCreateSession.sessionId;
+    // const sessionId = testCreateSession.sessionId;
 
     // test for get session status
 

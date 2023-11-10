@@ -852,7 +852,7 @@ export const requestAdminGetSessionStatus = (
   token: string
 ): Record<string, never> => {
   const res = request(
-    'PUT',
+    'GET',
     SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}`,
     {
       headers: { token },
