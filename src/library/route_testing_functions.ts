@@ -20,7 +20,6 @@ import {
   RequestAdminDetailsUpdateServerReturn,
   QuestionId,
   QuizId,
-  GetSessionStatusReturnObj,
   PlayerId,
   PlayerStatus,
   SessionFinalResult,
@@ -615,8 +614,8 @@ export function requestUpdateQuestionV2(
           duration: question.duration,
           points: question.points,
           answers: question.answers as QuestionBody['answers'],
+          thumbnailUrl: thumbnailUrl,
         },
-        thumbnailUrl: thumbnailUrl,
       },
       timeout: WAIT_TIME,
     }

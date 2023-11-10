@@ -12,20 +12,6 @@ import {
 import { ONE_MILLION } from './library/constants';
 import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from './library/functions';
 import { MessageBody, PlayerId, PlayerStatus, PlayerWithScore, SessionFinalResult } from './library/interfaces';
-import {
-  getRandomInt,
-  getState,
-  isActionValid,
-  retrieveDataFromFile,
-  saveDataInFile,
-} from './library/functions';
-import {
-  MessageBody,
-  PlayerId,
-  PlayerStatus,
-  PlayerWithScore,
-  SessionFinalResult,
-} from './library/interfaces';
 import { isQuizIdValid, isAuthUserIdMatchQuizId, SessionId } from './quiz';
 import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
 
@@ -354,83 +340,6 @@ export const playerCreate = (
   sessionId: number,
   name: string
 ): PlayerId | HttpError => {
-  const data = retrieveDataFromFile();
-  if (!isSessionIdValidWithoutQuizId(data, sessionId)) {
-    throw httpError(400, 'SessionId is invalid');
-  }
-
-  if (getState(data, sessionId) !== State.LOBBY) {
-    throw httpError(400, 'Session is not in LOBBY state');
-  }
-
-  if (name === '') {
-    name = generateRandomName();
-    while (isPlayerNameRepeated(data, sessionId, name)) {
-      name = generateRandomName();
-    }
-  }
-
-  if (isPlayerNameRepeated(data, sessionId, name)) {
-    throw httpError(400, 'Name of user entered is not unique');
-  }
-
-  let playerId = getRandomInt(ONE_MILLION);
-  while (isPlayerIdRepeated(data, playerId)) {
-    playerId = getRandomInt(ONE_MILLION);
-  }
-  const newPlayer = {
-    playerId: playerId,
-    name: name,
-    selectedAnswer: [[]] as number[][],
-  };
-
-  const newdata = data;
-  for (const check of newdata.quizzesCopy) {
-    if (check.session.sessionId === sessionId) {
-      check.session.players.push(newPlayer);
-    }
-  }
-  if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
-    for (const check of newdata.quizzesCopy) {
-      if (check.session.sessionId === sessionId) {
-        check.session.state = State.QUESTION_COUNTDOWN;
-      }
-    }
-  }
-  saveDataInFile(newdata);
-  return { playerId: playerId };
-};
-
-export const playerStatus = (playerId: number): PlayerStatus => {
-  const data = retrieveDataFromFile();
-  if (!isPlayerIdRepeated(data, playerId)) {
-    throw httpError(400, 'PlayerId does not exist');
-  }
-
-  for (const check of data.quizzesCopy) {
-    for (const player of check.session.players) {
-      if (player.playerId === playerId) {
-        const state = check.session.state;
-        let atQuestion = 0;
-        if (
-          state !== State.LOBBY &&
-          state !== State.FINAL_RESULTS &&
-          state !== State.END
-        ) {
-          atQuestion = check.session.atQuestion;
-        }
-
-        return {
-          state: state,
-          numQuestions: check.session.numQuestions,
-          atQuestion: atQuestion,
-        };
-      }
-    }
-  }
-};
-
-export const playerCreate = (sessionId: number, name: string): PlayerId | HttpError => {
   const data = retrieveDataFromFile();
   if (!isSessionIdValidWithoutQuizId(data, sessionId)) {
     throw httpError(400, 'SessionId is invalid');
