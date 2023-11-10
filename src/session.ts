@@ -406,16 +406,16 @@ const isSessionIdRepeated = (data: DataStore, sessionId: number): boolean => {
 };
 
 // finds all quizzes in QuizzesCopy with specific quizIds
-// returns the count of quizzes NOT in end state 
+// returns the count of quizzes NOT in end state
 function countQuizNotInEndState(data: DataStore, quizId: number): number {
   let count = 0;
-    for (const quizzesCopy of data.quizzesCopy) {
-      if (quizzesCopy.metadata.quizId === quizId) {
-        if (quizzesCopy.session.state !== State.END) {
-          count++;
-        }
+  for (const quizzesCopy of data.quizzesCopy) {
+    if (quizzesCopy.metadata.quizId === quizId) {
+      if (quizzesCopy.session.state !== State.END) {
+        count++;
       }
     }
+  }
   return count;
 }
 
