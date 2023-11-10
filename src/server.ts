@@ -225,7 +225,7 @@ app.put(
     const token = req.headers.token as string;
     const quizId = parseInt(req.params.quizid);
     const sessionId = parseInt(req.params.sessionid);
-    const action = req.body;
+    const { action } = req.body;
     const result = updateSessionState(quizId, sessionId, token, action);
     res.json(result);
   }

@@ -107,7 +107,7 @@ export function requestUpdateSessionState(
   action: Action
 ): Record<string, never> | HttpError {
   const res = request(
-    'POST',
+    'PUT',
     SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}`,
     {
       headers: { token },

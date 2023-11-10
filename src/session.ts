@@ -151,6 +151,43 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
 
 export const updateSessionState = (quizId: number, sessionId: number, token: string, action: Action) => {
   const data = retrieveDataFromFile();
+  const authUserId = getAuthUserIdUsingToken(data, token);
+  const isQuizIdValidTest = isQuizIdValid(data, quizId);
+  const isTokenValidTest = isTokenValid(data, token);
+  const isAuthUserIdMatchQuizIdTest = isAuthUserIdMatchQuizId(
+    data,
+    authUserId.authUserId,
+    quizId
+  );
+  // Valid token is provided, but user does not own quiz - error 403
+  if (!isAuthUserIdMatchQuizIdTest && isTokenValidTest && isQuizIdValidTest) {
+    throw httpError(403, 'QuizId does not match authUserId');
+  }
+  // Token is empty or invalid - error 401
+  if (!isTokenValidTest) {
+    throw httpError(401, 'Token is empty or invalid');
+  }
+
+  // the quiz does not have any questions in it - 400 error
+  for (const quizzes of data.quizzes) {
+    if (quizzes.quizId === quizId) {
+      const num = quizzes.numQuestions;
+      if (num === 0) {
+        throw httpError(400, 'The quiz does not have any questions in it');
+      }
+    }
+  }
+  
+  // Invalid SessionId - error 400
+  if (!isSessionIdValid(data, quizId, sessionId)) {
+    throw httpError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  // maximum of 10 sessions that are not in END state currently exist - error 400
+  if (countQuizNotInEndState(data, quizId) >= MAX_END_STATE_NUM) {
+    throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
+  }
+
   let state = getState(data, sessionId);
   if (!isActionValid(state, action)) {
     throw httpError(400, 'Action enum cannot be applied in the current state (see spec for details)');
@@ -381,4 +418,15 @@ function countQuizNotInEndState(data: DataStore, quizId: number): number {
     }
   }
   return count;
+}
+
+function isSessionIdValid(data: DataStore, quizId: number, sessionId: Number): boolean {
+  for (const check of data.quizzesCopy) {
+    if (check.metadata.quizId === quizId) {
+      if (check.session.sessionId === sessionId) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
