@@ -3,10 +3,6 @@ image: comp1531/automarking:latest
 stages:
   - checks
 
-before_script:
-  - echo 'Installing dependencies'
-  - npm install
-
 testing:
   stage: checks
   only:
@@ -33,4 +29,5 @@ linting:
     - merge_requests
   script:
     - echo 'Running linters'
+    - npm install
     - npm run lint
