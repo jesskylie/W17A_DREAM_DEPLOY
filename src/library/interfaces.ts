@@ -166,7 +166,7 @@ export interface PlayerStatus {
   atQuestion: number;
 }
 
-interface PlayerWithScore {
+export interface PlayerWithScore {
   name: string;
   score: number;
 }

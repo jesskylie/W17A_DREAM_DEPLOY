@@ -6,6 +6,7 @@ import {
   Player,
   Quizzes,
   ResultForEachQuestion,
+  Session,
   State,
 } from './dataStore';
 import { ONE_MILLION } from './library/constants';
@@ -16,7 +17,13 @@ import {
   retrieveDataFromFile,
   saveDataInFile,
 } from './library/functions';
-import { MessageBody, PlayerId, PlayerStatus } from './library/interfaces';
+import {
+  MessageBody,
+  PlayerId,
+  PlayerStatus,
+  PlayerWithScore,
+  SessionFinalResult,
+} from './library/interfaces';
 import { isQuizIdValid, isAuthUserIdMatchQuizId, SessionId } from './quiz';
 import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
 
@@ -463,23 +470,44 @@ export const questionResult = (playerId: number, questionposition: number) => {
   };
 };
 
-export const sessionFinalResult = (playerId: number) => {
-  return {
-    usersRankedByScore: [
-      {
-        name: 'Hayden',
-        score: 45,
-      },
-    ],
-    questionResults: [
-      {
-        questionId: 5546,
-        playersCorrectList: ['Hayden'],
-        averageAnswerTime: 45,
-        percentCorrect: 54,
-      },
-    ],
-  };
+export const sessionFinalResult = (
+  playerId: number
+): SessionFinalResult | HttpError => {
+  const data = retrieveDataFromFile();
+  if (!isPlayerIdRepeated(data, playerId)) {
+    throw httpError(400, 'playerId does not exist');
+  }
+  for (const check of data.quizzesCopy) {
+    for (const player of check.session.players) {
+      if (player.playerId === playerId) {
+        if (check.session.state !== State.FINAL_RESULTS) {
+          throw httpError(400, 'Session is not in FINAL_RESULTS state');
+        }
+      }
+    }
+  }
+
+  const playerArray = [];
+  for (const session of data.quizzesCopy) {
+    for (const player of session.session.players) {
+      if (player.playerId === playerId) {
+        for (const player of session.session.players) {
+          playerArray.push(playerScore(data, session.session, player.name));
+        }
+      }
+    }
+  }
+
+  for (const session of data.quizzesCopy) {
+    for (const player of session.session.players) {
+      if (player.playerId === playerId) {
+        return {
+          usersRankedByScore: playerArray,
+          questionResults: session.session.result,
+        };
+      }
+    }
+  }
 };
 
 export const getAllChatMessage = (playerId: number) => {
@@ -600,4 +628,33 @@ function isNumOfPlayerEnoughToLeaveLobby(
     }
   }
   return false;
+}
+
+function checkPointofQuestion(data: DataStore, questionId: number): number {
+  for (const quiz of data.quizzes) {
+    for (const question of quiz.questions) {
+      if (question.questionId === questionId) {
+        return question.points;
+      }
+    }
+  }
+}
+
+function playerScore(
+  data: DataStore,
+  session: Session,
+  playerName: string
+): PlayerWithScore {
+  const playerResult = {
+    name: playerName,
+    score: 0,
+  };
+  for (const result of session.result) {
+    for (const player of result.playersCorrectList) {
+      if (playerName === player) {
+        playerResult.score += checkPointofQuestion(data, result.questionId);
+      }
+    }
+  }
+  return playerResult;
 }
