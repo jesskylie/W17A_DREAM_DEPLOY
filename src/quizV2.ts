@@ -194,7 +194,7 @@ export function adminQuizInfoV2(
     throw HTTPError(401, 'Token is invalid');
   }
   if (!isQuizIdValidTest) {
-    throw HTTPError(400, 'Quiz is invalid');
+    throw HTTPError(400, 'QuizId is invalid');
   }
 
   for (const check of data.quizzes) {

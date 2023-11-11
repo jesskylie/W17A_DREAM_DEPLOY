@@ -188,12 +188,6 @@ app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   res.json(adminUserDetailsV2(token));
 });
 
-app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
-  const quizId = parseInt(req.params.quizid);
-  res.json(adminQuizInfoV2(token, quizId));
-});
-
 app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
   const token = req.headers.token as string;
   const result = adminTrashQuizListV2(token);
@@ -206,16 +200,16 @@ app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
   res.json(result);
 });
 
+app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  res.json(adminQuizInfoV2(token, quizId));
+});
+
 app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
   const token = req.headers.token as string;
   const quizId = parseInt(req.params.quizid);
   const result = viewAllSessions(token, quizId);
-  res.json(result);
-});
-
-app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
-  const token = req.headers.token as string;
-  const result = adminQuizListV2(token);
   res.json(result);
 });
 
@@ -274,7 +268,6 @@ app.put(
         questionId,
         token,
         questionBody,
-        thumbnailUrl
       )
     );
   }

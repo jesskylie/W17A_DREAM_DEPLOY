@@ -53,9 +53,8 @@ export function updateQuizQuestionV2(
   quizId: number,
   questionId: number,
   token: string,
-  question: QuestionBody,
-  thumbnailUrl: string
-): Record<string, never> | ErrorObjectWithCode {
+  question: QuestionBody
+  ): Record<string, never> | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
 
   // 401 error token is invalid
@@ -152,7 +151,7 @@ export function updateQuizQuestionV2(
   }
 
   // invalid thumbnailUrl provided
-  isThumbnailUrlValid(thumbnailUrl);
+  isThumbnailUrlValid(question.thumbnailUrl);
 
   // update colours of the questions
   const tempAnswerArray = question.answers;
