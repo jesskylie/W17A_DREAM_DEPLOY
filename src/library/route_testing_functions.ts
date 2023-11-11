@@ -413,7 +413,6 @@ export const requestAdminQuizListV2 = (
 ): Quizzes[] | HttpError => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
     headers: { token },
-    qs: { token },
   });
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
@@ -572,7 +571,7 @@ export const requestAdminTrashQuizRestoreV2 = (
 ): Record<string, never> | HttpError => {
   const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
     headers: { token },
-    json: { token, quizId },
+    json: { quizId },
   });
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
@@ -803,7 +802,7 @@ export const requestAdminTrashQuizEmptyV2 = (
 ): Record<string, never> | HttpError => {
   const res = request('DELETE', SERVER_URL + '/v2/admin/quiz/trash/empty', {
     headers: { token },
-    qs: { quizIds: quizids, token: token },
+    qs: { quizIds: quizids },
   });
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
@@ -832,7 +831,6 @@ export const requestAdminTrashQuizListV2 = (
 ): Quizzes[] | HttpError => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
     headers: { token },
-    qs: { token },
   });
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
@@ -877,7 +875,7 @@ export function requestTransferQuestionV2(
     SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`,
     {
       headers: { token },
-      json: { token, userEmail },
+      json: { userEmail },
     }
   );
   if (res.statusCode === 200) {

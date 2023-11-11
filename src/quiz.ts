@@ -149,7 +149,7 @@ export { adminQuizInfo };
  * @returns {{error: string}} - an error object if an error occurs
  * @returns {{quizInfo}} - an array with all the quiz informations
  */
-function getQuizzesInTrashForLoggedInUser(
+function adminTrashQuizList(
   token: string
 ): QuizInfoInTrashReturn | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
@@ -189,7 +189,7 @@ function getQuizzesInTrashForLoggedInUser(
   return { quizzes: quizzesArray };
 }
 
-export { getQuizzesInTrashForLoggedInUser };
+export { adminTrashQuizList };
 
 /**
  * Refactored for Iteration 2
@@ -1049,7 +1049,8 @@ function adminQuizRemove(
 }
 
 export { adminQuizRemove };
-
+//* **************************************************************
+//* **************************************************************
 // NEW FUNCTIONS FOR ITERATION 2 - START
 
 /**
@@ -1061,38 +1062,6 @@ export { adminQuizRemove };
  * @returns {} - return nothing
  */
 //* **************************************************************
-//* **************************************************************
-function adminTrashQuizList(
-  token: string
-): QuizListReturn | ErrorObjectWithCode {
-  const data: DataStore = retrieveDataFromFile();
-
-  const isTokenValidTest = isTokenValid(data, token);
-  const authUserId = getAuthUserIdUsingToken(data, token);
-  if (!token) {
-    return { error: 'Token is empty', errorCode: RESPONSE_ERROR_401 };
-  }
-  if (!isTokenValidTest) {
-    return { error: 'Token is invalid', errorCode: RESPONSE_ERROR_401 };
-  }
-  const trashArray = [];
-  const quizIdArray = [];
-  for (const checkId of data.users) {
-    if (checkId.authUserId === authUserId.authUserId) {
-      quizIdArray.push(...checkId.quizId);
-    }
-  }
-  for (const checkQuizzes of data.trash) {
-    for (const checkUserId of checkQuizzes.userId) {
-      if (checkUserId === authUserId.authUserId) {
-        trashArray.push(checkQuizzes);
-      }
-    }
-  }
-  return { quizzes: trashArray };
-}
-
-export { adminTrashQuizList };
 //* **************************************************************
 function adminTrashQuizListV2(
   token: string
@@ -1209,6 +1178,7 @@ function adminTrashQuizRestore(
 }
 
 export { adminTrashQuizRestore };
+//* **************************************************************
 //* **************************************************************
 function adminTrashQuizRestoreV2(
   token: string,
@@ -1330,6 +1300,7 @@ function adminTrashQuizEmptyV2(
 }
 
 export { adminTrashQuizEmptyV2 };
+//* **************************************************************
 //* **************************************************************
 function adminTrashQuizEmpty(
   token: string,
