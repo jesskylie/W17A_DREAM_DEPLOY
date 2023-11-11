@@ -1,5 +1,5 @@
 import HTTPError from 'http-errors';
-import { DataStore } from './dataStore';
+import { DataStore, Player } from './dataStore';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -428,11 +428,8 @@ export function adminQuizGetSessionStatus(
   token: string
 ) {
   const data: DataStore = retrieveDataFromFile();
-  // const authUserIdObj = getAuthUserIdUsingToken(data, token);
-  // const authUserId = authUserIdObj.authUserId;
-
-  // console.log('data ->', data);
-  // console.log('data.quizzesCopy ->', data.quizzesCopy);
+  const authUserIdObj = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdObj.authUserId;
 
   // Step 1: ERROR 401
   // test for Token is empty or invalid (does not refer to valid logged in user session) - START
@@ -446,18 +443,21 @@ export function adminQuizGetSessionStatus(
 
   // Step 1: ERROR 401 - END
 
-  /*
   // Step 2: ERROR 403
-  // ################ CANNOT BE IMPLEMENTED UNTIL POST v1/player/join is implemented
   // test for
   // Valid token is provided, but user is not authorised to view this session - START
-  const userArr = data.users;
-  let userOwnsQuizBool = false;
-  for (const user of userArr) {
-    if (user.authUserId === authUserId && user.quizId.includes(quizId)) {
-      userOwnsQuizBool = true;
-    }
-  }
+  // Assumes token is valid, as isTokenValid error has not triggered to get to here
+
+  // get the matching quizzesCopy object
+
+  const validQuiz = data.quizzesCopy.find(
+    (metadata) => (metadata.metadata.quizId = quizId)
+  );
+
+  const authUserIdArr = validQuiz.metadata.userId;
+
+  const userOwnsQuizBool = authUserIdArr.includes(authUserId);
+
   if (!userOwnsQuizBool) {
     throw HTTPError(
       403,
@@ -466,18 +466,11 @@ export function adminQuizGetSessionStatus(
   }
 
   // Step 1: ERROR 403 - END
-  */
 
   // Step 3: ERROR 400 - START
 
   // If any of the following are true:
   // Session Id does not refer to a valid session within this quiz
-
-  // get the matching quiz object
-
-  const validQuiz = data.quizzesCopy.find(
-    (metadata) => (metadata.metadata.quizId = quizId)
-  );
 
   if (!validQuiz) {
     throw HTTPError(
@@ -516,10 +509,16 @@ export function adminQuizGetSessionStatus(
 
   delete metadataStateObj[keyToRemove];
 
+  // get and reformat the players: Player[] array
+
+  const getPlayerArr: Player[] = validQuiz.session.players;
+
+  const getPlayerArrObj: string[] = getPlayerArr.map((player) => player.name);
+
   const sessionStateReturnObj = {
     state: sessionStateObj.state,
     atQuestion: sessionStateObj.atQuestion,
-    players: ['Hayden'],
+    players: getPlayerArrObj,
     metadata: metadataStateObj,
   };
 

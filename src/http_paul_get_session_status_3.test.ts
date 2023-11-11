@@ -13,6 +13,7 @@ import {
   requestAdminGetSessionStatus,
   requestSessionStart,
   requestCreateQuestionV2,
+  requestPlayerCreate,
 } from './library/route_testing_functions';
 import { TokenString } from './library/interfaces';
 import {
@@ -121,6 +122,12 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
 
     // console.log('200 test: sessionId ->', sessionId);
 
+    // create player
+
+    const playerName = 'Paul Reynolds';
+
+    requestPlayerCreate(sessionId, playerName);
+
     const testGetSessionStatus = requestAdminGetSessionStatus(
       quizId,
       sessionId,
@@ -146,7 +153,7 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
     const getExpectedSessionState = {
       state: 'lobby',
       atQuestion: expect.any(Number),
-      players: expect.any(Array),
+      players: [playerName],
       metadata: {
         quizId: quizId,
         name: quizName,
