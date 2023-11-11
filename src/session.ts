@@ -9,13 +9,15 @@ import {
   State,
 } from './dataStore';
 import { ONE_MILLION } from './library/constants';
-import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from './library/functions';
-import { MessageBody } from './library/interfaces';
 import {
-  isQuizIdValid,
-  isAuthUserIdMatchQuizId,
-  SessionId,
-} from './quiz';
+  getRandomInt,
+  getState,
+  isActionValid,
+  retrieveDataFromFile,
+  saveDataInFile,
+} from './library/functions';
+import { MessageBody, PlayerId, PlayerStatus } from './library/interfaces';
+import { isQuizIdValid, isAuthUserIdMatchQuizId, SessionId } from './quiz';
 import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
 
 const MAX_AUTO_START_NUM = 50;
@@ -52,11 +54,15 @@ export const viewAllSessions = (token: string, quizId: number) => {
   }
   return {
     activeSessions: activeSessions,
-    inactiveSessions: inactiveSessions
+    inactiveSessions: inactiveSessions,
   };
 };
 
-export const startNewSession = (quizId: number, token: string, autoStartNum: number): SessionId | HttpError => {
+export const startNewSession = (
+  quizId: number,
+  token: string,
+  autoStartNum: number
+): SessionId | HttpError => {
   const data = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -92,7 +98,10 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
   if (countQuizNotInEndState(data, quizId) >= MAX_END_STATE_NUM) {
-    throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
+    throw httpError(
+      400,
+      'A maximum of 10 sessions that are not in END state currently exist'
+    );
   }
 
   // copy quiz of current quizid
@@ -149,7 +158,12 @@ export const startNewSession = (quizId: number, token: string, autoStartNum: num
   return { sessionId: sessionId };
 };
 
-export const updateSessionState = (quizId: number, sessionId: number, token: string, action: Action) => {
+export const updateSessionState = (
+  quizId: number,
+  sessionId: number,
+  token: string,
+  action: Action
+) => {
   const data = retrieveDataFromFile();
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
@@ -180,20 +194,34 @@ export const updateSessionState = (quizId: number, sessionId: number, token: str
 
   // Invalid SessionId - error 400
   if (!isSessionIdValid(data, quizId, sessionId)) {
-    throw httpError(400, 'Session Id does not refer to a valid session within this quiz');
+    throw httpError(
+      400,
+      'Session Id does not refer to a valid session within this quiz'
+    );
   }
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
   if (countQuizNotInEndState(data, quizId) >= MAX_END_STATE_NUM) {
-    throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
+    throw httpError(
+      400,
+      'A maximum of 10 sessions that are not in END state currently exist'
+    );
   }
 
   let state = getState(data, sessionId);
   if (!isActionValid(state, action)) {
-    throw httpError(400, 'Action enum cannot be applied in the current state (see spec for details)');
+    throw httpError(
+      400,
+      'Action enum cannot be applied in the current state (see spec for details)'
+    );
   }
-  if (action !== Action.END && action !== Action.GO_TO_ANSWER && action !== Action.GO_TO_FINAL_RESULTS &&
-    action !== Action.NEXT_QUESTION && action !== Action.SKIP_COUNTDOWN) {
+  if (
+    action !== Action.END &&
+    action !== Action.GO_TO_ANSWER &&
+    action !== Action.GO_TO_FINAL_RESULTS &&
+    action !== Action.NEXT_QUESTION &&
+    action !== Action.SKIP_COUNTDOWN
+  ) {
     throw httpError(400, 'Action provided is not a valid Action enum');
   }
   if (state === State.LOBBY && action === Action.END) {
@@ -246,13 +274,15 @@ export const updateSessionState = (quizId: number, sessionId: number, token: str
   return {};
 };
 
-export const getSeesionStatus = (quizId: number, sessionId: number, token: string) => {
+export const getSeesionStatus = (
+  quizId: number,
+  sessionId: number,
+  token: string
+) => {
   return {
     state: 'LOBBY',
     atQuestion: 3,
-    players: [
-      'Hayden'
-    ],
+    players: ['Hayden'],
     metadata: {
       quizId: 5546,
       name: 'This is the name of the quiz',
@@ -272,59 +302,134 @@ export const getSeesionStatus = (quizId: number, sessionId: number, token: strin
               answerId: 2384,
               answer: 'Prince Charles',
               colour: 'red',
-              correct: true
-            }
-          ]
-        }
+              correct: true,
+            },
+          ],
+        },
       ],
       duration: 44,
-      thumbnailUrl: 'http://google.com/some/image/path.jpg'
-    }
+      thumbnailUrl: 'http://google.com/some/image/path.jpg',
+    },
   };
 };
 
-export const getQuizFinalResult = (quizId: number, sessionId: number, token: string) => {
+export const getQuizFinalResult = (
+  quizId: number,
+  sessionId: number,
+  token: string
+) => {
   return {
     usersRankedByScore: [
       {
         name: 'Hayden',
-        score: 45
-      }
+        score: 45,
+      },
     ],
     questionResults: [
       {
         questionId: 5546,
-        playersCorrectList: [
-          'Hayden'
-        ],
+        playersCorrectList: ['Hayden'],
         averageAnswerTime: 45,
-        percentCorrect: 54
+        percentCorrect: 54,
+      },
+    ],
+  };
+};
+
+export const getQuizFinalResultCSV = (
+  quizId: number,
+  sessionId: number,
+  token: string
+) => {
+  return {
+    url: 'http://google.com/some/image/path.csv',
+  };
+};
+
+export const playerCreate = (
+  sessionId: number,
+  name: string
+): PlayerId | HttpError => {
+  const data = retrieveDataFromFile();
+  if (!isSessionIdValidWithoutQuizId(data, sessionId)) {
+    throw httpError(400, 'SessionId is invalid');
+  }
+
+  if (getState(data, sessionId) !== State.LOBBY) {
+    throw httpError(400, 'Session is not in LOBBY state');
+  }
+
+  if (name === '') {
+    name = generateRandomName();
+    while (isPlayerNameRepeated(data, name)) {
+      name = generateRandomName();
+    }
+  }
+
+  if (isPlayerNameRepeated(data, name)) {
+    throw httpError(400, 'Name of user entered is not unique');
+  }
+
+  let playerId = getRandomInt(ONE_MILLION);
+  while (isPlayerIdRepeated(data, playerId)) {
+    playerId = getRandomInt(ONE_MILLION);
+  }
+  const newPlayer = {
+    playerId: playerId,
+    name: name,
+    selectedAnswer: [[]] as number[][],
+  };
+
+  const newdata = data;
+  for (const check of newdata.quizzesCopy) {
+    if (check.session.sessionId === sessionId) {
+      check.session.players.push(newPlayer);
+    }
+  }
+  if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
+    for (const check of newdata.quizzesCopy) {
+      if (check.session.sessionId === sessionId) {
+        check.session.state = State.QUESTION_COUNTDOWN;
       }
-    ]
-  };
+    }
+  }
+  saveDataInFile(newdata);
+  return { playerId: playerId };
 };
 
-export const getQuizFinalResultCSV = (quizId: number, sessionId: number, token: string) => {
-  return {
-    url: 'http://google.com/some/image/path.csv'
-  };
+export const playerStatus = (playerId: number): PlayerStatus => {
+  const data = retrieveDataFromFile();
+  if (!isPlayerIdRepeated(data, playerId)) {
+    throw httpError(400, 'PlayerId does not exist');
+  }
+
+  for (const check of data.quizzesCopy) {
+    for (const player of check.session.players) {
+      if (player.playerId === playerId) {
+        const state = check.session.state;
+        let atQuestion = 0;
+        if (
+          state !== State.LOBBY &&
+          state !== State.FINAL_RESULTS &&
+          state !== State.END
+        ) {
+          atQuestion = check.session.atQuestion;
+        }
+        const uppercaseState = state.toUpperCase();
+        return {
+          state: uppercaseState,
+          numQuestions: check.session.numQuestions,
+          atQuestion: atQuestion,
+        };
+      }
+    }
+  }
 };
 
-export const playerJoinSession = (sessionId: number, name: string) => {
-  return {
-    playerId: 0
-  };
-};
-
-export const playerStatus = (playerId: number) => {
-  return {
-    state: 'LOBBY',
-    numQuestions: 1,
-    atQuestion: 3
-  };
-};
-
-export const playerCurrentQuestionInfo = (playerId: number, questionposition: number) => {
+export const playerCurrentQuestionInfo = (
+  playerId: number,
+  questionposition: number
+) => {
   return {
     questionId: 5546,
     question: 'Who is the Monarch of England?',
@@ -335,24 +440,26 @@ export const playerCurrentQuestionInfo = (playerId: number, questionposition: nu
       {
         answerId: 2384,
         answer: 'Prince Charles',
-        colour: 'red'
-      }
-    ]
+        colour: 'red',
+      },
+    ],
   };
 };
 
-export const playerSubmit = (playerId: number, questionposition: number, answerId: number[]) => {
+export const playerSubmit = (
+  playerId: number,
+  questionposition: number,
+  answerId: number[]
+) => {
   return {};
 };
 
 export const questionResult = (playerId: number, questionposition: number) => {
   return {
     questionId: 5546,
-    playersCorrectList: [
-      'Hayden'
-    ],
+    playersCorrectList: ['Hayden'],
     averageAnswerTime: 45,
-    percentCorrect: 54
+    percentCorrect: 54,
   };
 };
 
@@ -361,19 +468,17 @@ export const sessionFinalResult = (playerId: number) => {
     usersRankedByScore: [
       {
         name: 'Hayden',
-        score: 45
-      }
+        score: 45,
+      },
     ],
     questionResults: [
       {
         questionId: 5546,
-        playersCorrectList: [
-          'Hayden'
-        ],
+        playersCorrectList: ['Hayden'],
         averageAnswerTime: 45,
-        percentCorrect: 54
-      }
-    ]
+        percentCorrect: 54,
+      },
+    ],
   };
 };
 
@@ -384,9 +489,9 @@ export const getAllChatMessage = (playerId: number) => {
         messageBody: 'This is a message body',
         playerId: 5546,
         playerName: 'Yuchao Jiang',
-        timeSent: 1683019484
-      }
-    ]
+        timeSent: 1683019484,
+      },
+    ],
   };
 };
 
@@ -420,10 +525,76 @@ function countQuizNotInEndState(data: DataStore, quizId: number): number {
   return count;
 }
 
-function isSessionIdValid(data: DataStore, quizId: number, sessionId: number): boolean {
+function isSessionIdValid(
+  data: DataStore,
+  quizId: number,
+  sessionId: number
+): boolean {
   for (const check of data.quizzesCopy) {
     if (check.metadata.quizId === quizId) {
       if (check.session.sessionId === sessionId) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function isSessionIdValidWithoutQuizId(
+  data: DataStore,
+  sessionId: number
+): boolean {
+  for (const check of data.quizzesCopy) {
+    if (check.session.sessionId === sessionId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isPlayerIdRepeated(data: DataStore, playerId: number): boolean {
+  for (const check of data.quizzesCopy) {
+    for (const player of check.session.players) {
+      if (player.playerId === playerId) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function isPlayerNameRepeated(data: DataStore, name: string): boolean {
+  for (const check of data.quizzesCopy) {
+    for (const checkname of check.session.players) {
+      if (checkname.name === name) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function generateRandomName(): string {
+  const allLetters: string[] = Array.from({ length: 26 }, (_, index) =>
+    String.fromCharCode(97 + index)
+  );
+  let randomName = '';
+  while (randomName.length < 5) {
+    randomName = randomName + allLetters[getRandomInt(allLetters.length)];
+  }
+  while (randomName.length < 8) {
+    randomName = randomName + getRandomInt(9);
+  }
+  return randomName;
+}
+
+function isNumOfPlayerEnoughToLeaveLobby(
+  data: DataStore,
+  sessionId: number
+): boolean {
+  for (const session of data.quizzesCopy) {
+    if (session.session.sessionId === sessionId) {
+      if (session.session.players.length === session.session.autoStartNum) {
         return true;
       }
     }

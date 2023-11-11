@@ -1,4 +1,4 @@
-import { Quizzes } from '../dataStore';
+import { Quizzes, State } from '../dataStore';
 
 export interface QuestionBody {
   question: string;
@@ -154,4 +154,31 @@ export interface GetSessionStatusReturnObj {
   atQuestion: number;
   players: string[];
   metadata: Quizzes;
+}
+
+export interface PlayerId {
+  playerId: number;
+}
+
+export interface PlayerStatus {
+  state: string;
+  numQuestions: number;
+  atQuestion: number;
+}
+
+interface PlayerWithScore {
+  name: string;
+  score: number;
+}
+
+interface QuestionResult {
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
+
+export interface SessionFinalResult {
+  usersRankedByScore: PlayerWithScore[];
+  questionResults: QuestionResult[];
 }

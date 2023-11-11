@@ -68,11 +68,13 @@ import {
 } from './library/constants';
 
 import {
+  playerCreate,
+  playerStatus,
+  sessionFinalResult,
   startNewSession,
   updateSessionState,
   viewAllSessions,
 } from './session';
-import { playerCreate } from './player';
 
 // Set up web app
 const app = express();
@@ -542,6 +544,18 @@ app.get(
     res.json(response);
   }
 );
+
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const result = playerStatus(playerId);
+  res.json(result);
+});
+
+app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const result = sessionFinalResult(playerId);
+  res.json(result);
+});
 
 // --------------------------- V1 GET REQUESTS - END --------------------------
 
