@@ -40,7 +40,7 @@ import { SessionId } from '../quiz';
 
 const port = config.port;
 const url = config.url;
-const SERVER_URL = `${url}:${port}`;
+export const SERVER_URL = `${url}:${port}`;
 
 interface ErrorObject {
   error: string;
@@ -62,12 +62,13 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export function requestSendMessage(playerid: number, message: string): Record<string, never> | HttpError {
-  const res = request('POST', SERVER_URL + `/v1/player/${playerid}/chat`,
-    {
-      json: { playerid, message },
-    }
-  );
+export function requestSendMessage(
+  playerid: number,
+  message: string
+): Record<string, never> | HttpError {
+  const res = request('POST', SERVER_URL + `/v1/player/${playerid}/chat`, {
+    json: { playerid, message },
+  });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -76,12 +77,19 @@ export function requestSendMessage(playerid: number, message: string): Record<st
   }
 }
 
-export function requestGetQuizFinalResults(quizid: number, sessionid: number, token: string) {
-  const res = request('GET', SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}/results`,
+export function requestGetQuizFinalResults(
+  quizid: number,
+  sessionid: number,
+  token: string
+) {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}/results`,
     {
       headers: { token },
       qs: { quizid, sessionid },
-    });
+    }
+  );
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -94,8 +102,13 @@ export function requestGetQuizFinalResults(quizid: number, sessionid: number, to
   }
 }
 
-export function requestResultsOfAnswers(playerid: number, questionposition: number) {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
+export function requestResultsOfAnswers(
+  playerid: number,
+  questionposition: number
+) {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
     {
       qs: { playerid, questionposition },
     }
@@ -122,8 +135,12 @@ export function requestSessionFinalResult(
   }
 }
 
-export function requestGetChatMessages(playerid: number): MessageReturn | HttpError {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/chat`, { qs: { playerid } });
+export function requestGetChatMessages(
+  playerid: number
+): MessageReturn | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/chat`, {
+    qs: { playerid },
+  });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -132,8 +149,12 @@ export function requestGetChatMessages(playerid: number): MessageReturn | HttpEr
   }
 }
 
-export function requestPlayerStatus(playerid: number): PlayerStatus | HttpError {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, { qs: { playerid } });
+export function requestPlayerStatus(
+  playerid: number
+): PlayerStatus | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, {
+    qs: { playerid },
+  });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -1000,5 +1021,29 @@ export const requestCurrentQuestionInformationForPlayer = (
       return JSON.parse(res.body.toString());
     case RESPONSE_ERROR_400:
       throw HTTPError(RESPONSE_ERROR_400);
+  }
+};
+
+export const requestGetLinkOfFinalResultsInCSV = (
+  quizid: number,
+  sessionid: number,
+  token: string
+) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}/results/csv`,
+    {
+      headers: { token },
+    }
+  );
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
   }
 };
