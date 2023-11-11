@@ -1,13 +1,13 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import request from 'sync-request-curl';
-import httpError from 'http-errors';
+// import request from 'sync-request-curl';
+// import httpError from 'http-errors';
 
 import {
   CONVERT_MSECS_TO_SECS,
   RANDOM_COLOURS_ARRAY,
-  RESPONSE_OK_200,
-  RESPONSE_ERROR_400,
+  // RESPONSE_OK_200,
+  // RESPONSE_ERROR_400,
 } from './constants';
 
 // import libraries
@@ -369,34 +369,60 @@ export function isActionValid(state: State, action: Action) {
  *
  */
 
-export const isThumbnailUrlValid = (thumbnailUrl: string): void => {
+export const isThumbnailUrlValid = (thumbnailUrl: string): boolean => {
   // Error Check 1: The thumbnailUrl is an empty string
 
-  if (thumbnailUrl === '') {
-    throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
+  let thumbnailUrlIsStringWithLength = true;
+
+  if (thumbnailUrl.length === 0 || thumbnailUrl === '') {
+    thumbnailUrlIsStringWithLength = false;
   }
+
+  // Error check 2: The thumbnail does not end with one of the
+  // following filetypes (case insensitive): jpg, jpeg, png
+
+  const fileTypePattern = /(\.jpg)|(\.jpeg)|(\.png)$/gim;
+
+  const isFileType = fileTypePattern.test(thumbnailUrl);
+
+  // Error check 3: The thumbnailUrl does not begin with 'http://' or 'https://'
+
+  const beginningPattern = /^(http:\/\/)|(https:\/\/)/gm;
+
+  const isBeginningProperly = beginningPattern.test(thumbnailUrl);
+
+  if (!thumbnailUrlIsStringWithLength || !isFileType || !isBeginningProperly) {
+    return false;
+  }
+
+  return true;
+
+  // BELOW IS REDUNDANT AS CONSEQUENCE OF UPDATED STARTER CODE 12 NOVEMBER 2023
+  // BUT I AM KEEPING IT IN OUR CODEBASE AS IT TOOK QUITE A BIT OF EFFORT TO DEVELOP,
+  // AND CAUSED ME TO SPEND QUITE A FEW HOURS ANALYSING WHY OUR TEST CASES WERE
+  // SO SLOW, AND WHETHER ANYTHING COULD BE DONE TO SPEED THINGS UP
 
   // Error Check 2: The thumbnailUrl does not return to a valid file
 
-  const response = request('GET', thumbnailUrl);
+  // const response = request('GET', thumbnailUrl);
 
-  const testStatusCode = response.statusCode;
+  // const testStatusCode = response.statusCode;
 
-  if (testStatusCode !== RESPONSE_OK_200) {
-    throw httpError(
-      RESPONSE_ERROR_400,
-      'The thumbnailUrl does not return to a valid file'
-    );
-  }
+  // if (testStatusCode !== RESPONSE_OK_200) {
+  //   throw httpError(
+  //     RESPONSE_ERROR_400,
+  //     'The thumbnailUrl does not return to a valid file'
+  //   );
+  // }
 
-  // Error Check 3: The thumbnailUrl, when fetched, is not a JPG or PNG file type
+  // // Error Check 3: The thumbnailUrl, when fetched, is not a JPG or PNG file type
 
-  const contentType = response.headers['content-type'];
+  // const contentType = response.headers['content-type'];
 
-  if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
-    throw httpError(
-      RESPONSE_ERROR_400,
-      'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
-    );
-  }
+  // if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
+  //   throw httpError(
+  //     RESPONSE_ERROR_400,
+  //     'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
+  //   );
+  // }
 };

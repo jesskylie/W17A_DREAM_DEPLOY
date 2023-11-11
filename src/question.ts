@@ -151,7 +151,9 @@ export function updateQuizQuestionV2(
   }
 
   // invalid thumbnailUrl provided
-  isThumbnailUrlValid(question.thumbnailUrl);
+  if (!isThumbnailUrlValid(question.thumbnailUrl)) {
+    throw httpError(RESPONSE_ERROR_400, 'The thumbnail URL is not valid');
+  }
 
   // update colours of the questions
   const tempAnswerArray = question.answers;
@@ -1409,7 +1411,9 @@ export const createQuizQuestionV2 = (
 
   // thumbnailUrl ERRORS - START
 
-  isThumbnailUrlValid(question.thumbnailUrl);
+  if (!isThumbnailUrlValid(question.thumbnailUrl)) {
+    throw httpError(RESPONSE_ERROR_400, 'The thumbnail URL is not valid');
+  }
 
   // thumbnailUrl ERRORS - END
 

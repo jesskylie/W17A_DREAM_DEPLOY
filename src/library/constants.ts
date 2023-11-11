@@ -32,3 +32,11 @@ export const INVALID_THUMBNAIL_URL_NOT_JPG_PNG =
 
 export const DEFAULT_VALID_THUMBNAIL_URL =
   'https://www.gliding.com.au/assets/images/sx/pages/pawnee247133.jpg';
+
+export const INVALID_THUMBNAIL_URL_DOES_NOT_START_WITH_HTTP =
+  'http//images.fineartamerica.com/images/artworkimages/mediumlarge/3/1-long-haired-miniature-dachshund-lee-feldstein.jpg';
+
+export const INVALID_THUMBNAIL_URL_DOES_NOT_START_WITH_HTTPS =
+  'https//images.fineartamerica.com/images/artworkimages/mediumlarge/3/1-long-haired-miniature-dachshund-lee-feldstein.jpg';
+
+export const INVALID_THUMBNAIL_URL_IS_EMPTY_STRING = '';
