@@ -525,7 +525,7 @@ describe('Test: PUT /v1/player/{playerid}/question/{questionposition}/answer', (
 });
 
 describe('/v1/player/:playerid:/question/:questionposition:/results', () => {
-  test('Success - with one correct answer with 2 players', () => {
+  test('Success - Quiz with one correct answer, one player answer correctly', () => {
     requestClear();
     const result = requestAdminRegister(
       'hayley@hotmail.com',
@@ -596,6 +596,80 @@ describe('/v1/player/:playerid:/question/:questionposition:/results', () => {
       playersCorrectList: ['Haley Berry'],
       averageAnswerTime: expect.any(Number),
       percentCorrect: 50,
+    });
+  });
+
+  test('Success - Quiz with one correct answer, both players answer correctly', () => {
+    requestClear();
+    const result = requestAdminRegister(
+      'hayley@hotmail.com',
+      '12345abced',
+      'Haley',
+      'Berry'
+    );
+    const quizId = requestAdminQuizCreateV2(
+      result.body.token,
+      'New Quiz',
+      'Quiz description'
+    );
+    const questionOne = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answerId: 0,
+          answer: 'Prince Henry',
+          colour: 'red',
+          correct: true,
+        },
+        {
+          answerId: 1,
+          answer: 'Prince Charles',
+          colour: 'yellow',
+          correct: false,
+        },
+      ],
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
+    };
+    const questionOneQuestionId = requestCreateQuestionV2(
+      result.body.token,
+      questionOne,
+      quizId.quizId
+    );
+    const sessionId = requestSessionStart(
+      quizId.quizId,
+      result.body.token,
+      5
+    ) as SessionId;
+    const playerId = requestPlayerCreate(sessionId.sessionId, 'Tom Ford');
+    const playerIdTwo = requestPlayerCreate(sessionId.sessionId, 'Vin Diesel');
+    requestUpdateSessionState(
+      quizId.quizId,
+      sessionId.sessionId,
+      result.body.token,
+      Action.NEXT_QUESTION
+    );
+    requestUpdateSessionState(
+      quizId.quizId,
+      sessionId.sessionId,
+      result.body.token,
+      Action.SKIP_COUNTDOWN
+    );
+    // correct answer chosen
+    requestAnswerQuestion(playerId.playerId, [0], 0);
+    requestAnswerQuestion(playerIdTwo.playerId, [0], 0);
+    requestUpdateSessionState(
+      quizId.quizId,
+      sessionId.sessionId,
+      result.body.token,
+      Action.GO_TO_ANSWER
+    );
+    expect(requestResultsOfAnswers(playerId.playerId, 0)).toStrictEqual({
+      questionId: questionOneQuestionId.questionId,
+      playersCorrectList: ['Tom Ford', 'Vin Diesel'],
+      averageAnswerTime: expect.any(Number),
+      percentCorrect: 100,
     });
   });
 
