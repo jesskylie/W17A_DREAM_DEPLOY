@@ -496,8 +496,6 @@ export function adminQuizGetSessionStatus(
   // NOW THAT ALL ERROR CASES HAVE BEEN DEALT WITH
   // return session status object
 
-  // get the relevant session
-
   const validSession = data.quizzesCopy.find(
     (session) => session.session.sessionId === sessionId
   );
@@ -513,7 +511,7 @@ export function adminQuizGetSessionStatus(
 
   // get and reformat the players: Player[] array
 
-  const getPlayerArr: Player[] = validQuiz.session.players;
+  const getPlayerArr: Player[] = validSession.session.players;
 
   const getPlayerArrObj: string[] = getPlayerArr.map((player) => player.name);
 
