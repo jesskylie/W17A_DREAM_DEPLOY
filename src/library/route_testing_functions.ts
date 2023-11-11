@@ -22,6 +22,7 @@ import {
   QuizId,
   PlayerId,
   PlayerStatus,
+  SessionFinalResult,
 } from './interfaces';
 
 import {
@@ -59,6 +60,16 @@ export const requestClear = () => {
   const statusCode = res.statusCode;
   return { statusCode, bodyString };
 };
+
+export function requestSessionFinalResult(playerid: number): SessionFinalResult | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/results`, { qs: { playerid }});
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
 
 export function requestPlayerStatus(playerid: number): PlayerStatus | HttpError {
   const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, { qs: { playerid }});

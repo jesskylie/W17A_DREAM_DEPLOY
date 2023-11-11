@@ -348,6 +348,13 @@ export const playerCreate = (sessionId: number, name: string): PlayerId | HttpEr
       check.session.players.push(newPlayer);
     }
   }
+  if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
+    for (const check of newdata.quizzesCopy) {
+      if (check.session.sessionId === sessionId) {
+        check.session.state = State.QUESTION_COUNTDOWN;
+      }
+    }
+  }
   saveDataInFile(newdata);
   return { playerId: playerId };
 };
@@ -526,3 +533,15 @@ function generateRandomName(): string {
   }
   return randomName;
 }
+
+function isNumOfPlayerEnoughToLeaveLobby(data: DataStore, sessionId: number): boolean {
+  for (const session of data.quizzesCopy) {
+    if (session.session.sessionId === sessionId) {
+      if (session.session.players.length === session.session.autoStartNum) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+ 

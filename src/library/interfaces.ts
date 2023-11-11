@@ -157,3 +157,20 @@ export interface PlayerStatus {
   numQuestions: number;
   atQuestion: number;
 }
+
+interface PlayerWithScore {
+  name: string;
+  score: number;
+}
+
+interface QuestionResult {
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
+
+export interface SessionFinalResult {
+  usersRankedByScore: PlayerWithScore[];
+  questionResults: QuestionResult[];
+}

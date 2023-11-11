@@ -71,6 +71,7 @@ import {
 import {
   playerCreate,
   playerStatus,
+  sessionFinalResult,
   startNewSession,
   updateSessionState,
   viewAllSessions,
@@ -223,6 +224,13 @@ app.get('/v1/player/:playerid', (req: Request, res: Response) => {
   const result = playerStatus(playerId);
   res.json(result);
 });
+
+app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const result = sessionFinalResult(playerId);
+  res.json(result);
+});
+
 
 // --------------------------- V2 GET REQUESTS - END -----------------------------
 
