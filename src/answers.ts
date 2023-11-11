@@ -14,7 +14,7 @@ import { DataStore, State, ResultForEachQuestion, Question } from './dataStore';
  * @returns {{questionId: number, playersCorrectList: string[], averageAnswerTime: number,
  * percentCorrect: number}}
  * @returns {{error: string}} - on error
- */
+*/
 export function getResultsOfAnswers(
   playerid: number,
   questionposition: number
@@ -28,10 +28,7 @@ export function getResultsOfAnswers(
 
   // If question position is not valid for the session this player is in- 400 error
   if (!isQuestionPositionValid(data, playerid, questionposition)) {
-    throw httpError(
-      400,
-      'Question position is not valid for the session this player is in'
-    );
+    throw httpError(400, 'Question position is not valid for the session this player is in');
   }
 
   // Session is not in ANSWER_SHOW state- 400 error
@@ -46,25 +43,18 @@ export function getResultsOfAnswers(
 
   // finds current session using playerId
   for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
+    const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
       const currSession = copyQuiz.session;
       const currQuizQuestion = copyQuiz.metadata;
-      const questionId =
-        currQuizQuestion.questions[questionposition].questionId;
+      const questionId = currQuizQuestion.questions[questionposition].questionId;
       const playersArray = currSession.players;
 
       const correctPlayers: string[] = [];
       let totalTime = 0;
       for (const player of playersArray) {
         const currPlayersAnswer = player.selectedAnswer;
-        const isCorrect = checkIfAnswerIsCorrect(
-          currPlayersAnswer,
-          currQuizQuestion.questions[questionposition],
-          questionposition
-        );
+        const isCorrect = checkIfAnswerIsCorrect(currPlayersAnswer, currQuizQuestion.questions[questionposition], questionposition);
         if (isCorrect) {
           correctPlayers.push(player.name);
         }
@@ -103,12 +93,8 @@ export function getResultsOfAnswers(
  * @param {Question} - question
  * @param {number} - questionposition
  * @returns {boolean} - true or false
- */
-function checkIfAnswerIsCorrect(
-  selectedAnswer: number[][],
-  question: Question,
-  questionposition: number
-): boolean {
+*/
+function checkIfAnswerIsCorrect(selectedAnswer: number[][], question: Question, questionposition: number): boolean {
   // filters the array to get the correct answerIds only
   // maps to new array based on answer Ids
   const correctAnswers = question.answers
@@ -127,21 +113,18 @@ function checkIfAnswerIsCorrect(
  * @param {number[]} - array1
  * @param {number[]} - array2
  * @returns {boolean} - true or false
- */
+*/
 function compareArrays(array1: number[], array2: number[]): boolean {
-  return (
-    array1.length === array2.length &&
-    array1.every((element, index) => element === array2[index])
-  );
+  return array1.length === array2.length && array1.every((element, index) => element === array2[index]);
 }
 
 /**
- * Allow the current player to submit answer(s) to the currently active question
- * Returns {} on successful submission
- * @param {number} - playerid
- * @param {number[]} - answerIds
- * @returns {number} - true or false
- */
+* Allow the current player to submit answer(s) to the currently active question
+* Returns {} on successful submission
+* @param {number} - playerid
+* @param {number[]} - answerIds
+* @returns {number} - true or false
+*/
 export function submissionOfAnswers(
   playerid: number,
   answerIds: number[],
@@ -156,10 +139,7 @@ export function submissionOfAnswers(
 
   // If question position is not valid for the session this player is in - error 400
   if (!isQuestionPositionValid(data, playerid, questionposition)) {
-    throw httpError(
-      400,
-      'Question position is not valid for the session this player is in'
-    );
+    throw httpError(400, 'Question position is not valid for the session this player is in');
   }
 
   // Session is not in QUESTION_OPEN state - error 400
@@ -174,10 +154,7 @@ export function submissionOfAnswers(
 
   // Answer IDs are not valid for this particular question - error 400
   if (!validAnswerId(data, answerIds)) {
-    throw httpError(
-      400,
-      'Answer Ids are not valid for this particular question'
-    );
+    throw httpError(400, 'Answer Ids are not valid for this particular question');
   }
 
   // There are duplicate answer IDs provided - error 400
@@ -192,18 +169,15 @@ export function submissionOfAnswers(
 
   // finds current session using playerId
   for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
+    const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
       const currQuizQuestion = copyQuiz.metadata.questions[questionposition];
       player.selectedAnswer[questionposition] = answerIds;
-      //gets current time player answered now
+			//gets current time player answered now
       player.timeAnswered = Date.now();
       if (currQuizQuestion.questionStartTime) {
-        //calculates the time answered to be question start time - player answer time
-        player.timeAnswered =
-          player.timeAnswered - currQuizQuestion.questionStartTime;
+				//calculates the time answered to be question start time - player answer time
+        player.timeAnswered = player.timeAnswered - currQuizQuestion.questionStartTime;
       }
     } else {
       throw httpError(400, 'Player is not in a valid session');
@@ -215,23 +189,17 @@ export function submissionOfAnswers(
 
 /**
  * Checks for valid question position
- * Returns true if it is valid, false otherwise
- * @param {Datastore} - data
- * @param {number} - playerid
- * @param {Datastore} - data
- * @params {number} - questionposition
- * @returns {boolean}
- */
-function isQuestionPositionValid(
-  data: DataStore,
-  playerid: number,
-  questionposition: number
-): boolean {
+* Returns true if it is valid, false otherwise
+* @param {Datastore} - data
+* @param {number} - playerid
+* @param {Datastore} - data
+* @params {number} - questionposition
+* @returns {boolean}
+*/
+function isQuestionPositionValid (data: DataStore, playerid: number, questionposition: number): boolean {
   // finds current session using playerId
   for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
+    const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
       const currQuiz = copyQuiz.session;
       if (questionposition >= 0 && questionposition <= currQuiz.numQuestions) {
@@ -245,17 +213,15 @@ function isQuestionPositionValid(
 
 /**
  * Checks if player id exists in current session
- * Returns true if it is valid, false otherwise
- * @param {Datastore} - data
- * @param {number} - playerid
- * @param {Datastore} - data
- * @returns {boolean}
- */
-function playerIdExists(data: DataStore, playerid: number): boolean {
+* Returns true if it is valid, false otherwise
+* @param {Datastore} - data
+* @param {number} - playerid
+* @param {Datastore} - data
+* @returns {boolean}
+*/
+function playerIdExists (data: DataStore, playerid: number): boolean {
   for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
+    const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
       return true;
     }
@@ -265,11 +231,11 @@ function playerIdExists(data: DataStore, playerid: number): boolean {
 
 /**
  * Checks if answer Id exists
- * Returns true if it is valid, false otherwise
- * @param {Datastore} - data
- * @param {number[]} - answerId
- * @returns {boolean}
- */
+* Returns true if it is valid, false otherwise
+* @param {Datastore} - data
+* @param {number[]} - answerId
+* @returns {boolean}
+*/
 function validAnswerId(data: DataStore, answerId: number[]): boolean {
   for (const copyQuiz of data.quizzesCopy) {
     const metadata = copyQuiz.metadata;
@@ -277,11 +243,7 @@ function validAnswerId(data: DataStore, answerId: number[]): boolean {
     for (const questions of questionsArray) {
       // answer is an array of numbers
       // check every element in answerId [] exists in question.answers answer id
-      if (
-        answerId.every((answerid) =>
-          questions.answers.some((answer) => answer.answerId === answerid)
-        )
-      ) {
+      if (answerId.every(answerid => questions.answers.some(answer => answer.answerId === answerid))) {
         return true;
       }
     }
@@ -291,10 +253,10 @@ function validAnswerId(data: DataStore, answerId: number[]): boolean {
 
 /**
  *Checks for duplicate answers in answer id array
- * Returns true if it is valid, false otherwise
- * @param {numner[]} - answerIds
- * @returns {boolean}
- */
+* Returns true if it is valid, false otherwise
+* @param {numner[]} - answerIds
+* @returns {boolean}
+*/
 function duplicateAnswerIds(answerIds: number[]): boolean {
   const answerIdsCurrChecked: number[] = [];
   for (const answerId of answerIds) {
@@ -312,19 +274,14 @@ function duplicateAnswerIds(answerIds: number[]): boolean {
 
 /**
  * Checks if session is in QUESTION_OPEN state
- * Returns true if it is valid, false otherwise
- * @param {DataStore} - data
- * @param {number} - playerid
- * @returns {boolean}
- */
-function isSessionInQuestionOpenState(
-  data: DataStore,
-  playerid: number
-): boolean {
+* Returns true if it is valid, false otherwise
+* @param {DataStore} - data
+* @param {number} - playerid
+* @returns {boolean}
+*/
+function isSessionInQuestionOpenState(data: DataStore, playerid: number): boolean {
   for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
+    const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
       const currQuizSession = copyQuiz.session;
       if (currQuizSession.state === State.QUESTION_OPEN) {
@@ -338,19 +295,14 @@ function isSessionInQuestionOpenState(
 
 /**
  * Checks if session is in ANSWER_SHOW state
- * Returns true if it is valid, false otherwise
- * @param {DataStore} - data
- * @param {number} - playerid
- * @returns {boolean}
- */
-function isSessionInAnswerShowState(
-  data: DataStore,
-  playerid: number
-): boolean {
+* Returns true if it is valid, false otherwise
+* @param {DataStore} - data
+* @param {number} - playerid
+* @returns {boolean}
+*/
+function isSessionInAnswerShowState(data: DataStore, playerid: number): boolean {
   for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
+    const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
       const currQuizSession = copyQuiz.session;
       if (currQuizSession.state === State.ANSWER_SHOW) {
@@ -364,21 +316,15 @@ function isSessionInAnswerShowState(
 
 /**
  * checks if question is in valid position
- * Returns true if it is valid, false otherwise
- * @param {DataStore} - data
- * @param {number} - playerid
- * @param {number} - questionposition
- * @returns {boolean}
- */
-function isValidQuestionPosition(
-  data: DataStore,
-  playerid: number,
-  questionposition: number
-): boolean {
+* Returns true if it is valid, false otherwise
+* @param {DataStore} - data
+* @param {number} - playerid
+* @param {number} - questionposition
+* @returns {boolean}
+*/
+function isValidQuestionPosition(data: DataStore, playerid: number, questionposition: number): boolean {
   for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
+    const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
       const currQuizSession = copyQuiz.session;
       if (currQuizSession.atQuestion === questionposition) {

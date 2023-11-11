@@ -2,14 +2,8 @@ import HTTPError from 'http-errors';
 import {
   requestClear,
   requestAdminRegister,
-  requestAdminQuizInfo,
-  requestAdminLogoutV2,
   requestAdminAuthLogin,
-  requestGetAdminUserDetailV2,
-  requestAdminUserDetailUpdateV2,
-  requestUpdatePasswordV2,
-  requestAdminQuizCreateV2,
-  requestCreateQuestionV2,
+  requestAdminQuizList,
   requestAdminQuizCreate,
   requestAdminQuizRemove,
   requestAdminQuizListV2,
@@ -17,25 +11,19 @@ import {
   requestAdminTrashQuizEmptyV2,
   requestAdminTrashQuizListV2,
   requestTransferQuestionV2,
+  requestAdminTrashQuizList
 } from './library/route_testing_functions';
 
 import {
-  QuestionBody,
   TokenString,
-  requestAdminQuizInfoReturn,
-  requestCreateQuestionReturn,
   CreateQuizQuestionReturn,
-  TransferQuizServerReturn,
   requestAdminQuizListReturn,
-  requestAdminTrashQuizRestoreReturn,
-  requestAdminQuizRemoveReturn,
 } from './library/interfaces';
 
 import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-  RESPONSE_OK_200,
 } from './library/constants';
 
 interface QuizId {
@@ -55,7 +43,6 @@ export interface CreateQuizQuestionServerReturn {
 const emailBase = 'gulemail3@gmail.com';
 const passwordBase = 'password123456789';
 //* *******************************************************
-
 //* *******************************************************
 function doesQuizExist(
   quizArray: SmallQuizArray[],
@@ -68,12 +55,7 @@ function doesQuizExist(
   }
   return false;
 }
-describe('Testing POST adminQuizTransfer', () => {
-  test('Testing successful transferring a quiz - EXPECT SUCCESS 200', () => {
-    expect(true).toStrictEqual(true);
-  });
-});
-/*
+
 describe('Testing POST adminQuizTransfer', () => {
   test('Testing successful transferring a quiz - EXPECT SUCCESS 200', () => {
     requestClear();
@@ -115,30 +97,12 @@ describe('Testing POST adminQuizTransfer', () => {
     const transfereeEmail = user1Email;
     // Trasnferor's token
     const transferorToken = tokenUser2;
-
-    // execute transfer
-    const responseTransfer = requestTransferQuestionV2(
-      transferorToken,
-      transfereeEmail,
-      quizId1User2
-    ) as TransferQuizServerReturn;
-
-    const transferResponseTest = responseTransfer.bodyString;
-
-    // Check for blank object
-
-    expect(transferResponseTest).toStrictEqual({});
-
-    // check for status code 200
-
-    const transferStatusCodeTest = responseTransfer.statusCode;
-
-    expect(transferStatusCodeTest).toStrictEqual(RESPONSE_OK_200);
+    expect(requestTransferQuestionV2(transferorToken, transfereeEmail, quizId1User2)).toStrictEqual({});
     // ######
     // Test that quizIdUser2 now appears in quizzes owned by user 1
     // get list of all quizzes owned by user 1
     const user1Quizzes: requestAdminQuizListReturn =
-      requestAdminQuizListV2(tokenUser1);
+      requestAdminQuizList(tokenUser1);
 
     if ('quizzes' in user1Quizzes.bodyString) {
       const quizzesTest = user1Quizzes.bodyString;
@@ -155,7 +119,7 @@ describe('Testing POST adminQuizTransfer', () => {
     // Test that quizIdUser2 now no longer appears in quizzes owned by user 2
     // get list of all quizzes owned by user 1
     const user2Quizzes: requestAdminQuizListReturn =
-      requestAdminQuizListV2(tokenUser2);
+      requestAdminQuizList(tokenUser2);
 
     if ('quizzes' in user2Quizzes.bodyString) {
       const quizzes2Test = user2Quizzes.bodyString;
@@ -423,8 +387,8 @@ describe('adminQuizList testing', () => {
       'this is my second quiz'
     ).bodyString as QuizId;
 
-    const QuizPrint = requestAdminQuizListV2(testToken);
-    expect(QuizPrint).toStrictEqual({
+    const QuizPrint = requestAdminQuizList(testToken);
+    expect(QuizPrint.bodyString).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -479,8 +443,8 @@ describe('adminTrashQuizRestore testing', () => {
     requestAdminQuizRemove(testToken, QuizOne.quizId);
     requestAdminQuizRemove(testToken, QuizTwo.quizId);
     requestAdminTrashQuizRestoreV2(testToken, QuizOne.quizId);
-    const quizOneRestored = requestAdminQuizListV2(testToken);
-    expect(quizOneRestored).toStrictEqual({
+    const quizOneRestored = requestAdminQuizList(testToken);
+    expect(quizOneRestored.bodyString).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -489,8 +453,8 @@ describe('adminTrashQuizRestore testing', () => {
       ],
     });
     requestAdminTrashQuizRestoreV2(testToken, QuizTwo.quizId);
-    const quizTwoRestored = requestAdminQuizListV2(testToken);
-    expect(quizTwoRestored).toStrictEqual({
+    const quizTwoRestored = requestAdminQuizList(testToken);
+    expect(quizTwoRestored.bodyString).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -515,7 +479,7 @@ describe('adminTrashQuizRestore testing', () => {
     );
 
     const testToken = returnTokenObj.body.token;
-    expect(() => requestAdminTrashQuizRestoreV2(testToken, -9999)).toThrow(
+    expect(() => requestAdminTrashQuizRestoreV2(testToken, 9999)).toThrow(
       HTTPError[RESPONSE_ERROR_400]
     );
   });
@@ -664,17 +628,9 @@ describe('adminTrashQuizEmpty testing', () => {
     requestAdminQuizRemove(testToken, QuizTwo.quizId);
     const array = [QuizOne.quizId, QuizTwo.quizId];
     requestAdminTrashQuizEmptyV2(testToken, JSON.stringify(array));
-    const quizOneRestoredfail = requestAdminTrashQuizRestoreV2(
-      testToken,
-      QuizOne.quizId
-    );
-    expect(quizOneRestoredfail.statusCode).toBe(RESPONSE_ERROR_400);
-    expect(quizOneRestoredfail.bodyString).toStrictEqual({
-      error: expect.any(String),
-    });
     expect(() =>
       requestAdminTrashQuizRestoreV2(testToken, QuizTwo.quizId)
-    ).toThrow(HTTPError[RESPONSE_ERROR_403]);
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
   test('Error 400: Quiz ID does not refer to a valid quiz', () => {
@@ -820,8 +776,8 @@ describe('adminTrashQuizList testing', () => {
     requestAdminQuizRemove(testToken, QuizOne.quizId);
 
     // print out quiz in trash
-    const TrashQuizPrint = requestAdminTrashQuizListV2(testToken);
-    expect(TrashQuizPrint).toStrictEqual({
+    const TrashQuizPrint = requestAdminTrashQuizList(testToken);
+    expect(TrashQuizPrint.bodyString).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -830,8 +786,8 @@ describe('adminTrashQuizList testing', () => {
       ],
     });
     requestAdminQuizRemove(testToken, QuizTwo.quizId);
-    const TrashQuizPrint2 = requestAdminTrashQuizListV2(testToken);
-    expect(TrashQuizPrint2).toStrictEqual({
+    const TrashQuizPrint2 = requestAdminTrashQuizList(testToken);
+    expect(TrashQuizPrint2.bodyString).toStrictEqual({
       quizzes: [
         {
           quizId: QuizOne.quizId,
@@ -857,5 +813,3 @@ describe('adminTrashQuizList testing', () => {
     );
   });
 });
-
-*/

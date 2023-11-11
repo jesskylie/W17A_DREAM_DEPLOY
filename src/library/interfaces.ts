@@ -148,12 +148,31 @@ export interface ImageUrlReturn {
   imgUrl: string;
 }
 
-// Interface for GET /v1/admin/quiz/{quizid}/session/{sessionid} get session status
-export interface GetSessionStatusReturnObj {
+export interface PlayerId {
+  playerId: number;
+}
+
+export interface PlayerStatus {
   state: string;
+  numQuestions: number;
   atQuestion: number;
-  players: string[];
-  metadata: Quizzes;
+}
+
+export interface PlayerWithScore {
+  name: string;
+  score: number;
+}
+
+interface QuestionResult {
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
+
+export interface SessionFinalResult {
+  usersRankedByScore: PlayerWithScore[];
+  questionResults: QuestionResult[];
 }
 
 export interface PlayerId {

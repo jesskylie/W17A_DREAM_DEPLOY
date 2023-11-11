@@ -30,8 +30,6 @@ import {
   ErrorObjectWithCode,
 } from './quiz';
 
-import { GetSessionStatusReturnObj } from './library/interfaces';
-
 /**
  * Refactored for Iteration 3
  * Creates a new quiz for the logged in user, returning an object containing
@@ -196,7 +194,7 @@ export function adminQuizInfoV2(
     throw HTTPError(401, 'Token is invalid');
   }
   if (!isQuizIdValidTest) {
-    throw HTTPError(400, 'Quiz is invalid');
+    throw HTTPError(400, 'QuizId is invalid');
   }
 
   for (const check of data.quizzes) {
@@ -428,7 +426,7 @@ export function adminQuizGetSessionStatus(
   quizId: number,
   sessionId: number,
   token: string
-): GetSessionStatusReturnObj {
+) {
   const data: DataStore = retrieveDataFromFile();
   const authUserIdObj = getAuthUserIdUsingToken(data, token);
   const authUserId = authUserIdObj.authUserId;

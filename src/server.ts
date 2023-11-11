@@ -37,7 +37,7 @@ import {
   adminTrashQuizEmptyV2,
   adminQuizTransferV2,
   adminTrashQuizListV2,
-  adminQuizListV2,
+  adminQuizListV2
 } from './quiz';
 import {
   adminQuizCreateV2,
@@ -262,7 +262,14 @@ app.put(
     const { questionBody, thumbnailUrl } = req.body;
     const quizId = parseInt(req.params.quizid);
     const questionId = parseInt(req.params.questionid);
-    res.json(updateQuizQuestionV2(quizId, questionId, token, questionBody));
+    res.json(
+      updateQuizQuestionV2(
+        quizId,
+        questionId,
+        token,
+        questionBody,
+      )
+    );
   }
 );
 
@@ -539,8 +546,7 @@ app.get(
   }
 );
 
-app.get(
-  '/v1/player/:playerid/question/:questionposition/result',
+app.get('/v1/player/:playerid/question/:questionposition/result',
   (req: Request, res: Response) => {
     const playerId = parseInt(req.params.playerid);
     const questionPosition = parseInt(req.params.questionposition);
@@ -555,16 +561,13 @@ app.get(
 // PUT request to route /v1/admin/user/details
 // From swagger.yaml:
 // Update the details of an admin user (non-password)
-app.put(
-  '/v1/player/:playerid/question/:questionposition/answer',
-  (req: Request, res: Response) => {
-    const playerId = parseInt(req.params.playerid);
-    const { answerIds } = req.body;
-    const questionPosition = parseInt(req.params.questionposition);
-    const result = submissionOfAnswers(playerId, answerIds, questionPosition);
-    res.json(result);
-  }
-);
+app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const { answerIds } = req.body;
+  const questionPosition = parseInt(req.params.questionposition);
+  const result = submissionOfAnswers(playerId, answerIds, questionPosition);
+  res.json(result);
+});
 
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   const { token, email, nameFirst, nameLast } = req.body;

@@ -10,6 +10,8 @@ import {
   State,
 } from './dataStore';
 import { ONE_MILLION } from './library/constants';
+import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from './library/functions';
+import { MessageBody, PlayerId, PlayerStatus, PlayerWithScore, SessionFinalResult } from './library/interfaces';
 import {
   getRandomInt,
   getState,
@@ -28,7 +30,7 @@ import { isQuizIdValid, isAuthUserIdMatchQuizId, SessionId } from './quiz';
 import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
 
 const MAX_AUTO_START_NUM = 50;
-const MAX_END_STATE_NUM = 10;
+const MAX_NOT_IN_END_STATE_NUM = 10;
 
 export const viewAllSessions = (token: string, quizId: number) => {
   const data = retrieveDataFromFile();
@@ -104,11 +106,8 @@ export const startNewSession = (
   }
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
-  if (countQuizNotInEndState(data, quizId) >= MAX_END_STATE_NUM) {
-    throw httpError(
-      400,
-      'A maximum of 10 sessions that are not in END state currently exist'
-    );
+  if (countQuizNotInEndState(data, quizId) >= MAX_NOT_IN_END_STATE_NUM) {
+    throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
   }
 
   // copy quiz of current quizid
@@ -134,6 +133,7 @@ export const startNewSession = (
       copyQuiz.timeCreated = quiz.timeCreated;
       copyQuiz.timeLastEdited = quiz.timeLastEdited;
       copyQuiz.userId = quiz.userId;
+      copyQuiz.questions = quiz.questions;
       copyQuiz.thumbnailUrl = quiz.thumbnailUrl;
     }
   }
@@ -208,11 +208,8 @@ export const updateSessionState = (
   }
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
-  if (countQuizNotInEndState(data, quizId) >= MAX_END_STATE_NUM) {
-    throw httpError(
-      400,
-      'A maximum of 10 sessions that are not in END state currently exist'
-    );
+  if (countQuizNotInEndState(data, quizId) >= MAX_NOT_IN_END_STATE_NUM) {
+    throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
   }
 
   let state = getState(data, sessionId);
@@ -433,10 +430,79 @@ export const playerStatus = (playerId: number): PlayerStatus => {
   }
 };
 
-export const playerCurrentQuestionInfo = (
-  playerId: number,
-  questionposition: number
-) => {
+export const playerCreate = (sessionId: number, name: string): PlayerId | HttpError => {
+  const data = retrieveDataFromFile();
+  if (!isSessionIdValidWithoutQuizId(data, sessionId)) {
+    throw httpError(400, 'SessionId is invalid');
+  }
+
+  if (getState(data, sessionId) !== State.LOBBY) {
+    throw httpError(400, 'Session is not in LOBBY state');
+  }
+
+  if (name === '') {
+    name = generateRandomName();
+    while (isPlayerNameRepeated(data, sessionId, name)) {
+      name = generateRandomName();
+    }
+  }
+
+  if (isPlayerNameRepeated(data, sessionId, name)) {
+    throw httpError(400, 'Name of user entered is not unique');
+  }
+
+  let playerId = getRandomInt(ONE_MILLION);
+  while (isPlayerIdRepeated(data, playerId)) {
+    playerId = getRandomInt(ONE_MILLION);
+  }
+  const newPlayer = {
+    playerId: playerId,
+    name: name,
+    selectedAnswer: [[]] as number[][],
+  };
+
+  const newdata = data;
+  for (const check of newdata.quizzesCopy) {
+    if (check.session.sessionId === sessionId) {
+      check.session.players.push(newPlayer);
+    }
+  }
+  if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
+    for (const check of newdata.quizzesCopy) {
+      if (check.session.sessionId === sessionId) {
+        check.session.state = State.QUESTION_COUNTDOWN;
+      }
+    }
+  }
+  saveDataInFile(newdata);
+  return { playerId: playerId };
+};
+
+export const playerStatus = (playerId: number): PlayerStatus => {
+  const data = retrieveDataFromFile();
+  if (!isPlayerIdRepeated(data, playerId)) {
+    throw httpError(400, 'PlayerId does not exist');
+  }
+
+  for (const check of data.quizzesCopy) {
+    for (const player of check.session.players) {
+      if (player.playerId === playerId) {
+        const state = check.session.state;
+        let atQuestion = 0;
+        if (state !== State.LOBBY && state !== State.FINAL_RESULTS && state !== State.END) {
+          atQuestion = check.session.atQuestion;
+        }
+        return {
+          state: state,
+          numQuestions: check.session.numQuestions,
+          atQuestion: atQuestion,
+        };
+      }
+    }
+  }
+};
+
+export const playerCurrentQuestionInfo = (playerId: number, questionposition: number) => {
   return {
     questionId: 5546,
     question: 'Who is the Monarch of England?',
@@ -470,9 +536,7 @@ export const questionResult = (playerId: number, questionposition: number) => {
   };
 };
 
-export const sessionFinalResult = (
-  playerId: number
-): SessionFinalResult | HttpError => {
+export const sessionFinalResult = (playerId: number): SessionFinalResult | HttpError => {
   const data = retrieveDataFromFile();
   if (!isPlayerIdRepeated(data, playerId)) {
     throw httpError(400, 'playerId does not exist');
@@ -503,7 +567,7 @@ export const sessionFinalResult = (
       if (player.playerId === playerId) {
         return {
           usersRankedByScore: playerArray,
-          questionResults: session.session.result,
+          questionResults: session.session.result
         };
       }
     }
@@ -527,6 +591,8 @@ export const sendChatMessage = (message: MessageBody, playerId: number) => {
   return {};
 };
 
+// helper function:
+
 const isSessionIdRepeated = (data: DataStore, sessionId: number): boolean => {
   const sessionIdArr = data.quizzesCopy;
   for (const check of sessionIdArr) {
@@ -538,15 +604,13 @@ const isSessionIdRepeated = (data: DataStore, sessionId: number): boolean => {
 };
 
 // finds all quizzes in QuizzesCopy with specific quizIds
-// returns the count of quizzes in end state
+// returns the count of quizzes NOT in end state
 function countQuizNotInEndState(data: DataStore, quizId: number): number {
   let count = 0;
-  if (data.quizzesCopy.length >= MAX_END_STATE_NUM) {
-    for (const quizzesCopy of data.quizzesCopy) {
-      if (quizzesCopy.metadata.quizId === quizId) {
-        if (quizzesCopy.session.state !== State.END) {
-          count++;
-        }
+  for (const quizzesCopy of data.quizzesCopy) {
+    if (quizzesCopy.metadata.quizId === quizId) {
+      if (quizzesCopy.session.state !== State.END) {
+        count++;
       }
     }
   }
@@ -568,10 +632,7 @@ function isSessionIdValid(
   return false;
 }
 
-function isSessionIdValidWithoutQuizId(
-  data: DataStore,
-  sessionId: number
-): boolean {
+function isSessionIdValidWithoutQuizId(data: DataStore, sessionId: number): boolean {
   for (const check of data.quizzesCopy) {
     if (check.session.sessionId === sessionId) {
       return true;
@@ -591,11 +652,7 @@ function isPlayerIdRepeated(data: DataStore, playerId: number): boolean {
   return false;
 }
 
-function isPlayerNameRepeated(
-  data: DataStore,
-  sessionId: number,
-  name: string
-): boolean {
+function isPlayerNameRepeated(data: DataStore, sessionId: number, name: string): boolean {
   for (const check of data.quizzesCopy) {
     if (check.session.sessionId === sessionId) {
       for (const checkname of check.session.players) {
@@ -609,9 +666,7 @@ function isPlayerNameRepeated(
 }
 
 function generateRandomName(): string {
-  const allLetters: string[] = Array.from({ length: 26 }, (_, index) =>
-    String.fromCharCode(97 + index)
-  );
+  const allLetters: string[] = Array.from({ length: 26 }, (_, index) => String.fromCharCode(97 + index));
   let randomName = '';
   while (randomName.length < 5) {
     randomName = randomName + allLetters[getRandomInt(allLetters.length)];
@@ -622,10 +677,7 @@ function generateRandomName(): string {
   return randomName;
 }
 
-function isNumOfPlayerEnoughToLeaveLobby(
-  data: DataStore,
-  sessionId: number
-): boolean {
+function isNumOfPlayerEnoughToLeaveLobby(data: DataStore, sessionId: number): boolean {
   for (const session of data.quizzesCopy) {
     if (session.session.sessionId === sessionId) {
       if (session.session.players.length === session.session.autoStartNum) {
@@ -646,14 +698,10 @@ function checkPointofQuestion(data: DataStore, questionId: number): number {
   }
 }
 
-function playerScore(
-  data: DataStore,
-  session: Session,
-  playerName: string
-): PlayerWithScore {
+function playerScore(data: DataStore, session:Session, playerName: string): PlayerWithScore {
   const playerResult = {
     name: playerName,
-    score: 0,
+    score: 0
   };
   for (const result of session.result) {
     for (const player of result.playersCorrectList) {

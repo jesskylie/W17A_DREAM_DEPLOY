@@ -33,7 +33,7 @@ import {
   RESPONSE_ERROR_403,
   WAIT_TIME,
 } from './constants';
-import { Action } from '../dataStore';
+import { Action, Quizzes } from '../dataStore';
 import { SessionId } from '../quiz';
 
 // constants used throughout file - START
@@ -62,17 +62,11 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export function requestResultsOfAnswers(
-  playerid: number,
-  questionposition: number
-) {
-  const res = request(
-    'GET',
-    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
+export function requestResultsOfAnswers(playerid: number, questionposition: number) {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
     {
       qs: { playerid, questionposition },
-    }
-  );
+    });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -81,12 +75,8 @@ export function requestResultsOfAnswers(
   }
 }
 
-export function requestSessionFinalResult(
-  playerid: number
-): SessionFinalResult | HttpError {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/results`, {
-    qs: { playerid },
-  });
+export function requestSessionFinalResult(playerid: number): SessionFinalResult | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/results`, { qs: { playerid } });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -95,12 +85,8 @@ export function requestSessionFinalResult(
   }
 }
 
-export function requestPlayerStatus(
-  playerid: number
-): PlayerStatus | HttpError {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, {
-    qs: { playerid },
-  });
+export function requestPlayerStatus(playerid: number): PlayerStatus | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, { qs: { playerid } });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -127,16 +113,19 @@ export function requestAnswerQuestion(
     case RESPONSE_ERROR_400:
       throw HTTPError(RESPONSE_ERROR_400);
   }
-  return {};
 }
 
 export function requestPlayerCreate(
   sessionId: number,
   name: string
 ): PlayerId | HttpError {
-  const res = request('POST', SERVER_URL + '/v1/player/join', {
-    json: { sessionId, name },
-  });
+  const res = request(
+    'POST',
+    SERVER_URL + '/v1/player/join',
+    {
+      json: { sessionId, name },
+    }
+  );
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -422,11 +411,10 @@ export const requestAdminQuizList = (
 //* *************************************************************
 export const requestAdminQuizListV2 = (
   token: string
-): requestAdminQuizListReturn => {
+): Quizzes[] | HttpError => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
     headers: { token },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -581,12 +569,11 @@ export const requestAdminTrashQuizRestore = (
 export const requestAdminTrashQuizRestoreV2 = (
   token: string,
   quizId: number
-): requestAdminTrashQuizRestoreReturn => {
+): Record<string, never> | HttpError => {
   const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
     headers: { token },
     json: { quizId },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -813,12 +800,11 @@ export function requestDuplicateQuestion(
 export const requestAdminTrashQuizEmptyV2 = (
   token: string,
   quizids: string
-): requestAdminQuizRemoveReturn => {
+): Record<string, never> | HttpError => {
   const res = request('DELETE', SERVER_URL + '/v2/admin/quiz/trash/empty', {
     headers: { token },
     qs: { quizIds: quizids },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -843,18 +829,16 @@ export const requestAdminTrashQuizList = (
 //* *************************************************************
 export const requestAdminTrashQuizListV2 = (
   token: string
-): requestAdminQuizListReturn => {
+): Quizzes[] | HttpError => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
     headers: { token },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
     throw HTTPError(RESPONSE_ERROR_401);
   }
 };
-
 //* *************************************************************
 export function requestTransferQuestion(
   token: string,
@@ -886,7 +870,7 @@ export function requestTransferQuestionV2(
   token: string,
   userEmail: string,
   quizId: number
-): TransferQuizServerReturn {
+): Record<string, never> | HttpError {
   const res = request(
     'POST',
     SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`,
@@ -895,7 +879,6 @@ export function requestTransferQuestionV2(
       json: { userEmail },
     }
   );
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -940,7 +923,7 @@ export const requestAdminGetSessionStatus = (
   quizid: number,
   sessionid: number,
   token: string
-): GetSessionStatusReturnObj => {
+): Record<string, never> => {
   const res = request(
     'GET',
     SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}`,

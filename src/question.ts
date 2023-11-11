@@ -54,7 +54,7 @@ export function updateQuizQuestionV2(
   questionId: number,
   token: string,
   question: QuestionBody
-): Record<string, never> | ErrorObjectWithCode {
+  ): Record<string, never> | ErrorObjectWithCode {
   const data = retrieveDataFromFile();
 
   // 401 error token is invalid

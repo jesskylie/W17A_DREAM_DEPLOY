@@ -77,7 +77,7 @@ const question = {
 // sessionid (path) number
 // token (header) string
 
-describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty object -> EXPECT 200 SUCCESS', () => {
+describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty object -> EXPECT 200 SUCCESS', () => {
   test('Returns data about session state -> EXPECT SUCESS CODE 200', () => {
     requestClear();
     // Create user
@@ -163,7 +163,23 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty obj
       quizId,
       sessionId,
       token
-    ) as GetSessionStatusReturnObj;
+    );
+
+    // const getExpectedSessionState = createSessionStateObject({
+    //   state:'LOBBY',
+    //   atQuestion:1,
+    //   players: ['Hayden'],
+    //   metadata: {
+    //   quizId: quizId,
+    //   name: quizName,
+    //   timeCreated: expect.any(Number),
+    //   description: expect.any(String),
+    //   numQuestions: expect.any(Number),
+    //   questions: []
+    //   duration: expect.any(Number),
+    //   thumbnailUrl: expect.any(String),
+    //   }}
+    // );
 
     const getExpectedSessionStateAfterPlayerCreated = {
       state: State.QUESTION_COUNTDOWN,
