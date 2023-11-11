@@ -153,7 +153,7 @@ export interface PlayerId {
 }
 
 export interface PlayerStatus {
-  state: State;
+  state: string;
   numQuestions: number;
   atQuestion: number;
 }

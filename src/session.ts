@@ -10,7 +10,7 @@ import {
 } from './dataStore';
 import { ONE_MILLION } from './library/constants';
 import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from './library/functions';
-import { MessageBody, PlayerId } from './library/interfaces';
+import { MessageBody, PlayerId, PlayerStatus } from './library/interfaces';
 import {
   isQuizIdValid,
   isAuthUserIdMatchQuizId,
@@ -352,12 +352,29 @@ export const playerCreate = (sessionId: number, name: string): PlayerId | HttpEr
   return { playerId: playerId };
 };
 
-export const playerStatus = (playerId: number) => {
-  return {
-    state: 'LOBBY',
-    numQuestions: 1,
-    atQuestion: 3
-  };
+export const playerStatus = (playerId: number): PlayerStatus => {
+  const data = retrieveDataFromFile();
+  if (!isPlayerIdRepeated(data, playerId)) {
+    throw httpError(400, 'PlayerId does not exist');
+  }
+
+  for (const check of data.quizzesCopy) {
+    for (const player of check.session.players) {
+      if (player.playerId === playerId) {
+        const state = check.session.state;
+        let atQuestion = 0;
+        if (state !== State.LOBBY && state !== State.FINAL_RESULTS && state !== State.END) {
+          atQuestion = check.session.atQuestion;
+        }
+        const uppercaseState = state.toUpperCase();
+        return {
+          state: uppercaseState,
+          numQuestions: check.session.numQuestions,
+          atQuestion: atQuestion,
+        };
+      }
+    }
+  }
 };
 
 export const playerCurrentQuestionInfo = (playerId: number, questionposition: number) => {
