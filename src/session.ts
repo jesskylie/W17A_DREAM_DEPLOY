@@ -442,7 +442,7 @@ export const sessionFinalResult = (playerId: number): SessionFinalResult | HttpE
       }
     }
   }
-  
+
   for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
       if (player.playerId === playerId) {
@@ -581,7 +581,7 @@ function playerScore(data: DataStore, session:Session, playerName: string): Play
   for (const result of session.result) {
     for (const player of result.playersCorrectList) {
       if (playerName === player) {
-        playerResult.score +=  checkPointofQuestion(data, result.questionId);
+        playerResult.score += checkPointofQuestion(data, result.questionId);
       }
     }
   }
