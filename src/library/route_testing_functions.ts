@@ -20,6 +20,7 @@ import {
   RequestAdminDetailsUpdateServerReturn,
   QuestionId,
   QuizId,
+  GetSessionStatusReturnObj,
   PlayerId,
   PlayerStatus,
   SessionFinalResult,

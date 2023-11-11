@@ -174,3 +174,30 @@ export interface SessionFinalResult {
   usersRankedByScore: PlayerWithScore[];
   questionResults: QuestionResult[];
 }
+
+export interface PlayerId {
+  playerId: number;
+}
+
+export interface PlayerStatus {
+  state: string;
+  numQuestions: number;
+  atQuestion: number;
+}
+
+export interface PlayerWithScore {
+  name: string;
+  score: number;
+}
+
+interface QuestionResult {
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
+
+export interface SessionFinalResult {
+  usersRankedByScore: PlayerWithScore[];
+  questionResults: QuestionResult[];
+}

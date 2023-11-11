@@ -1,6 +1,14 @@
 import { DEFAULT_VALID_THUMBNAIL_URL } from './library/constants';
 import HTTPError from 'http-errors';
-import { requestAdminQuizCreateV2, requestAdminRegister, requestClear, requestCreateQuestionV2, requestPlayerCreate, requestSessionStart, requestUpdateSessionState } from './library/route_testing_functions';
+import {
+  requestAdminQuizCreateV2,
+  requestAdminRegister,
+  requestClear,
+  requestCreateQuestionV2,
+  requestPlayerCreate,
+  requestSessionStart,
+  requestUpdateSessionState,
+} from './library/route_testing_functions';
 import { SessionId } from './quiz';
 import { Action } from './dataStore';
 
@@ -42,9 +50,14 @@ describe('Test: POST /v1/player/join', () => {
     const sessionId = requestSessionStart(
       quizId.quizId,
       result.body.token,
-      5) as SessionId;
-    expect(requestPlayerCreate(sessionId.sessionId, '')).toStrictEqual({ playerId: expect.any(Number) });
-    expect(requestPlayerCreate(sessionId.sessionId, 'valid')).toStrictEqual({ playerId: expect.any(Number) });
+      5
+    ) as SessionId;
+    expect(requestPlayerCreate(sessionId.sessionId, '')).toStrictEqual({
+      playerId: expect.any(Number),
+    });
+    expect(requestPlayerCreate(sessionId.sessionId, 'valid')).toStrictEqual({
+      playerId: expect.any(Number),
+    });
   });
 
   test('Name of user entered is not unique (compared to other users who have already joined)', () => {
@@ -84,9 +97,12 @@ describe('Test: POST /v1/player/join', () => {
     const sessionId = requestSessionStart(
       quizId.quizId,
       result.body.token,
-      5) as SessionId;
+      5
+    ) as SessionId;
     requestPlayerCreate(sessionId.sessionId, 'repeated');
-    expect(() => requestPlayerCreate(sessionId.sessionId, 'repeated')).toThrow(HTTPError[400]);
+    expect(() => requestPlayerCreate(sessionId.sessionId, 'repeated')).toThrow(
+      HTTPError[400]
+    );
   });
 
   test('Session is not in LOBBY state', () => {
@@ -126,8 +142,16 @@ describe('Test: POST /v1/player/join', () => {
     const sessionId = requestSessionStart(
       quizId.quizId,
       result.body.token,
-      5) as SessionId;
-    requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.END);
-    expect(() => requestPlayerCreate(sessionId.sessionId, 'valid')).toThrow(HTTPError[400]);
+      5
+    ) as SessionId;
+    requestUpdateSessionState(
+      quizId.quizId,
+      sessionId.sessionId,
+      result.body.token,
+      Action.END
+    );
+    expect(() => requestPlayerCreate(sessionId.sessionId, 'valid')).toThrow(
+      HTTPError[400]
+    );
   });
 });

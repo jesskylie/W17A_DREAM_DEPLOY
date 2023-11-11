@@ -1,5 +1,10 @@
 import httpError, { HttpError } from 'http-errors';
-import { getRandomInt, getState, retrieveDataFromFile, saveDataInFile } from './library/functions';
+import {
+  getRandomInt,
+  getState,
+  retrieveDataFromFile,
+  saveDataInFile,
+} from './library/functions';
 import { DataStore, State } from './dataStore';
 import { ONE_MILLION } from './library/constants';
 
@@ -7,7 +12,10 @@ export interface PlayerId {
   playerId: number;
 }
 
-export const playerCreate = (sessionId: number, name: string): PlayerId | HttpError => {
+export const playerCreate = (
+  sessionId: number,
+  name: string
+): PlayerId | HttpError => {
   const data = retrieveDataFromFile();
   if (!isSessionIdValid(data, sessionId)) {
     throw httpError(400, 'SessionId is invalid');
@@ -81,7 +89,9 @@ function isPlayerNameRepeated(data: DataStore, name: string): boolean {
 }
 
 function generateRandomName(): string {
-  const allLetters: string[] = Array.from({ length: 26 }, (_, index) => String.fromCharCode(97 + index));
+  const allLetters: string[] = Array.from({ length: 26 }, (_, index) =>
+    String.fromCharCode(97 + index)
+  );
   let randomName = '';
   while (randomName.length < 5) {
     randomName = randomName + allLetters[getRandomInt(allLetters.length)];

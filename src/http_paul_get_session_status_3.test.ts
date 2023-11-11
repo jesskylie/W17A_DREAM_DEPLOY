@@ -15,13 +15,14 @@ import {
   requestCreateQuestionV2,
   requestPlayerCreate,
 } from './library/route_testing_functions';
-import { TokenString } from './library/interfaces';
+import { TokenString, GetSessionStatusReturnObj } from './library/interfaces';
 import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
   DEFAULT_VALID_THUMBNAIL_URL,
 } from './library/constants';
+import { State } from './dataStore';
 
 // --------------------------------------------------
 // Test suite for POST /v2/admin/auth/logout route - START
@@ -116,11 +117,41 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
 
     const testCreateSession = requestSessionStart(quizId, token, 1);
 
+    // requestSessionStart(quizId, token, 1);
+
     // console.log('200 test: testCreateSession ->', testCreateSession);
 
     const sessionId = testCreateSession.sessionId;
 
     // console.log('200 test: sessionId ->', sessionId);
+
+    const getExpectedSessionStateAFterBeforePlayerCreated = {
+      state: State.LOBBY,
+      atQuestion: expect.any(Number),
+      players: expect.any(Array),
+      metadata: {
+        quizId: quizId,
+        name: quizName,
+        timeCreated: expect.any(Number),
+        timeLastEdited: expect.any(Number),
+        description: expect.any(String),
+        numQuestions: expect.any(Number),
+        questions: expect.any(Array),
+        duration: expect.any(Number),
+        thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
+      },
+    };
+
+    const testGetSessionStatusBeforePlayerCreated =
+      requestAdminGetSessionStatus(
+        quizId,
+        sessionId,
+        token
+      ) as GetSessionStatusReturnObj;
+
+    expect(testGetSessionStatusBeforePlayerCreated).toStrictEqual(
+      getExpectedSessionStateAFterBeforePlayerCreated
+    );
 
     // create player
 
@@ -128,7 +159,7 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
 
     requestPlayerCreate(sessionId, playerName);
 
-    const testGetSessionStatus = requestAdminGetSessionStatus(
+    const testGetSessionStatusAfterPlayerCreated = requestAdminGetSessionStatus(
       quizId,
       sessionId,
       token
@@ -150,8 +181,8 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
     //   }}
     // );
 
-    const getExpectedSessionState = {
-      state: 'lobby',
+    const getExpectedSessionStateAfterPlayerCreated = {
+      state: State.QUESTION_COUNTDOWN,
       atQuestion: expect.any(Number),
       players: [playerName],
       metadata: {
@@ -169,7 +200,9 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
 
     // console.log('200 test: testGetSessionStatus ->', testGetSessionStatus);
     // console.log('200 test: getExpectedSessionState', getExpectedSessionState);
-    expect(testGetSessionStatus).toStrictEqual(getExpectedSessionState);
+    expect(testGetSessionStatusAfterPlayerCreated).toStrictEqual(
+      getExpectedSessionStateAfterPlayerCreated
+    );
   });
 });
 
@@ -306,15 +339,9 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
 
     requestCreateQuestionV2(token, question, quizId);
 
-    // console.log('400 test: testCreateQuestion ->', testCreateQuestion);
-
     // create session
 
     requestSessionStart(quizId, token, 1);
-
-    // console.log('400 test: testCreateSession ->', testCreateSession);
-
-    // const sessionId = testCreateSession.sessionId;
 
     // test for get session status
 
