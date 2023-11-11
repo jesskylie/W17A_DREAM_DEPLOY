@@ -11,7 +11,7 @@ import {
 } from './dataStore';
 import { ONE_MILLION } from './library/constants';
 import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from './library/functions';
-import { MessageBody, PlayerId, PlayerStatus, PlayerWithScore, SessionFinalResult } from './library/interfaces';
+import { PlayerId, PlayerStatus, PlayerWithScore, SessionFinalResult, FinalResult } from './library/interfaces';
 import { isQuizIdValid, isAuthUserIdMatchQuizId, SessionId } from './quiz';
 import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
 
@@ -307,24 +307,83 @@ export const getQuizFinalResult = (
   quizId: number,
   sessionId: number,
   token: string
-) => {
+): FinalResult => {
+  const data = retrieveDataFromFile();
+
+  // Token is empty or invalid (does not refer to valid logged in user session) - error 401
+  if (!isTokenValid(data, token)) {
+    throw httpError(401, 'Token is empty or invalid');
+  }
+
+  // 403 error - valid token provided but incorrect user
+  const authUserIdString = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdString.authUserId;
+
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (!user.quizId.includes(quizId)) {
+        throw httpError(403, 'Valid token is provided, but user is unauthorised to complete this action');
+      }
+    }
+  }
+
+  // Session Id does not refer to a valid session within this quiz - error 400
+  if (!isSessionIdValid(data, quizId, sessionId)) {
+    throw httpError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  // Session is not in FINAL_RESULTS state - error 400
+  if (getState(data, sessionId) !== State.FINAL_RESULTS) {
+    throw httpError(400, 'Session is not in FINAL_RESULTS state');
+  }
+
+  // stores players final scores
+  const playerScores: PlayerWithScore[] = [];
+
+  // loops through quizzes copy
+  for (const copyQuiz of data.quizzesCopy) {
+    if (copyQuiz.session.sessionId === sessionId) {
+      // found current sessionid
+      const currSessionResult = copyQuiz.session.result;
+      // loop through each question in current session
+      for (const result of currSessionResult) {
+        // loops through players correct array
+        for (const playerName of result.playersCorrectList) {
+          const playerNamesIndex = playerScores.findIndex(player => player.name === playerName);
+          // adds new players to array if it does not exist in playerScores array
+          if (playerNamesIndex === -1) {
+            playerScores.push({ name: playerName, score: 0 });
+          }
+          // update player's score
+          // finds index of the player name and pushes to that index
+          const playersIndex = playerScores.findIndex(player => player.name === playerName);
+          const currPoints = checkPointofQuestion(data, result.questionId);
+          playerScores[playersIndex].score += currPoints;
+        }
+      }
+    }
+  }
+  // sort the players by score
+  playerScores.sort((a, b) => b.score - a.score);
+  const quizIndex = findQuizIndexById(data, quizId);
   return {
-    usersRankedByScore: [
-      {
-        name: 'Hayden',
-        score: 45,
-      },
-    ],
-    questionResults: [
-      {
-        questionId: 5546,
-        playersCorrectList: ['Hayden'],
-        averageAnswerTime: 45,
-        percentCorrect: 54,
-      },
-    ],
+    usersRankedByScore: playerScores,
+    questionResults: data.quizzesCopy[quizIndex].session.result,
   };
 };
+
+// finds current quiz in quizzes copy by its index
+function findQuizIndexById(data: DataStore, quizId: number) {
+  for (let i = 0; i < data.quizzesCopy.length; i++) {
+    if (data.quizzesCopy[i].metadata.quizId === quizId) {
+      // return index of copy quiz
+      return i;
+    }
+  }
+  // returns -1 if not found
+  return -1;
+}
 
 export const getQuizFinalResultCSV = (
   quizId: number,
@@ -428,14 +487,6 @@ export const playerCurrentQuestionInfo = (playerId: number, questionposition: nu
   };
 };
 
-export const playerSubmit = (
-  playerId: number,
-  questionposition: number,
-  answerId: number[]
-) => {
-  return {};
-};
-
 export const questionResult = (playerId: number, questionposition: number) => {
   return {
     questionId: 5546,
@@ -481,23 +532,6 @@ export const sessionFinalResult = (playerId: number): SessionFinalResult | HttpE
       }
     }
   }
-};
-
-export const getAllChatMessage = (playerId: number) => {
-  return {
-    messages: [
-      {
-        messageBody: 'This is a message body',
-        playerId: 5546,
-        playerName: 'Yuchao Jiang',
-        timeSent: 1683019484,
-      },
-    ],
-  };
-};
-
-export const sendChatMessage = (message: MessageBody, playerId: number) => {
-  return {};
 };
 
 // helper function:
