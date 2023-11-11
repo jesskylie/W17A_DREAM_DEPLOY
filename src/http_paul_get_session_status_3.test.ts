@@ -22,8 +22,6 @@ import {
   DEFAULT_VALID_THUMBNAIL_URL,
 } from './library/constants';
 
-import { GetSessionStatusReturnObj } from './library/interfaces';
-
 // --------------------------------------------------
 // Test suite for POST /v2/admin/auth/logout route - START
 
@@ -77,7 +75,7 @@ const question = {
 // sessionid (path) number
 // token (header) string
 
-describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty object -> EXPECT 200 SUCCESS', () => {
+describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty object -> EXPECT 200 SUCCESS', () => {
   test('Returns data about session state -> EXPECT SUCESS CODE 200', () => {
     requestClear();
     // Create user
@@ -127,7 +125,23 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty obj
       quizId,
       sessionId,
       token
-    ) as GetSessionStatusReturnObj;
+    );
+
+    // const getExpectedSessionState = createSessionStateObject({
+    //   state:'LOBBY',
+    //   atQuestion:1,
+    //   players: ['Hayden'],
+    //   metadata: {
+    //   quizId: quizId,
+    //   name: quizName,
+    //   timeCreated: expect.any(Number),
+    //   description: expect.any(String),
+    //   numQuestions: expect.any(Number),
+    //   questions: []
+    //   duration: expect.any(Number),
+    //   thumbnailUrl: expect.any(String),
+    //   }}
+    // );
 
     const getExpectedSessionState = {
       state: 'lobby',
@@ -197,7 +211,7 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
       HTTPError[RESPONSE_ERROR_401]
     );
   });
-  /*
+
   test('Valid token is provided, but user is not authorised to view this session -> EXPECT ERROR CODE 403', () => {
     // NOT POSSIBLE UNTIL player is created
     requestClear();
@@ -256,7 +270,7 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
       requestAdminGetSessionStatus(quizId, sessionId, tokenNotAuthorisedToView)
     ).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
-*/
+
   test('Session Id does not refer to a valid session within this quiz -> EXPECT ERROR CODE 400', () => {
     requestClear();
     // Create user

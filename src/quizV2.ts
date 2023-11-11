@@ -30,8 +30,6 @@ import {
   ErrorObjectWithCode,
 } from './quiz';
 
-import { GetSessionStatusReturnObj } from './library/interfaces';
-
 /**
  * Refactored for Iteration 3
  * Creates a new quiz for the logged in user, returning an object containing
@@ -428,7 +426,7 @@ export function adminQuizGetSessionStatus(
   quizId: number,
   sessionId: number,
   token: string
-): GetSessionStatusReturnObj {
+) {
   const data: DataStore = retrieveDataFromFile();
   // const authUserIdObj = getAuthUserIdUsingToken(data, token);
   // const authUserId = authUserIdObj.authUserId;
@@ -445,13 +443,6 @@ export function adminQuizGetSessionStatus(
       'Token is empty or invalid (does not refer to valid logged in user session)'
     );
   }
-
-  console.log('quizV2.ts: data ->', data);
-  console.log('quizV2.ts: data.quizzesCopy ->', data.quizzesCopy);
-  console.log(
-    'quizV2.ts: data.quizzesCopy.metadata.userId ->',
-    data.quizzesCopy[0].metadata.userId
-  );
 
   // Step 1: ERROR 401 - END
 

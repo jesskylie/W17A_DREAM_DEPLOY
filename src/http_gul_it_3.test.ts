@@ -55,12 +55,7 @@ function doesQuizExist(
   }
   return false;
 }
-describe('Testing POST adminQuizTransfer', () => {
-  test('Testing successful transferring a quiz - EXPECT SUCCESS 200', () => {
-    expect(true).toStrictEqual(true);
-  });
-});
-/*
+
 describe('Testing POST adminQuizTransfer', () => {
   test('Testing successful transferring a quiz - EXPECT SUCCESS 200', () => {
     requestClear();
@@ -818,5 +813,3 @@ describe('adminTrashQuizList testing', () => {
     );
   });
 });
-
-*/
