@@ -368,12 +368,12 @@ export const playerCreate = (
 
   if (name === '') {
     name = generateRandomName();
-    while (isPlayerNameRepeated(data, name)) {
+    while (isPlayerNameRepeated(data, sessionId, name)) {
       name = generateRandomName();
     }
   }
 
-  if (isPlayerNameRepeated(data, name)) {
+  if (isPlayerNameRepeated(data, sessionId, name)) {
     throw httpError(400, 'Name of user entered is not unique');
   }
 
@@ -422,9 +422,9 @@ export const playerStatus = (playerId: number): PlayerStatus => {
         ) {
           atQuestion = check.session.atQuestion;
         }
-        const uppercaseState = state.toUpperCase();
+
         return {
-          state: uppercaseState,
+          state: state,
           numQuestions: check.session.numQuestions,
           atQuestion: atQuestion,
         };
@@ -591,11 +591,17 @@ function isPlayerIdRepeated(data: DataStore, playerId: number): boolean {
   return false;
 }
 
-function isPlayerNameRepeated(data: DataStore, name: string): boolean {
+function isPlayerNameRepeated(
+  data: DataStore,
+  sessionId: number,
+  name: string
+): boolean {
   for (const check of data.quizzesCopy) {
-    for (const checkname of check.session.players) {
-      if (checkname.name === name) {
-        return true;
+    if (check.session.sessionId === sessionId) {
+      for (const checkname of check.session.players) {
+        if (checkname.name === name) {
+          return true;
+        }
       }
     }
   }

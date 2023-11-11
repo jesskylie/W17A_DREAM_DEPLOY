@@ -425,7 +425,6 @@ export const requestAdminQuizListV2 = (
 ): requestAdminQuizListReturn => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
     headers: { token },
-    qs: { token },
   });
 
   if (res.statusCode === 200) {
@@ -584,7 +583,8 @@ export const requestAdminTrashQuizRestoreV2 = (
   quizId: number
 ): requestAdminTrashQuizRestoreReturn => {
   const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
-    json: { token, quizId },
+    headers: { token },
+    json: { quizId },
   });
 
   if (res.statusCode === 200) {
@@ -816,7 +816,7 @@ export const requestAdminTrashQuizEmptyV2 = (
 ): requestAdminQuizRemoveReturn => {
   const res = request('DELETE', SERVER_URL + '/v2/admin/quiz/trash/empty', {
     headers: { token },
-    qs: { quizIds: quizids, token: token },
+    qs: { quizIds: quizids },
   });
 
   if (res.statusCode === 200) {
@@ -846,7 +846,6 @@ export const requestAdminTrashQuizListV2 = (
 ): requestAdminQuizListReturn => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
     headers: { token },
-    qs: { token },
   });
 
   if (res.statusCode === 200) {
@@ -893,7 +892,7 @@ export function requestTransferQuestionV2(
     SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`,
     {
       headers: { token },
-      json: { token, userEmail },
+      json: { userEmail },
     }
   );
 
