@@ -147,11 +147,3 @@ export interface MessageBody {
 export interface ImageUrlReturn {
   imgUrl: string;
 }
-
-// Interface for GET /v1/admin/quiz/{quizid}/session/{sessionid} get session status
-export interface GetSessionStatusReturnObj {
-  state: string;
-  atQuestion: number;
-  players: string[];
-  metadata: Quizzes;
-}

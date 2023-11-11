@@ -20,7 +20,6 @@ import {
   RequestAdminDetailsUpdateServerReturn,
   QuestionId,
   QuizId,
-  GetSessionStatusReturnObj,
 } from './interfaces';
 
 import {
@@ -64,9 +63,13 @@ export function requestPlayerCreate(
   sessionId: number,
   name: string
 ): PlayerId | HttpError {
-  const res = request('POST', SERVER_URL + '/v1/player/join', {
-    json: { sessionId, name },
-  });
+  const res = request(
+    'POST',
+    SERVER_URL + '/v1/player/join',
+    {
+      json: { sessionId, name },
+    }
+  );
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -866,7 +869,7 @@ export const requestAdminGetSessionStatus = (
   quizid: number,
   sessionid: number,
   token: string
-): GetSessionStatusReturnObj => {
+): Record<string, never> => {
   const res = request(
     'GET',
     SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}`,
