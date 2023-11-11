@@ -1,4 +1,4 @@
-import { Quizzes } from '../dataStore';
+import { Quizzes, Message } from '../dataStore';
 
 export interface QuestionBody {
   question: string;
@@ -11,6 +11,10 @@ export interface QuestionBody {
     answerId: number;
   }[];
   thumbnailUrl: string;
+}
+
+export interface MessageReturn {
+  messages: Message[];
 }
 
 export interface GetSessionStatusReturnObj {
