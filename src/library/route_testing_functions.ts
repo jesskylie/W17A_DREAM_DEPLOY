@@ -29,7 +29,7 @@ import {
   RESPONSE_ERROR_403,
   WAIT_TIME,
 } from './constants';
-import { Action } from '../dataStore';
+import { Action, Quizzes } from '../dataStore';
 import { SessionId } from '../quiz';
 import { PlayerId } from '../player';
 
@@ -355,12 +355,11 @@ export const requestAdminQuizList = (
 //* *************************************************************
 export const requestAdminQuizListV2 = (
   token: string
-): requestAdminQuizListReturn => {
+): Quizzes[] | HttpError => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/list', {
     headers: { token },
     qs: { token },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -515,11 +514,11 @@ export const requestAdminTrashQuizRestore = (
 export const requestAdminTrashQuizRestoreV2 = (
   token: string,
   quizId: number
-): requestAdminTrashQuizRestoreReturn => {
+): Record<string, never> | HttpError => {
   const res = request('POST', SERVER_URL + `/v2/admin/quiz/${quizId}/restore`, {
+    headers: { token },
     json: { token, quizId },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -746,12 +745,11 @@ export function requestDuplicateQuestion(
 export const requestAdminTrashQuizEmptyV2 = (
   token: string,
   quizids: string
-): requestAdminQuizRemoveReturn => {
+): Record<string, never> | HttpError => {
   const res = request('DELETE', SERVER_URL + '/v2/admin/quiz/trash/empty', {
     headers: { token },
     qs: { quizIds: quizids, token: token },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
@@ -776,19 +774,17 @@ export const requestAdminTrashQuizList = (
 //* *************************************************************
 export const requestAdminTrashQuizListV2 = (
   token: string
-): requestAdminQuizListReturn => {
+): Quizzes[] | HttpError => {
   const res = request('GET', SERVER_URL + '/v2/admin/quiz/trash', {
     headers: { token },
     qs: { token },
   });
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
     throw HTTPError(RESPONSE_ERROR_401);
   }
 };
-
 //* *************************************************************
 export function requestTransferQuestion(
   token: string,
@@ -820,7 +816,7 @@ export function requestTransferQuestionV2(
   token: string,
   userEmail: string,
   quizId: number
-): TransferQuizServerReturn {
+): Record<string, never> | HttpError {
   const res = request(
     'POST',
     SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`,
@@ -829,7 +825,6 @@ export function requestTransferQuestionV2(
       json: { token, userEmail },
     }
   );
-
   if (res.statusCode === 200) {
     return JSON.parse(res.body.toString());
   } else if (res.statusCode === 401) {
