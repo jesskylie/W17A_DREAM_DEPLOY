@@ -147,7 +147,7 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
         quizId,
         sessionId,
         token
-      ) as GetSessionStatusReturnObj;
+      ) as unknown as GetSessionStatusReturnObj;
 
     expect(testGetSessionStatusBeforePlayerCreated).toStrictEqual(
       getExpectedSessionStateAFterBeforePlayerCreated

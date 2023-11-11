@@ -173,10 +173,10 @@ export function submissionOfAnswers(
     if (player) {
       const currQuizQuestion = copyQuiz.metadata.questions[questionposition];
       player.selectedAnswer[questionposition] = answerIds;
-			//gets current time player answered now
+      // gets current time player answered now
       player.timeAnswered = Date.now();
       if (currQuizQuestion.questionStartTime) {
-				//calculates the time answered to be question start time - player answer time
+        // calculates the time answered to be question start time - player answer time
         player.timeAnswered = player.timeAnswered - currQuizQuestion.questionStartTime;
       }
     } else {

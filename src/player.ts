@@ -50,6 +50,13 @@ export const playerCreate = (
   for (const check of newdata.quizzesCopy) {
     if (check.session.sessionId === sessionId) {
       check.session.players.push(newPlayer);
+
+      // checks if this player that has joined will start the session
+      const numPlayers = check.session.players;
+      if (numPlayers.length === check.session.autoStartNum) {
+        const currQuizQuestion = check.metadata.questions[0];
+        currQuizQuestion.questionStartTime = Date.now();
+      }
     }
   }
   saveDataInFile(newdata);

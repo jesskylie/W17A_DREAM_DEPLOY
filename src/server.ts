@@ -259,7 +259,7 @@ app.put(
   '/v2/admin/quiz/:quizid/question/:questionid',
   (req: Request, res: Response) => {
     const token = req.headers.token as string;
-    const { questionBody, thumbnailUrl } = req.body;
+    const { questionBody } = req.body;
     const quizId = parseInt(req.params.quizid);
     const questionId = parseInt(req.params.questionid);
     res.json(
@@ -267,7 +267,7 @@ app.put(
         quizId,
         questionId,
         token,
-        questionBody,
+        questionBody
       )
     );
   }
