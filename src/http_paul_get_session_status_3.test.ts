@@ -22,6 +22,8 @@ import {
   DEFAULT_VALID_THUMBNAIL_URL,
 } from './library/constants';
 
+import { GetSessionStatusReturnObj } from './library/interfaces';
+
 // --------------------------------------------------
 // Test suite for POST /v2/admin/auth/logout route - START
 
@@ -125,23 +127,7 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
       quizId,
       sessionId,
       token
-    );
-
-    // const getExpectedSessionState = createSessionStateObject({
-    //   state:'LOBBY',
-    //   atQuestion:1,
-    //   players: ['Hayden'],
-    //   metadata: {
-    //   quizId: quizId,
-    //   name: quizName,
-    //   timeCreated: expect.any(Number),
-    //   description: expect.any(String),
-    //   numQuestions: expect.any(Number),
-    //   questions: []
-    //   duration: expect.any(Number),
-    //   thumbnailUrl: expect.any(String),
-    //   }}
-    // );
+    ) as GetSessionStatusReturnObj;
 
     const getExpectedSessionState = {
       state: 'lobby',
