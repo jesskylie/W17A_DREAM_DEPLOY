@@ -13,6 +13,7 @@ import {
   requestAdminGetSessionStatus,
   requestSessionStart,
   requestCreateQuestionV2,
+  requestPlayerCreate,
 } from './library/route_testing_functions';
 import { TokenString } from './library/interfaces';
 import {
@@ -123,6 +124,12 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty obj
 
     // console.log('200 test: sessionId ->', sessionId);
 
+    // create player
+
+    const playerName = 'Paul Reynolds';
+
+    requestPlayerCreate(sessionId, playerName);
+
     const testGetSessionStatus = requestAdminGetSessionStatus(
       quizId,
       sessionId,
@@ -132,7 +139,7 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty obj
     const getExpectedSessionState = {
       state: 'lobby',
       atQuestion: expect.any(Number),
-      players: expect.any(Array),
+      players: [playerName],
       metadata: {
         quizId: quizId,
         name: quizName,
@@ -197,7 +204,7 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
       HTTPError[RESPONSE_ERROR_401]
     );
   });
-  /*
+
   test('Valid token is provided, but user is not authorised to view this session -> EXPECT ERROR CODE 403', () => {
     // NOT POSSIBLE UNTIL player is created
     requestClear();
@@ -256,7 +263,7 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: EXPECT ERROR 400 | 4
       requestAdminGetSessionStatus(quizId, sessionId, tokenNotAuthorisedToView)
     ).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
-*/
+
   test('Session Id does not refer to a valid session within this quiz -> EXPECT ERROR CODE 400', () => {
     requestClear();
     // Create user
