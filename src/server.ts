@@ -69,11 +69,12 @@ import {
 } from './library/constants';
 
 import {
+  playerCreate,
+  playerStatus,
   startNewSession,
   updateSessionState,
   viewAllSessions,
 } from './session';
-import { playerCreate } from './player';
 
 import { submissionOfAnswers } from './answers';
 
@@ -214,6 +215,12 @@ app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
 app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
   const token = req.headers.token as string;
   const result = adminQuizListV2(token);
+  res.json(result);
+});
+
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const result = playerStatus(playerId);
   res.json(result);
 });
 

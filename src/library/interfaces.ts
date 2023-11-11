@@ -1,4 +1,4 @@
-import { Quizzes } from '../dataStore';
+import { Quizzes, State } from '../dataStore';
 
 export interface QuestionBody {
   question: string;
@@ -146,4 +146,14 @@ export interface MessageBody {
 
 export interface ImageUrlReturn {
   imgUrl: string;
+}
+
+export interface PlayerId {
+  playerId: number;
+}
+
+export interface PlayerStatus {
+  state: State;
+  numQuestions: number;
+  atQuestion: number;
 }
