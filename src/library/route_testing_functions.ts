@@ -53,6 +53,34 @@ export interface RequestAdminQuizDescriptionUpdateReturn {
 
 // constants used throughout file - END
 
+export const requestClear = () => {
+  const res = request('DELETE', SERVER_URL + '/v1/clear', {
+    timeout: WAIT_TIME,
+  });
+  const bodyString = JSON.parse(res.body.toString());
+  const statusCode = res.statusCode;
+  return { statusCode, bodyString };
+};
+
+export function requestResultsOfAnswers(
+  playerid: number,
+  questionposition: number
+) {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
+    {
+      qs: { playerid, questionposition },
+    }
+  );
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
 export function requestSessionFinalResult(
   playerid: number
 ): SessionFinalResult | HttpError {
@@ -83,7 +111,7 @@ export function requestPlayerStatus(
 
 export function requestAnswerQuestion(
   playerid: number,
-  answerIds: number | number[],
+  answerIds: number[],
   questionposition: number
 ): Record<string, never> | HttpError {
   const res = request(
@@ -101,15 +129,6 @@ export function requestAnswerQuestion(
   }
   return {};
 }
-
-export const requestClear = () => {
-  const res = request('DELETE', SERVER_URL + '/v1/clear', {
-    timeout: WAIT_TIME,
-  });
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-  return { statusCode, bodyString };
-};
 
 export function requestPlayerCreate(
   sessionId: number,
