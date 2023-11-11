@@ -34,7 +34,8 @@ export const playerCreate = (sessionId: number, name: string): PlayerId | HttpEr
   }
   const newPlayer = {
     playerId: playerId,
-    name: name
+    name: name,
+    selectedAnswer: [[]] as number[][],
   };
 
   const newdata = data;

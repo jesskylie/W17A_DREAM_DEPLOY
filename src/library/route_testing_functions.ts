@@ -59,6 +59,27 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export function requestAnswerQuestion(
+  playerid: number,
+  answerIds: number | number[],
+  questionposition: number
+): Record<string, never> | HttpError {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/answer`,
+    {
+      json: { playerid, questionposition, answerIds },
+    }
+  );
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+  return {};
+}
+
 export function requestPlayerCreate(
   sessionId: number,
   name: string
