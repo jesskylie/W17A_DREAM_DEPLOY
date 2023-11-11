@@ -20,6 +20,9 @@ import {
   RequestAdminDetailsUpdateServerReturn,
   QuestionId,
   QuizId,
+  PlayerId,
+  PlayerStatus,
+  SessionFinalResult,
 } from './interfaces';
 
 import {
@@ -31,7 +34,6 @@ import {
 } from './constants';
 import { Action, Quizzes } from '../dataStore';
 import { SessionId } from '../quiz';
-import { PlayerId } from '../player';
 
 // constants used throughout file - START
 
@@ -59,6 +61,26 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
+export function requestSessionFinalResult(playerid: number): SessionFinalResult | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/results`, { qs: { playerid }});
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
+export function requestPlayerStatus(playerid: number): PlayerStatus | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, { qs: { playerid }});
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
 export function requestAnswerQuestion(
   playerid: number,
   answerIds: number | number[],
@@ -77,7 +99,6 @@ export function requestAnswerQuestion(
     case RESPONSE_ERROR_400:
       throw HTTPError(RESPONSE_ERROR_400);
   }
-  return {};
 }
 
 export function requestPlayerCreate(
