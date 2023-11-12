@@ -6,7 +6,7 @@ import {
   saveDataInFile,
 } from './library/functions';
 import { DataStore, State } from './dataStore';
-import { ONE_MILLION } from './library/constants';
+import { ONE_MILLION, RESPONSE_ERROR_400 } from './library/constants';
 
 export interface PlayerId {
   playerId: number;
@@ -18,11 +18,11 @@ export const playerCreate = (
 ): PlayerId | HttpError => {
   const data = retrieveDataFromFile();
   if (!isSessionIdValid(data, sessionId)) {
-    throw httpError(400, 'SessionId is invalid');
+    throw httpError(RESPONSE_ERROR_400, 'SessionId is invalid');
   }
 
   if (getState(data, sessionId) !== State.LOBBY) {
-    throw httpError(400, 'Session is not in LOBBY state');
+    throw httpError(RESPONSE_ERROR_400, 'Session is not in LOBBY state');
   }
 
   if (name === '') {
@@ -33,7 +33,7 @@ export const playerCreate = (
   }
 
   if (isPlayerNameRepeated(data, name)) {
-    throw httpError(400, 'Name of user entered is not unique');
+    throw httpError(RESPONSE_ERROR_400, 'Name of user entered is not unique');
   }
 
   let playerId = getRandomInt(ONE_MILLION);
@@ -90,20 +90,112 @@ export function getQuestionInformationForPlayer(
   playerId: number,
   questionPosition: number
 ): PlayerQuestionInformationObj | HttpError {
-  return {
-    questionId: 5546,
-    question: 'Who is the Monarch of England?',
-    duration: 4,
-    thumbnailUrl: 'http://google.com/some/image/path.jpg',
-    points: 5,
-    answers: [
-      {
-        answerId: 2384,
-        answer: 'Prince Charles',
-        colour: 'red',
-      },
-    ],
+  const data: DataStore = retrieveDataFromFile();
+
+  console.log('data.quizzesCopy ->', data.quizzesCopy);
+  console.log(
+    'data.quizzesCopy.metadata.questions ->',
+    data.quizzesCopy[0].metadata.questions
+  );
+
+  // Step 1: check whether player ID exists - START
+  let playerIdExists = false;
+
+  for (const qzCopy of data.quizzesCopy) {
+    const sessionObj = qzCopy.session;
+    for (const plyArr of sessionObj.players) {
+      if (plyArr.playerId === playerId) {
+        playerIdExists = true;
+      }
+    }
+  }
+
+  if (!playerIdExists) {
+    throw httpError(RESPONSE_ERROR_400, 'If player ID does not exist');
+  }
+
+  // Step 1: check whether player ID exists - END
+
+  // Step 2: If question position is not valid for the session this player is in - START
+  // let playerIdExists = false;
+
+  // for (const qzCopy of data.quizzesCopy) {
+  //   const sessionObj = qzCopy.session;
+  //   for (const plyArr of sessionObj.players) {
+  //     if (plyArr.playerId === playerId) playerIdExists = true;
+  //   }
+  // }
+
+  // if (!playerIdExists) {
+  //   throw httpError(RESPONSE_ERROR_400, 'Name of user entered is not unique');
+  // }
+
+  // Step 2: If question position is not valid for the session this player is in - END
+
+  // Step 3: If session is not currently on this question - START
+  let correctSessionObj;
+  let correctSessionId;
+
+  for (const qzCopy of data.quizzesCopy) {
+    const sessionObj = qzCopy.session;
+    for (const plyArr of sessionObj.players) {
+      if (plyArr.playerId === playerId) {
+        correctSessionObj = sessionObj;
+        correctSessionId = sessionObj.sessionId;
+      }
+    }
+  }
+
+  if (correctSessionObj.atQuestion !== questionPosition) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'If session is not currently on this question'
+    );
+  }
+
+  // Step 3: If session is not currently on this question - END
+
+  // Step 4: check whether Session is in LOBBY or END state - START
+
+  const state = getState(data, correctSessionId);
+
+  if (state === State.LOBBY || state === State.END) {
+    throw httpError(RESPONSE_ERROR_400, 'Session is in LOBBY or END state');
+  }
+
+  // Step 4: check whether Session is in LOBBY or END state - END
+
+  // Now that all error cases have been dealt with
+  // return the response
+
+  // get the correct question, using questionposition
+
+  const questionsArr = data.quizzesCopy[0].metadata.questions;
+
+  console.log('questionsArr ->', questionsArr);
+
+  let correctQuestion;
+
+  console.log('questionPosition ->', questionPosition);
+
+  for (const qArr of questionsArr) {
+    if (qArr.questionId === questionPosition + 1) {
+      correctQuestion = qArr;
+    }
+  }
+
+  console.log('correctQuestion ->', correctQuestion);
+
+  const returnObj = {
+    questionId: correctQuestion.questionId,
+    question: correctQuestion.question,
+    duration: correctQuestion.duration,
+    thumbnailUrl: correctQuestion.thumbnailUrl,
+    points: correctQuestion.points,
+    answers: correctQuestion.answers,
   };
+
+  return returnObj;
 }
 
 // helper function
