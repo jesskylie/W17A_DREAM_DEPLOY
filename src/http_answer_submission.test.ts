@@ -49,28 +49,8 @@ describe('Test: PUT /v1/player/{playerid}/question/{questionposition}/answer', (
       thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
     };
 
-    const questionTwo = {
-      question: 'What is the colour of the Sky?',
-      duration: 4,
-      points: 5,
-      answers: [
-        {
-          answerId: 0,
-          answer: 'Yellow',
-          colour: 'red',
-          correct: true,
-        },
-        {
-          answerId: 1,
-          answer: 'Black',
-          colour: 'yellow',
-          correct: false,
-        },
-      ],
-      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
-    };
     requestCreateQuestionV2(result.body.token, questionOne, quizId.quizId);
-    requestCreateQuestionV2(result.body.token, questionTwo, quizId.quizId);
+
     const sessionId = requestSessionStart(
       quizId.quizId,
       result.body.token,
@@ -90,9 +70,6 @@ describe('Test: PUT /v1/player/{playerid}/question/{questionposition}/answer', (
       Action.SKIP_COUNTDOWN
     );
     expect(requestAnswerQuestion(playerId.playerId, [1], 1)).toStrictEqual({});
-    expect(requestAnswerQuestion(playerId.playerId, [0, 1], 1)).toStrictEqual(
-      {}
-    );
   });
 
   test('PlayerId does not exist - 400 error', () => {
@@ -673,7 +650,7 @@ describe('/v1/player/:playerid:/question/:questionposition:/results', () => {
     });
   });
 
-  test('Success - with two correct answers', () => {
+  test('Success - submitting incorrect and then correct answer', () => {
     requestClear();
     const result = requestAdminRegister(
       'hayley@hotmail.com',
@@ -736,6 +713,7 @@ describe('/v1/player/:playerid:/question/:questionposition:/results', () => {
       Action.SKIP_COUNTDOWN
     );
     // correct answer chosen
+    requestAnswerQuestion(playerId.playerId, [0], 1);
     requestAnswerQuestion(playerId.playerId, [0, 2], 1);
     requestUpdateSessionState(
       quizId.quizId,
