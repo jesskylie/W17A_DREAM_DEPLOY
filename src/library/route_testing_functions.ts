@@ -76,6 +76,24 @@ export function requestSendMessage(playerid: number, message: string): Record<st
   }
 }
 
+export function requestGetQuizFinalResults(quizid: number, sessionid: number, token: string) {
+  const res = request('GET', SERVER_URL + `/v1/admin/quiz/${quizid}/session/${sessionid}/results`,
+    {
+      headers: { token },
+      qs: { quizid, sessionid },
+    });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+    case RESPONSE_ERROR_401:
+      throw HTTPError(RESPONSE_ERROR_401);
+    case RESPONSE_ERROR_403:
+      throw HTTPError(RESPONSE_ERROR_403);
+  }
+}
+
 export function requestResultsOfAnswers(playerid: number, questionposition: number) {
   const res = request('GET', SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
     {

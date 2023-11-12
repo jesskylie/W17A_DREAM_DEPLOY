@@ -1,5 +1,15 @@
 import { Quizzes, Message } from '../dataStore';
 
+export interface UserRankedByScore {
+  name: string;
+  score: number;
+}
+
+export interface FinalResult {
+  usersRankedByScore: UserRankedByScore[];
+  questionResults: QuestionResult[];
+}
+
 export interface QuestionBody {
   question: string;
   duration: number;
@@ -174,7 +184,7 @@ export interface PlayerWithScore {
   score: number;
 }
 
-interface QuestionResult {
+export interface QuestionResult {
   questionId: number;
   playersCorrectList: string[];
   averageAnswerTime: number;

@@ -69,6 +69,7 @@ import {
 } from './library/constants';
 
 import {
+  getQuizFinalResult,
   playerCreate,
   playerStatus,
   sessionFinalResult,
@@ -234,6 +235,12 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
   res.json(result);
 });
 
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res: Response) => {
+  const token = req.headers.token as string;
+  const quizId = parseInt(req.params.quizid);
+  const sessionId = parseInt(req.params.sessionid);
+  res.json(getQuizFinalResult(quizId, sessionId, token));
+});
 // --------------------------- V2 GET REQUESTS - END -----------------------------
 
 // --------------------------- V2 PUT REQUESTS - START ---------------------------
