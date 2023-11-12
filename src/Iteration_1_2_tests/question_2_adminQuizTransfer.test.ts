@@ -1,34 +1,38 @@
-import request from 'sync-request-curl';
-import config from './config.json';
+// import request from 'sync-request-curl';
+// import config from '../config.json';
 
 import {
   requestClear,
   requestAdminRegister,
-} from './library/route_testing_functions';
+} from '../library/route_testing_functions';
 
 import {
   requestAdminQuizCreate,
   requestAdminQuizList,
-} from './library/route_testing_functions';
+} from '../library/route_testing_functions';
 
 import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './library/constants';
+} from '../library/constants';
 
 import {
   CreateQuizQuestionReturn,
-  ErrorObjectWithCode,
+  // ErrorObjectWithCode,
   requestAdminQuizListReturn,
-} from './library/interfaces';
+  // TransferQuizReturn,
+  TransferQuizServerReturn
+} from '../library/interfaces';
 
 // constants used throughout file - START
-
-const port = config.port;
-const url = config.url;
-const SERVER_URL = `${url}:${port}`;
+import {
+  requestTransferQuestion
+} from '../library/route_testing_functions';
+// const port = config.port;
+// const url = config.url;
+// const SERVER_URL = `${url}:${port}`;
 
 // interfaces used throughout file - START
 
@@ -41,43 +45,9 @@ export interface CreateQuizQuestionServerReturn {
   statusCode: number;
 }
 
-export interface TransferQuizReturn {
-  transferQuizResponse: Record<string, never> | ErrorObjectWithCode;
-}
-
-interface TransferQuizServerReturn {
-  bodyString: TransferQuizReturn;
-  statusCode: number;
-}
-
 // interfaces used throughout file - END
 
 // functions to call server routes used in this file - START
-
-function requestTransferQuestion(
-  token: string,
-  userEmail: string,
-  quizId: number
-): TransferQuizServerReturn {
-  const res = request(
-    'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`,
-    {
-      json: {
-        token,
-        userEmail,
-      },
-    }
-  );
-
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-
-  return {
-    bodyString,
-    statusCode,
-  };
-}
 
 // functions to call server routes used in this file - END
 

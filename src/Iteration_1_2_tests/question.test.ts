@@ -1,35 +1,31 @@
-import request from 'sync-request-curl';
-import config from './config.json';
-
 import {
   requestClear,
   requestAdminRegister,
-} from './library/route_testing_functions';
+  requestCreateQuestion,
+  requestUpdateQuestion,
+  requestDuplicateQuestion,
+} from '../library/route_testing_functions';
 
 import {
   requestAdminQuizCreate,
   requestAdminQuizInfo,
-} from './library/route_testing_functions';
+} from '../library/route_testing_functions';
 
 import {
   RESPONSE_OK_200,
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-  WAIT_TIME,
-} from './library/constants';
+} from '../library/constants';
 
 import {
   QuestionBody,
   CreateQuizQuestionReturn,
   requestAdminQuizInfoReturn,
-} from './library/interfaces';
+  requestCreateQuestionReturn,
+} from '../library/interfaces';
 
 // constants used throughout file - START
-
-const port = config.port;
-const url = config.url;
-const SERVER_URL = `${url}:${port}`;
 
 // interfaces used throughout file - START
 
@@ -39,37 +35,6 @@ export interface CreateQuizQuestionServerReturn {
 }
 
 // interfaces used throughout file - END
-
-function requestCreateQuestion(
-  token: string,
-  question: QuestionBody,
-  quizId: number
-): CreateQuizQuestionServerReturn {
-  const res = request(
-    'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question`,
-    {
-      json: {
-        token: token,
-        questionBody: {
-          question: question.question,
-          duration: question.duration,
-          points: question.points,
-          answers: question.answers as QuestionBody['answers'],
-        },
-      },
-      timeout: WAIT_TIME,
-    }
-  );
-
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-
-  return {
-    bodyString,
-    statusCode,
-  };
-}
 
 describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
   let token: string;
@@ -113,7 +78,7 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
       token,
       validQuestion,
       quizId
-    ) as CreateQuizQuestionServerReturn;
+    ) as requestCreateQuestionReturn;
 
     if ('bodyString' in newQuestion) {
       const newQuestionResponse = newQuestion.bodyString;
@@ -1028,34 +993,6 @@ describe('Testing POST /v1/admin/quiz/{quizId}/question', () => {
     }
   });
 });
-
-function requestUpdateQuestion(
-  quizId: number,
-  questionId: number,
-  token: string,
-  question: QuestionBody
-): CreateQuizQuestionServerReturn {
-  const res = request(
-    'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
-    {
-      json: {
-        token: token,
-        questionBody: {
-          question: question.question,
-          duration: question.duration,
-          points: question.points,
-          answers: question.answers as QuestionBody['answers'],
-        },
-      },
-    }
-  );
-
-  return {
-    bodyString: JSON.parse(res.body.toString()),
-    statusCode: res.statusCode,
-  };
-}
 
 describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   test('Testing valid question update ', () => {
@@ -1987,28 +1924,6 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
     }
   });
 });
-
-function requestDuplicateQuestion(
-  quizId: number,
-  questionId: number,
-  token: string
-): CreateQuizQuestionServerReturn {
-  const res = request(
-    'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/duplicate`,
-    {
-      json: {
-        token: token,
-      },
-    }
-  );
-  const bodyString = JSON.parse(res.body.toString());
-  const statusCode = res.statusCode;
-  return {
-    bodyString,
-    statusCode,
-  };
-}
 
 describe('Testing POST /v1/admin/quiz/:quizId/question/:questionId/duplicate', () => {
   test('Successful duplicate question', () => {

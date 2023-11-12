@@ -21,7 +21,12 @@ export function clear(): Record<string, never> {
 }
 
 export function newClear(): Record<string, never> {
-  const data: DataStore = { users: [], quizzes: [], trash: [] };
+  const data: DataStore = {
+    users: [],
+    quizzes: [],
+    trash: [],
+    quizzesCopy: [],
+  };
 
   saveDataInFile(data);
 

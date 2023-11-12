@@ -1,5 +1,6 @@
 import { DataStore } from './dataStore';
 import isEmail from 'validator/lib/isEmail.js';
+import httpError from 'http-errors';
 import {
   retrieveDataFromFile,
   saveDataInFile,
@@ -130,12 +131,14 @@ export function adminAuthRegister(
     return { error: 'Invalid password' };
   }
 
+  const hashedPassword = getHashOf(password);
+
   const newUser: UserData = {
     authUserId: data.users.length,
     nameFirst: nameFirst,
     nameLast: nameLast,
     email: email,
-    password: password,
+    password: hashedPassword,
     oldPasswords: [],
     numSuccessfulLogins: 1,
     numFailedPasswordsSinceLastLogin: 0,
@@ -191,7 +194,7 @@ export function adminAuthLogin(
   // test for correct password
   let passwordIsCorrectBool = false;
   for (const arr of data.users) {
-    if (arr.password === password) {
+    if (arr.password === getHashOf(password)) {
       passwordIsCorrectBool = true;
     }
   }
@@ -199,7 +202,7 @@ export function adminAuthLogin(
   // increments failed login attempts
   if (!passwordIsCorrectBool) {
     for (const arr of data.users) {
-      if (arr.email === email && arr.password !== password) {
+      if (arr.email === email && arr.password !== getHashOf(password)) {
         arr.numFailedPasswordsSinceLastLogin++;
         return { error: 'Password is not correct for the given email' };
       }
@@ -209,10 +212,10 @@ export function adminAuthLogin(
   // return authUserId of logged in user
   // as email exists && password matches
   // increments successful login, numFailed login resets to 0
-  let token;
+  const newToken = uid();
   for (const arr of data.users) {
-    if (arr.email === email && arr.password === password) {
-      token = arr.token[0];
+    if (arr.email === email && arr.password === getHashOf(password)) {
+      arr.token.push(newToken);
       arr.numSuccessfulLogins++;
       arr.numFailedPasswordsSinceLastLogin = 0;
     }
@@ -225,7 +228,7 @@ export function adminAuthLogin(
   // setData(data);
 
   return {
-    token: token,
+    token: newToken,
   };
 }
 
@@ -246,6 +249,7 @@ export function updatePassword(
   newPassword: string
 ): Record<string, never> | ErrorObjectWithCode {
   const data: DataStore = retrieveDataFromFile();
+  const hashedNewPassword = getHashOf(newPassword);
   // token is empty/invalid - return 401 error
   if (!isTokenValid(data, token)) {
     return {
@@ -255,7 +259,7 @@ export function updatePassword(
   }
 
   // new password must be more than 8 characters, and have letters and numbers
-  if (!isValidPassword(newPassword)) {
+  if (!isValidPassword(getHashOf(newPassword))) {
     return { error: 'Invalid password', errorCode: RESPONSE_ERROR_400 };
   }
 
@@ -263,20 +267,20 @@ export function updatePassword(
   for (const user of data.users) {
     if (user.token.includes(token)) {
       // token is found
-      if (newPassword === user.password) {
+      if (hashedNewPassword === user.password) {
         // check if new password is equal to old password
         // check if it exists in old passwords array
         return {
           error: 'New password can not be the same as old password',
           errorCode: RESPONSE_ERROR_400,
         };
-      } else if (oldPassword !== user.password) {
+      } else if (getHashOf(oldPassword) !== user.password) {
         // old password does not match old password
         return {
           error: 'Old password does not match old password',
           errorCode: RESPONSE_ERROR_400,
         };
-      } else if (user.oldPasswords.includes(newPassword)) {
+      } else if (user.oldPasswords.includes(hashedNewPassword)) {
         // check if old password exists in old password array
         return {
           error: 'New password has already been used by this user',
@@ -286,12 +290,13 @@ export function updatePassword(
         // move current password to old passwords array
         // update new password
         user.oldPasswords.push(oldPassword);
-        user.password = newPassword;
+        user.password = hashedNewPassword;
         saveDataInFile(data);
         return {};
       }
     }
   }
+  return {};
 }
 
 // Iteration 2 functions
@@ -481,4 +486,260 @@ function isValidPassword(password: string): boolean {
   } else {
     return false;
   }
+}
+
+/**
+ * Generates a SHA256 hash of the given password
+ * @param {string} password - user's password
+ * @returns {string} returns a hexademical representation of the hashed password
+ */
+
+function getHashOf(password: string): string {
+  const crypto = require('crypto');
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+// Iteration 3 functions
+
+/**
+ * Log outs an admin user who has an active session
+ * Returns an empty object if successful and removes token from token array in Users: []
+ * Returns an error if token is empty or invalid (does not refer to valid logged in user session)
+ * @param {string} token - user's current sessionId
+ *
+ * @returns {void} - returns {} on successful password change
+ * @returns {{error: string}} - on error
+ */
+function adminAuthLogoutV2(token: string): Record<string, never> | ErrorObject {
+  // retrieveDataFromFile, saveDataInFile
+
+  const data: DataStore = retrieveDataFromFile();
+
+  // test if token is valid; if not, return error
+  const isTokenValidTest = isTokenValid(data, token);
+
+  if (!isTokenValidTest) {
+    throw httpError(
+      RESPONSE_ERROR_401,
+      'Token is empty or invalid (does not refer to valid logged in user session)'
+    );
+  }
+
+  // Token is valid
+  // get authUserId using token
+
+  const authUserIdTest = getAuthUserIdUsingToken(data, token);
+
+  const userArr = data.users;
+
+  for (const user of userArr) {
+    if (user.authUserId === authUserIdTest.authUserId) {
+      const tokenArray = user.token;
+      const index = tokenArray.indexOf(token);
+
+      if (index !== -1) {
+        tokenArray.splice(index, 1);
+      }
+    }
+  }
+
+  // save data to file
+  saveDataInFile(data);
+
+  return {};
+}
+
+export { adminAuthLogoutV2 };
+
+/**
+ * Returns details about the user, given their authUserId
+ * Successful login starts at 1 at user registration
+ * Number of failed logins is reset every time they have a successful login
+ *
+ * @param {string} - token- users authUserId
+ * @returns {{user: {userId: number, name: string, email: string, numSuccessfulLogins: number
+ *            numFailedPasswordsSinceLastLogin: number}}} - user details
+ * @returns {{error: string}} - on error
+ */
+export function adminUserDetailsV2(token: string): UserInfo | ErrorObject {
+  const data: DataStore = retrieveDataFromFile();
+
+  // test if token is valid; if not, return error
+  const isTokenValidTest = isTokenValid(data, token);
+
+  if (!isTokenValidTest) {
+    throw httpError(
+      RESPONSE_ERROR_401,
+      'Token is empty or invalid (does not refer to valid logged in user session)'
+    );
+  }
+
+  // Token is valid
+  // return adminUserDetails
+
+  for (const user of data.users) {
+    if (user.token.includes(token)) {
+      return {
+        user: {
+          authUserId: user.authUserId,
+          name: user.nameFirst + ' ' + user.nameLast,
+          email: user.email,
+          numSuccessfulLogins: user.numSuccessfulLogins,
+          numFailedPasswordsSinceLastLogin:
+            user.numFailedPasswordsSinceLastLogin,
+        },
+      };
+    }
+  }
+}
+
+/**
+ * Updates the details of a user: email, firstName, lastName
+ * Returns an empty object if successful
+ * Returns two error types if an error occurs
+ * error 400: errors relating to invalid names or emails
+ * error 401: error relating to an empty or invalid token
+ *
+ * @param {string} token - user's current sessionId
+ * @param {string} email - new email of user
+ * @param {string} nameFirst - new first name of user
+ * @param {string} nameLast - new last name of user
+ *
+ * @returns {void} - returns {} on successful password change
+ * @returns {{error: string}} - on error
+ */
+function adminUserDetailUpdateV2(
+  token: string,
+  email: string,
+  nameFirst: string,
+  nameLast: string
+): Record<string, never> | ErrorObjectWithCode {
+  const data = retrieveDataFromFile();
+  // step 1: check for valid token
+  const isTokenValidTest = isTokenValid(data, token) as boolean;
+
+  if (!isTokenValidTest) {
+    throw httpError(
+      RESPONSE_ERROR_401,
+      'Token is empty or invalid (does not refer to valid logged in user session)'
+    );
+  }
+
+  // step 1a get authUserId from token
+
+  const authUserIdTest = getAuthUserIdUsingToken(data, token)
+    .authUserId as number;
+
+  // step 2: check if email is currently used by another user (excluding the current authorised user)
+  const userArr = data.users;
+  for (const user of userArr) {
+    if (user.authUserId !== authUserIdTest && user.email === email) {
+      throw httpError(
+        RESPONSE_ERROR_400,
+        'Email is currently used by another user (excluding the current authorised user)'
+      );
+    }
+  }
+
+  // step 2: check if email satisifes NPM email validator package
+  if (!isEmail(email)) {
+    throw httpError(
+      RESPONSE_ERROR_400,
+      'Email does not satisfy this: https://www.npmjs.com/package/validator (validator.isEmail)'
+    );
+  }
+
+  // step 4: check if nameFirst is valid
+  if (!isValidName(nameFirst)) {
+    throw httpError(RESPONSE_ERROR_400, 'The first name is not valid');
+  }
+
+  // step 5: check if nameLast is valid
+  if (!isValidName(nameLast)) {
+    throw httpError(RESPONSE_ERROR_400, 'The last name is not valid');
+  }
+
+  // step 6: all negative conditions have been passed, now update the user details
+
+  for (const user of userArr) {
+    if (user.token.includes(token)) {
+      user.email = email;
+      user.nameFirst = nameFirst;
+      user.nameLast = nameLast;
+    }
+  }
+
+  saveDataInFile(data);
+
+  return {};
+}
+
+export { adminUserDetailUpdateV2 };
+
+/**
+ * Given details relating to a password change, update the password of a logged in user
+ * Returns an error if old password is not correct old password, new password cannot be the same
+ * as old password, new password has already been used before, new password is less than 8 chars
+ * Updates successful/unsuccessful logins with each admin login call
+ * @param {string} token - user's current sessionId
+ * @param {string} password - user's new password
+ * @returns {void} - returns {} on successful password change
+ * @returns {{error: string}} - on error
+ */
+
+export function updatePasswordV2(
+  token: string,
+  oldPassword: string,
+  newPassword: string
+): Record<string, never> | ErrorObjectWithCode {
+  const data: DataStore = retrieveDataFromFile();
+  const hashedNewPassword = getHashOf(newPassword);
+  // token is empty/invalid - return 401 error
+
+  if (!isTokenValid(data, token)) {
+    throw httpError(
+      RESPONSE_ERROR_401,
+      'Token is empty or invalid (does not refer to valid logged in user session)'
+    );
+  }
+
+  // new password must be more than 8 characters, and have letters and numbers
+  if (!isValidPassword(newPassword)) {
+    throw httpError(RESPONSE_ERROR_400, 'Invalid password');
+  }
+
+  // loop through datastore to find the token
+  for (const user of data.users) {
+    if (user.token.includes(token)) {
+      // token is found
+      if (hashedNewPassword === user.password) {
+        // check if new password is equal to old password
+        // check if it exists in old passwords array
+        throw httpError(
+          RESPONSE_ERROR_400,
+          'New password can not be the same as old password'
+        );
+      } else if (getHashOf(oldPassword) !== user.password) {
+        // old password does not match old password
+        throw httpError(
+          RESPONSE_ERROR_400,
+          'Old password does not match old password'
+        );
+      } else if (user.oldPasswords.includes(hashedNewPassword)) {
+        // check if old password exists in old password array
+        throw httpError(
+          RESPONSE_ERROR_400,
+          'New password has already been used by this user'
+        );
+      } else {
+        // move current password to old passwords array
+        // update new password
+        user.oldPasswords.push(getHashOf(oldPassword));
+        user.password = hashedNewPassword;
+        saveDataInFile(data);
+        return {};
+      }
+    }
+  }
+  return {};
 }

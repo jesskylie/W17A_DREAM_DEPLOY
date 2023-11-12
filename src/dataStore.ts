@@ -71,6 +71,43 @@ Example usage
 
 // TypeScript interfaces for Iteration 2 - START
 
+export interface ResultForEachQuestion {
+  questionId: number;
+  playersCorrectList: string[];
+  averageAnswerTime: number;
+  percentCorrect: number;
+}
+
+export interface Player {
+  playerId: number;
+  name: string;
+  selectedAnswer: number[][];
+  timeAnswered?: number;
+}
+
+export interface Message {
+  messageBody: string;
+  playerId: number;
+  playerName: string;
+  timeSent: number;
+}
+
+export interface Session {
+  sessionId: number;
+  state: State;
+  autoStartNum: number;
+  players: Player[];
+  result: ResultForEachQuestion[];
+  atQuestion: number;
+  numQuestions: number;
+  messages: Message[];
+}
+
+export interface QuizzesCopy {
+  session: Session;
+  metadata: Quizzes;
+}
+
 export interface Users {
   authUserId: number;
   nameFirst: string;
@@ -88,13 +125,33 @@ export interface Question {
   questionId: number;
   question: string;
   duration: number;
+  thumbnailUrl: string;
   points: number;
+  questionStartTime?: number;
   answers: {
     answerId: number;
     answer: string;
     colour: string;
     correct: boolean;
   }[];
+}
+
+export enum State {
+  LOBBY = 'LOBBY',
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN',
+  QUESTION_OPEN = 'QUESTION_OPEN',
+  QUESTION_CLOSE = 'QUESTION_CLOSE',
+  ANSWER_SHOW = 'ANSWER_SHOW',
+  FINAL_RESULTS = 'FINAL_RESULTS',
+  END = 'END',
+}
+
+export enum Action {
+  NEXT_QUESTION = 'NEXT_QUESTION',
+  SKIP_COUNTDOWN = 'SKIP_COUNTDOWN',
+  GO_TO_ANSWER = 'GO_TO_ANSWER',
+  GO_TO_FINAL_RESULTS = 'GO_TO_FINAL_RESULTS',
+  END = 'END',
 }
 
 export interface Quizzes {
@@ -107,18 +164,21 @@ export interface Quizzes {
   numQuestions: number;
   questions: Question[];
   duration: number;
+  thumbnailUrl: string;
 }
 
 export interface DataStore {
   users: Users[];
   quizzes: Quizzes[];
   trash: Quizzes[];
+  quizzesCopy: QuizzesCopy[];
 }
 
 export let data: DataStore = {
   users: [],
   quizzes: [],
   trash: [],
+  quizzesCopy: [],
 };
 
 // Use get() to access the data

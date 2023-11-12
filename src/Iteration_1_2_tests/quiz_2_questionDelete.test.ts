@@ -1,58 +1,24 @@
-import request from 'sync-request-curl';
-import config from './config.json';
-
 import {
   requestClear,
   requestAdminQuizCreate,
   requestAdminQuizInfo,
   requestAdminRegister,
   requestCreateQuestion,
-} from './library/route_testing_functions';
-import { QuestionBody, TokenString } from './library/interfaces';
+  requestDeleteQuizQuestion,
+} from '../library/route_testing_functions';
+import {
+  QuestionBody,
+  QuestionId,
+  QuizId,
+  TokenString,
+} from '../library/interfaces';
 
 import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './library/constants';
-
-const port = config.port;
-const url = config.url;
-const SERVER_URL = `${url}:${port}`;
-
-interface ErrorObject {
-  error: string;
-}
-
-interface QuizId {
-  quizId: number;
-}
-
-interface QuestionId {
-  questionId: number;
-}
-
-interface RequestDeleteQuizQuestionReturn {
-  statusCode?: number;
-  bodyString: Record<string, never> | ErrorObject;
-}
-
-export { requestCreateQuestion };
-const requestDeleteQuizQuestion = (
-  token: string,
-  quizId: number,
-  questionId: number
-): RequestDeleteQuizQuestionReturn => {
-  const res = request(
-    'DELETE',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
-    {
-      qs: { quizId, token, questionId },
-    }
-  );
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-};
+  DEFAULT_VALID_THUMBNAIL_URL,
+} from '../library/constants';
 
 describe('deleteQuizQuestion testing', () => {
   test('StatusCode 200: Valid input', () => {
@@ -106,6 +72,7 @@ describe('deleteQuizQuestion testing', () => {
       numQuestions: 0,
       questions: [],
       duration: 0,
+      thumbnailUrl: DEFAULT_VALID_THUMBNAIL_URL,
     });
   });
 

@@ -1,50 +1,19 @@
-import request from 'sync-request-curl';
-import config from './config.json';
-
 import {
   requestClear,
   requestAdminQuizCreate,
   requestAdminQuizInfo,
   requestAdminRegister,
   requestCreateQuestion,
-} from './library/route_testing_functions';
-import { QuestionBody } from './library/interfaces';
+  requestAdminQuizQuestionMove,
+} from '../library/route_testing_functions';
+import { QuestionBody, QuestionId, QuizId } from '../library/interfaces';
 import {
   RESPONSE_ERROR_400,
   RESPONSE_ERROR_401,
   RESPONSE_ERROR_403,
-} from './library/constants';
+} from '../library/constants';
 // import { requestCreateQuestion } from './quiz_2_questionDelete.test';
-import { Quizzes } from './dataStore';
-const port = config.port;
-const url = config.url;
-const SERVER_URL = `${url}:${port}`;
-
-interface QuizId {
-  quizId: number;
-}
-
-interface QuestionId {
-  questionId: number;
-}
-
-export function requestAdminQuizQuestionMove(
-  token: string,
-  quizId: number,
-  questionId: number,
-  newPosition: number
-) {
-  const res = request(
-    'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/move`,
-    {
-      json: { quizId, questionId, token, newPosition },
-    }
-  );
-
-  const bodyString = JSON.parse(res.body.toString());
-  return { statusCode: res.statusCode, bodyString: bodyString };
-}
+import { Quizzes } from '../dataStore';
 
 describe('AdminQuizQuestionMove testing', () => {
   test('StatusCode 200: Valid input', () => {

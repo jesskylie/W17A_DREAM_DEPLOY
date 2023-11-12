@@ -1,6 +1,14 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import { CONVERT_MSECS_TO_SECS, RANDOM_COLOURS_ARRAY } from './constants';
+// import request from 'sync-request-curl';
+// import httpError from 'http-errors';
+
+import {
+  CONVERT_MSECS_TO_SECS,
+  RANDOM_COLOURS_ARRAY,
+  // RESPONSE_OK_200,
+  // RESPONSE_ERROR_400,
+} from './constants';
 
 // import libraries
 // import fs from 'fs';
@@ -12,7 +20,7 @@ const DATASTORE_FILENAME = 'database.json';
 
 // import types from src/dataStore
 
-import { DataStore } from '../dataStore';
+import { Action, DataStore, State } from '../dataStore';
 
 interface getDataReturnObject {
   result: boolean;
@@ -85,7 +93,7 @@ export function retrieveDataFromFile(): DataStore {
   let data: DataStore;
 
   if (!dataStoreObj.result) {
-    data = { users: [], quizzes: [], trash: [] };
+    data = { users: [], quizzes: [], trash: [], quizzesCopy: [] };
   } else {
     data = dataStoreObj.data as DataStore;
   }
@@ -157,7 +165,7 @@ export function isTokenValid(data: DataStore, token: string): boolean {
  * @returns {array} - authUserId : number
  */
 
-interface AuthUserIdFromToken {
+export interface AuthUserIdFromToken {
   authUserId: number;
 }
 export function getAuthUserIdUsingToken(
@@ -248,7 +256,7 @@ export function countAllAnswers(data: DataStore): number {
  * @returns {number} - the random number generated
  * between 0 and up to but not including max
  */
-function getRandomInt(max: number): number {
+export function getRandomInt(max: number): number {
   return Math.floor(Math.random() * max);
 }
 
@@ -265,3 +273,156 @@ export function returnRandomColour(): string {
   const randomNumber = getRandomInt(RANDOM_COLOURS_ARRAY.length);
   return RANDOM_COLOURS_ARRAY[randomNumber];
 }
+
+// export function getRandomInteger(): number {
+//   return Math.random() * (ONE_MILLION - 0);
+// }
+
+export function getState(data: DataStore, sessionId: number): State {
+  for (const check of data.quizzesCopy) {
+    if (check.session.sessionId === sessionId) {
+      return check.session.state;
+    }
+  }
+}
+
+// checks if quiz is in end state
+export function isQuizInEndState(data: DataStore, quizId: number): boolean {
+  for (const check of data.quizzesCopy) {
+    if (check.metadata.quizId === quizId) {
+      if (check.session.state !== State.END) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+export function isActionValid(state: State, action: Action) {
+  if (state === State.LOBBY) {
+    if (action === Action.END || action === Action.NEXT_QUESTION) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.QUESTION_COUNTDOWN) {
+    if (action === Action.SKIP_COUNTDOWN || action === Action.END) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.QUESTION_OPEN) {
+    if (action === Action.END || action === Action.GO_TO_ANSWER) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.QUESTION_CLOSE) {
+    if (
+      action === Action.END ||
+      action === Action.GO_TO_ANSWER ||
+      action === Action.GO_TO_FINAL_RESULTS
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.ANSWER_SHOW) {
+    if (
+      action === Action.END ||
+      action === Action.NEXT_QUESTION ||
+      action === Action.GO_TO_FINAL_RESULTS
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.FINAL_RESULTS) {
+    if (action === Action.END) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (state === State.END) {
+    return false;
+  }
+}
+
+/**
+ * Function to check the validity of a thumbnailUrl
+ *
+ * @param {string} thumbnailUrl - the string of the url to be checked
+ * ...
+ *
+ * @returns {{void}} - nothing
+ * throws an error if an error is detected
+ * ...
+ * called by:
+ *
+ * isThumbnailUrlValid(thumbnailUrlString)
+ *
+ */
+
+export const isThumbnailUrlValid = (thumbnailUrl: string): boolean => {
+  // Error Check 1: The thumbnailUrl is an empty string
+
+  let thumbnailUrlIsStringWithLength = true;
+
+  if (thumbnailUrl.length === 0 || thumbnailUrl === '') {
+    thumbnailUrlIsStringWithLength = false;
+  }
+
+  // Error check 2: The thumbnail does not end with one of the
+  // following filetypes (case insensitive): jpg, jpeg, png
+
+  const fileTypePattern = /(\.jpg)|(\.jpeg)|(\.png)$/gim;
+
+  const isFileType = fileTypePattern.test(thumbnailUrl);
+
+  // Error check 3: The thumbnailUrl does not begin with 'http://' or 'https://'
+
+  const beginningPattern = /^(http:\/\/)|(https:\/\/)/gm;
+
+  const isBeginningProperly = beginningPattern.test(thumbnailUrl);
+
+  if (!thumbnailUrlIsStringWithLength || !isFileType || !isBeginningProperly) {
+    return false;
+  }
+
+  return true;
+
+  // BELOW IS REDUNDANT AS CONSEQUENCE OF UPDATED STARTER CODE 12 NOVEMBER 2023
+  // BUT I AM KEEPING IT IN OUR CODEBASE AS IT TOOK QUITE A BIT OF EFFORT TO DEVELOP,
+  // AND CAUSED ME TO SPEND QUITE A FEW HOURS ANALYSING WHY OUR TEST CASES WERE
+  // SO SLOW, AND WHETHER ANYTHING COULD BE DONE TO SPEED THINGS UP
+
+  // Error Check 2: The thumbnailUrl does not return to a valid file
+
+  // const response = request('GET', thumbnailUrl);
+
+  // const testStatusCode = response.statusCode;
+
+  // if (testStatusCode !== RESPONSE_OK_200) {
+  //   throw httpError(
+  //     RESPONSE_ERROR_400,
+  //     'The thumbnailUrl does not return to a valid file'
+  //   );
+  // }
+
+  // // Error Check 3: The thumbnailUrl, when fetched, is not a JPG or PNG file type
+
+  // const contentType = response.headers['content-type'];
+
+  // if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
+  //   throw httpError(
+  //     RESPONSE_ERROR_400,
+  //     'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
+  //   );
+  // }
+};
