@@ -451,7 +451,7 @@ describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       state: State.QUESTION_CLOSE,
       numQuestions: 1,
       atQuestion: 1
-    })
+    });
   });
 
   test('successful case - change from QUESTION_COUNTDOWN to QUESTION_OPEN (skip the auto state update)', () => {
@@ -501,7 +501,7 @@ describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       state: State.ANSWER_SHOW,
       numQuestions: 1,
       atQuestion: 1
-    })
+    });
   });
 
   test('successful case - change from QUESTION_COUNTDOWN to QUESTION_OPEN (without skipping auto update', () => {
@@ -552,7 +552,7 @@ describe('Test: PUT /v1/admin/quiz/{quizid}/session/{sessionid}', () => {
       atQuestion: 1
     });
   });
-  
+
   test('SessionId is invalid (does not refer to valid session within this quiz) - error 400', () => {
     requestClear();
     const result = requestAdminRegister(

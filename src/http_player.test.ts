@@ -214,7 +214,6 @@ describe('Test: GET /v1/player/{playerid}/results', () => {
   });
 });
 
-
 describe.only('Test: GET /v1/player/{playerid}', () => {
   test.only('Success - valid input', () => {
     requestClear();
@@ -268,11 +267,11 @@ describe.only('Test: GET /v1/player/{playerid}', () => {
     expect(requestSessionFinalResult(playerId1.playerId)).toStrictEqual({
       usersRankedByScore: [
         {
-          name: "W",
+          name: 'W',
           score: 5
         },
         {
-          name: "L",
+          name: 'L',
           score: 0
         }
       ],
@@ -280,7 +279,7 @@ describe.only('Test: GET /v1/player/{playerid}', () => {
         {
           questionId: questionId.questionId,
           playersCorrectList: [
-            "W"
+            'W'
           ],
           averageAnswerTime: 2,
           percentCorrect: 50
@@ -334,7 +333,6 @@ describe.only('Test: GET /v1/player/{playerid}', () => {
       5
     ) as SessionId;
     const playerId1 = requestPlayerCreate(sessionId.sessionId, 'W');
-    const playerId2 = requestPlayerCreate(sessionId.sessionId, 'L');
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.NEXT_QUESTION);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
     expect(() => requestSessionFinalResult(playerId1.playerId)).toThrow(HTTPError[400]);

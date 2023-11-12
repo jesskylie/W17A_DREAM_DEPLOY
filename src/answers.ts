@@ -201,10 +201,9 @@ export function submissionOfAnswers(
               playersCorrectList.push(player.name);
             }
           }
-          
-          const averageAnswerTime = ((player.timeAnswered - 
-            session.metadata.questions[atQuestion].questionStartTime) + 
-            session.session.result[atQuestion].averageAnswerTime * 
+          const averageAnswerTime = ((player.timeAnswered -
+            session.metadata.questions[atQuestion].questionStartTime) +
+            session.session.result[atQuestion].averageAnswerTime *
             playersArray.length) / playersArray.length;
 
           const newResult = {
@@ -220,11 +219,11 @@ export function submissionOfAnswers(
               session.session.result[atQuestion].playersCorrectList.push(player.name);
             }
           }
-          session.session.result[atQuestion].averageAnswerTime = ((player.timeAnswered - 
-          session.metadata.questions[atQuestion].questionStartTime) + 
-          session.session.result[atQuestion].averageAnswerTime * 
+          session.session.result[atQuestion].averageAnswerTime = ((player.timeAnswered -
+          session.metadata.questions[atQuestion].questionStartTime) +
+          session.session.result[atQuestion].averageAnswerTime *
           playersArray.length) / playersArray.length;
-          session.session.result[atQuestion].percentCorrect = 
+          session.session.result[atQuestion].percentCorrect =
           (session.session.result[atQuestion].playersCorrectList.length / playersArray.length) * 100;
           }
         }

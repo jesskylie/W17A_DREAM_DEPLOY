@@ -236,8 +236,8 @@ export const updateSessionState = (
   }
   if (state === State.QUESTION_COUNTDOWN && action === Action.SKIP_COUNTDOWN) {
     state = State.QUESTION_OPEN;
-    for (const update of newdata.quizzesCopy.find((session) => 
-    session.session.sessionId === sessionId).metadata.questions){
+    for (const update of newdata.quizzesCopy.find((session) =>
+      session.session.sessionId === sessionId).metadata.questions) {
       update.questionStartTime = Date.now();
     }
     for (const session of newdata.quizzesCopy) {
@@ -286,8 +286,8 @@ export const updateSessionState = (
   }
   saveDataInFile(newdata);
 
-   // if state is countdown, set a timer for 3 seconds and update to
-  // database telling timer exist - timer 
+  // if state is countdown, set a timer for 3 seconds and update to
+  // database telling timer exist - timer
   // this will only exist when state is changing from lobby -> question_countdown
   if (state === State.QUESTION_COUNTDOWN && action === Action.NEXT_QUESTION) {
     setTimer(newdata, sessionId, 3).then(() => {
@@ -296,17 +296,17 @@ export const updateSessionState = (
         updateStateWithTimer(data, sessionId, State.QUESTION_OPEN);
         newdata = retrieveDataFromFile();
         const currSession = newdata.quizzesCopy.find((session) => session.session.sessionId === sessionId);
-        setTimer(newdata, sessionId, currSession.metadata.questions[session.session.atQuestion -1].duration).then(() => {
+        setTimer(newdata, sessionId, currSession.metadata.questions[session.session.atQuestion - 1].duration).then(() => {
           newdata = retrieveDataFromFile();
           if (isSessionIdValid(newdata, quizId, sessionId) && newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
             updateStateWithTimer(data, sessionId, State.QUESTION_CLOSE);
           }
-        })
+        });
       }
     });
   }
   // one more case: when State is from question_countdown to Question_Open
-  // and needed to auto change from open to end 
+  // and needed to auto change from open to end
   if (state === State.QUESTION_OPEN && action === Action.SKIP_COUNTDOWN) {
     setTimer(newdata, sessionId, session.metadata.questions[session.session.atQuestion - 1].duration).then(() => {
       newdata = retrieveDataFromFile();
@@ -492,12 +492,11 @@ export const playerCreate = (
   if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
     for (const check of newdata.quizzesCopy) {
       if (check.session.sessionId === sessionId) {
-        updateSessionState(check.metadata.quizId, 
-          check.session.sessionId, 
-          newdata.users.find((user) => user.authUserId === 
+        updateSessionState(check.metadata.quizId,
+          check.session.sessionId,
+          newdata.users.find((user) => user.authUserId ===
           check.metadata.userId[0]).token[0],
           Action.NEXT_QUESTION);
-        
       }
     }
   }
@@ -744,10 +743,10 @@ function setTimer(newdata: DataStore, sessionId: number, timeInSecond: number): 
   return new Promise<void>((resolve, reject) => {
     setTimeout(() => {
       if (newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
-            resolve();
-        } else {
-            reject();
-        }
+        resolve();
+      } else {
+        reject(new Error('Promise canceled'));
+      }
     }, timeInSecond * CONVERT_MSECS_TO_SECS);
 });
 }
