@@ -171,7 +171,7 @@ export function submissionOfAnswers(
   for (const copyQuiz of data.quizzesCopy) {
     const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
-      const currQuizQuestion = copyQuiz.metadata.questions[questionposition];
+      const currQuizQuestion = copyQuiz.metadata.questions[questionposition - 1];
       player.selectedAnswer[questionposition] = answerIds;
       // gets current time player answered now
       player.timeAnswered = Date.now();
@@ -183,6 +183,54 @@ export function submissionOfAnswers(
       throw httpError(400, 'Player is not in a valid session');
     }
   }
+
+  // Suggestion:
+  // for (const session of data.quizzesCopy) {
+  //   for (const player of session.session.players) {
+  //     if (player.playerId === playerid) {
+  //       const currSession = session.session;
+  //       const currQuizQuestion = session.metadata;
+  //       const questionId = currQuizQuestion.questions[questionposition].questionId;
+  //       const playersArray = currSession.players;
+  //       const atQuestion = session.session.atQuestion - 1;
+
+  //       if (session.session.result.length !== session.session.atQuestion - 1) {
+  //         const playersCorrectList = session.session.result[atQuestion].playersCorrectList;
+  //         for (const checkAnswer of answerIds) {
+  //           if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
+  //             playersCorrectList.push(player.name);
+  //           }
+  //         }
+          
+  //         const averageAnswerTime = ((player.timeAnswered - 
+  //           session.metadata.questions[atQuestion].questionStartTime) + 
+  //           session.session.result[atQuestion].averageAnswerTime * 
+  //           playersArray.length) / playersArray.length;
+
+  //         const newResult = {
+  //           questionId: questionId,
+  //           playersCorrectList: playersCorrectList,
+  //           averageAnswerTime: averageAnswerTime,
+  //           percentCorrect: (playersCorrectList.length / playersArray.length) * 100,
+  //         }
+  //         session.session.result.push(newResult);
+  //         } else {
+  //         for (const checkAnswer of answerIds) {
+  //           if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
+  //             session.session.result[atQuestion].playersCorrectList.push(player.name);
+  //           }
+  //         }
+  //         session.session.result[atQuestion].averageAnswerTime = ((player.timeAnswered - 
+  //         session.metadata.questions[atQuestion].questionStartTime) + 
+  //         session.session.result[atQuestion].averageAnswerTime * 
+  //         playersArray.length) / playersArray.length;
+  //         session.session.result[atQuestion].percentCorrect = 
+  //         (session.session.result[atQuestion].playersCorrectList.length / playersArray.length) * 100;
+  //         }
+  //       }
+  //     }
+  //   }
+
   saveDataInFile(data);
   return {};
 }

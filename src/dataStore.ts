@@ -101,6 +101,7 @@ export interface Session {
   atQuestion: number;
   numQuestions: number;
   messages: Message[];
+  timer: boolean
 }
 
 export interface QuizzesCopy {

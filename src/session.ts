@@ -9,7 +9,7 @@ import {
   Session,
   State,
 } from './dataStore';
-import { ONE_MILLION } from './library/constants';
+import { CONVERT_MSECS_TO_SECS, ONE_MILLION } from './library/constants';
 import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from './library/functions';
 import { PlayerId, PlayerStatus, PlayerWithScore, SessionFinalResult, FinalResult } from './library/interfaces';
 import { isQuizIdValid, isAuthUserIdMatchQuizId, SessionId } from './quiz';
@@ -140,6 +140,7 @@ export const startNewSession = (
     atQuestion: 0,
     numQuestions: copyQuiz.numQuestions,
     messages: [] as Message[],
+    timer: true,
   };
   // pushes quizCopyObject to data.quizzesCopy interface
   const quizCopyObject = {
@@ -158,6 +159,7 @@ export const updateSessionState = (
   action: Action
 ) => {
   const data = retrieveDataFromFile();
+  let newdata = data;
   const authUserId = getAuthUserIdUsingToken(data, token);
   const isQuizIdValidTest = isQuizIdValid(data, quizId);
   const isTokenValidTest = isTokenValid(data, token);
@@ -214,6 +216,15 @@ export const updateSessionState = (
   ) {
     throw httpError(400, 'Action provided is not a valid Action enum');
   }
+
+  // remove the exist timeout promise
+  const session = newdata.quizzesCopy.find(
+    (session) => session.session.sessionId === sessionId
+  );
+  if (session.session.timer) {
+    session.session.timer = false;
+  }
+
   if (state === State.LOBBY && action === Action.END) {
     state = State.END;
   }
@@ -225,6 +236,15 @@ export const updateSessionState = (
   }
   if (state === State.QUESTION_COUNTDOWN && action === Action.SKIP_COUNTDOWN) {
     state = State.QUESTION_OPEN;
+    for (const update of newdata.quizzesCopy.find((session) => 
+    session.session.sessionId === sessionId).metadata.questions){
+      update.questionStartTime = Date.now();
+    }
+    for (const session of newdata.quizzesCopy) {
+      if (session.session.sessionId === sessionId) {
+        session.session.atQuestion += 1;
+      }
+    }
   }
   if (state === State.QUESTION_OPEN && action === Action.END) {
     state = State.END;
@@ -254,13 +274,47 @@ export const updateSessionState = (
     state = State.END;
   }
 
-  const newdata = data;
   for (const check of newdata.quizzesCopy) {
     if (check.session.sessionId === sessionId) {
       check.session.state = state;
+      // state Question_countdown and Quesition_open are the only two need to set
+      // timer for auto update
+      if (state === State.QUESTION_COUNTDOWN || state === State.QUESTION_OPEN) {
+        check.session.timer = true;
+      }
     }
   }
   saveDataInFile(newdata);
+
+   // if state is countdown, set a timer for 3 seconds and update to
+  // database telling timer exist - timer 
+  // this will only exist when state is changing from lobby -> question_countdown
+  if (state === State.QUESTION_COUNTDOWN && action === Action.NEXT_QUESTION) {
+    setTimer(newdata, sessionId, 3).then(() => {
+      newdata = retrieveDataFromFile();
+      if (isSessionIdValid(newdata, quizId, sessionId) && newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
+        updateStateWithTimer(data, sessionId, State.QUESTION_OPEN);
+        newdata = retrieveDataFromFile();
+        const currSession = newdata.quizzesCopy.find((session) => session.session.sessionId === sessionId);
+        setTimer(newdata, sessionId, currSession.metadata.questions[session.session.atQuestion -1].duration).then(() => {
+          newdata = retrieveDataFromFile();
+          if (isSessionIdValid(newdata, quizId, sessionId) && newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
+            updateStateWithTimer(data, sessionId, State.QUESTION_CLOSE);
+          }
+        })
+      }
+    });
+  }
+  // one more case: when State is from question_countdown to Question_Open
+  // and needed to auto change from open to end 
+  if (state === State.QUESTION_OPEN && action === Action.SKIP_COUNTDOWN) {
+    setTimer(newdata, sessionId, session.metadata.questions[session.session.atQuestion - 1].duration).then(() => {
+      newdata = retrieveDataFromFile();
+      if (isSessionIdValid(newdata, quizId, sessionId) && newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
+        updateStateWithTimer(data, sessionId, State.QUESTION_CLOSE);
+      }
+    });
+  }
   return {};
 };
 
@@ -438,7 +492,12 @@ export const playerCreate = (
   if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
     for (const check of newdata.quizzesCopy) {
       if (check.session.sessionId === sessionId) {
-        check.session.state = State.QUESTION_COUNTDOWN;
+        updateSessionState(check.metadata.quizId, 
+          check.session.sessionId, 
+          newdata.users.find((user) => user.authUserId === 
+          check.metadata.userId[0]).token[0],
+          Action.NEXT_QUESTION);
+        
       }
     }
   }
@@ -521,6 +580,13 @@ export const sessionFinalResult = (playerId: number): SessionFinalResult | HttpE
       }
     }
   }
+
+  playerArray.sort((a, b) => {
+    if (a.score !== b.score) {
+      return b.score - a.score;
+    }
+    return a.name.localeCompare(b.name);
+  });
 
   for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
@@ -654,4 +720,34 @@ function playerScore(data: DataStore, session:Session, playerName: string): Play
     }
   }
   return playerResult;
+}
+
+function updateStateWithTimer(data: DataStore, sessionId: number, state: State) {
+  const newdata = data;
+  for (const session of newdata.quizzesCopy) {
+    if (session.session.sessionId === sessionId) {
+      session.session.state = state;
+      if (state === State.QUESTION_OPEN) {
+        session.metadata.questions[session.session.atQuestion].questionStartTime = Date.now();
+        session.session.atQuestion += 1;
+      }
+    }
+  }
+  // console.log('the whole session: ')
+  // console.log(newdata.quizzesCopy.find((session)=>session.session.sessionId === sessionId).session);
+  // console.log('the whole meetadata: ')
+  // console.log(newdata.quizzesCopy.find((session)=>session.session.sessionId === sessionId).metadata);
+  return saveDataInFile(newdata);
+}
+
+function setTimer(newdata: DataStore, sessionId: number, timeInSecond: number): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    setTimeout(() => {
+      if (newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
+            resolve();
+        } else {
+            reject();
+        }
+    }, timeInSecond * CONVERT_MSECS_TO_SECS);
+});
 }

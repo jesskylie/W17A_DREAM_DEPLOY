@@ -426,3 +426,10 @@ export const isThumbnailUrlValid = (thumbnailUrl: string): boolean => {
   //   );
   // }
 };
+
+export function sleepSync(ms: number) {
+  const startTime = new Date().getTime();
+  while (new Date().getTime() - startTime < ms) {
+    // zzzZZ - comment needed so eslint doesn't complain
+  }
+}
