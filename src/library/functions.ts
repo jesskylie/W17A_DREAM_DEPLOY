@@ -1,13 +1,13 @@
 // a file in which to store functions which
 // are called regularly throughout the application
-import request from 'sync-request-curl';
-import httpError from 'http-errors';
+// import request from 'sync-request-curl';
+// import httpError from 'http-errors';
 
 import {
   CONVERT_MSECS_TO_SECS,
   RANDOM_COLOURS_ARRAY,
-  RESPONSE_OK_200,
-  RESPONSE_ERROR_400,
+  // RESPONSE_OK_200,
+  // RESPONSE_ERROR_400,
 } from './constants';
 
 // import libraries
