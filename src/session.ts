@@ -748,5 +748,5 @@ function setTimer(newdata: DataStore, sessionId: number, timeInSecond: number): 
         reject(new Error('Promise canceled'));
       }
     }, timeInSecond * CONVERT_MSECS_TO_SECS);
-});
+  });
 }

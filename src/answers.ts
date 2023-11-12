@@ -183,7 +183,7 @@ export function submissionOfAnswers(
       throw httpError(400, 'Player is not in a valid session');
     }
   }
-/*
+  /*
   // Suggestion:
   for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
