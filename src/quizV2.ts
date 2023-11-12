@@ -393,7 +393,9 @@ export function adminQuizThumbnailUrlUpdate(
   // imgUrl when fetched does not return a valid file
   // imgUrl when fetch is not a JPG or PNG image
 
-  isThumbnailUrlValid(imgUrl);
+  if (!isThumbnailUrlValid(imgUrl)) {
+    throw HTTPError(400, 'The thumbnail URL is not valid');
+  }
 
   // Step 3: ERROR 400 - END
 

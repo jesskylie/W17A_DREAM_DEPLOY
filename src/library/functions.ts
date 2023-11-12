@@ -369,12 +369,38 @@ export function isActionValid(state: State, action: Action) {
  *
  */
 
-export const isThumbnailUrlValid = (thumbnailUrl: string): void => {
+export const isThumbnailUrlValid = (thumbnailUrl: string): boolean => {
   // Error Check 1: The thumbnailUrl is an empty string
 
-  if (thumbnailUrl === '') {
-    throw httpError(RESPONSE_ERROR_400, 'The thumbnailUrl is an empty string');
+  let thumbnailUrlIsStringWithLength = true;
+
+  if (thumbnailUrl.length === 0 || thumbnailUrl === '') {
+    thumbnailUrlIsStringWithLength = false;
   }
+
+  // Error check 2: The thumbnail does not end with one of the
+  // following filetypes (case insensitive): jpg, jpeg, png
+
+  const fileTypePattern = /(\.jpg)|(\.jpeg)|(\.png)$/gim;
+
+  const isFileType = fileTypePattern.test(thumbnailUrl);
+
+  // Error check 3: The thumbnailUrl does not begin with 'http://' or 'https://'
+
+  const beginningPattern = /^(http:\/\/)|(https:\/\/)/gm;
+
+  const isBeginningProperly = beginningPattern.test(thumbnailUrl);
+
+  if (!thumbnailUrlIsStringWithLength || !isFileType || !isBeginningProperly) {
+    return false;
+  }
+
+  return true;
+
+  // BELOW IS REDUNDANT AS CONSEQUENCE OF UPDATED STARTER CODE 12 NOVEMBER 2023
+  // BUT I AM KEEPING IT IN OUR CODEBASE AS IT TOOK QUITE A BIT OF EFFORT TO DEVELOP,
+  // AND CAUSED ME TO SPEND QUITE A FEW HOURS ANALYSING WHY OUR TEST CASES WERE
+  // SO SLOW, AND WHETHER ANYTHING COULD BE DONE TO SPEED THINGS UP
 
   // Error Check 2: The thumbnailUrl does not return to a valid file
 

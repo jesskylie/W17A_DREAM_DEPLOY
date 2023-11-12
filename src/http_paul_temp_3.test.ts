@@ -1564,7 +1564,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - E
     ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
-  test.skip('The thumbnailUrl does not return to a valid file - EXPECT ERROR CODE 400', () => {
+  test('The thumbnailUrl does not return to a valid file - EXPECT ERROR CODE 400', () => {
     requestClear();
     const response = requestAdminRegister(
       emailBase,
@@ -1603,7 +1603,7 @@ describe('Testing POST /v2/admin/quiz/{quizId}/question - thumbnailUrl tests - E
     ).toThrow(HTTPError[RESPONSE_ERROR_400]);
   });
 
-  test.skip('The thumbnailUrl, when fetched, is not a JPG or PNg file type - EXPECT ERROR CODE 400', () => {
+  test('The thumbnailUrl, when fetched, is not a JPG or PNg file type - EXPECT ERROR CODE 400', () => {
     requestClear();
     const response = requestAdminRegister(
       emailBase,
