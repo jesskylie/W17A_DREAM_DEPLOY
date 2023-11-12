@@ -37,7 +37,7 @@ import {
   adminTrashQuizEmptyV2,
   adminQuizTransferV2,
   adminTrashQuizListV2,
-  adminQuizListV2
+  adminQuizListV2,
 } from './quiz';
 import {
   adminQuizCreateV2,
@@ -78,6 +78,9 @@ import {
 } from './session';
 
 import { getResultsOfAnswers, submissionOfAnswers } from './answers';
+import { getChatMessages, sendMessage } from './message';
+
+import { getQuestionInformationForPlayer } from './player_info';
 
 // Set up web app
 const app = express();
@@ -179,6 +182,12 @@ app.post('/v1/player/join', (req: Request, res: Response) => {
   res.json(playerCreate(sessionId, name));
 });
 
+app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const { message } = req.body;
+  const playerId = parseInt(req.params.playerid);
+  res.json(sendMessage(playerId, message));
+});
+
 // --------------------------- V2 POST REQUESTS - END ----------------------------s
 
 // --------------------------- V2 GET REQUESTS - START ---------------------------
@@ -262,14 +271,7 @@ app.put(
     const { questionBody } = req.body;
     const quizId = parseInt(req.params.quizid);
     const questionId = parseInt(req.params.questionid);
-    res.json(
-      updateQuizQuestionV2(
-        quizId,
-        questionId,
-        token,
-        questionBody
-      )
-    );
+    res.json(updateQuizQuestionV2(quizId, questionId, token, questionBody));
   }
 );
 
@@ -539,20 +541,33 @@ app.get(
     const quizId = parseInt(req.params.quizid);
     const sessionId = parseInt(req.params.sessionid);
     const token = req.headers.token as string;
-
     const response = adminQuizGetSessionStatus(quizId, sessionId, token);
-
     res.json(response);
   }
 );
 
-app.get('/v1/player/:playerid/question/:questionposition/result',
+app.get(
+  '/v1/player/:playerid/question/:questionposition',
+  (req: Request, res: Response) => {
+    const playerId = parseInt(req.params.playerid);
+    const questionPosition = parseInt(req.params.questionposition);
+    res.json(getQuestionInformationForPlayer(playerId, questionPosition));
+  }
+);
+
+app.get(
+  '/v1/player/:playerid/question/:questionposition/result',
   (req: Request, res: Response) => {
     const playerId = parseInt(req.params.playerid);
     const questionPosition = parseInt(req.params.questionposition);
     res.json(getResultsOfAnswers(playerId, questionPosition));
   }
 );
+
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  res.json(getChatMessages(playerId));
+});
 
 // --------------------------- V1 GET REQUESTS - END --------------------------
 
@@ -561,13 +576,16 @@ app.get('/v1/player/:playerid/question/:questionposition/result',
 // PUT request to route /v1/admin/user/details
 // From swagger.yaml:
 // Update the details of an admin user (non-password)
-app.put('/v1/player/:playerid/question/:questionposition/answer', (req: Request, res: Response) => {
-  const playerId = parseInt(req.params.playerid);
-  const { answerIds } = req.body;
-  const questionPosition = parseInt(req.params.questionposition);
-  const result = submissionOfAnswers(playerId, answerIds, questionPosition);
-  res.json(result);
-});
+app.put(
+  '/v1/player/:playerid/question/:questionposition/answer',
+  (req: Request, res: Response) => {
+    const playerId = parseInt(req.params.playerid);
+    const { answerIds } = req.body;
+    const questionPosition = parseInt(req.params.questionposition);
+    const result = submissionOfAnswers(playerId, answerIds, questionPosition);
+    res.json(result);
+  }
+);
 
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   const { token, email, nameFirst, nameLast } = req.body;

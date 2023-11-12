@@ -23,6 +23,7 @@ import {
   PlayerId,
   PlayerStatus,
   SessionFinalResult,
+  MessageReturn,
 } from './interfaces';
 
 import {
@@ -61,11 +62,12 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export function requestResultsOfAnswers(playerid: number, questionposition: number) {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
+export function requestSendMessage(playerid: number, message: string): Record<string, never> | HttpError {
+  const res = request('POST', SERVER_URL + `/v1/player/${playerid}/chat`,
     {
-      qs: { playerid, questionposition },
-    });
+      json: { playerid, message },
+    }
+  );
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -74,8 +76,36 @@ export function requestResultsOfAnswers(playerid: number, questionposition: numb
   }
 }
 
-export function requestSessionFinalResult(playerid: number): SessionFinalResult | HttpError {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/results`, { qs: { playerid } });
+export function requestResultsOfAnswers(playerid: number, questionposition: number) {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
+    {
+      qs: { playerid, questionposition },
+    }
+  );
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
+export function requestSessionFinalResult(
+  playerid: number
+): SessionFinalResult | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/results`, {
+    qs: { playerid },
+  });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
+export function requestGetChatMessages(playerid: number): MessageReturn | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/chat`, { qs: { playerid } });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -118,13 +148,9 @@ export function requestPlayerCreate(
   sessionId: number,
   name: string
 ): PlayerId | HttpError {
-  const res = request(
-    'POST',
-    SERVER_URL + '/v1/player/join',
-    {
-      json: { sessionId, name },
-    }
-  );
+  const res = request('POST', SERVER_URL + '/v1/player/join', {
+    json: { sessionId, name },
+  });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());
@@ -938,6 +964,22 @@ export const requestAdminGetSessionStatus = (
       throw HTTPError(RESPONSE_ERROR_401);
     case RESPONSE_ERROR_403:
       throw HTTPError(RESPONSE_ERROR_403);
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+};
+
+export const requestCurrentQuestionInformationForPlayer = (
+  playerId: number,
+  questionposition: number
+) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/question/${questionposition}`
+  );
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
     case RESPONSE_ERROR_400:
       throw HTTPError(RESPONSE_ERROR_400);
   }
