@@ -22,6 +22,9 @@ import {
   VALID_THUMBNAIL_URL,
   INVALID_THUMBNAIL_URL_NOT_A_FILE,
   INVALID_THUMBNAIL_URL_NOT_JPG_PNG,
+  INVALID_THUMBNAIL_URL_DOES_NOT_START_WITH_HTTP,
+  INVALID_THUMBNAIL_URL_DOES_NOT_START_WITH_HTTPS,
+  INVALID_THUMBNAIL_URL_IS_EMPTY_STRING,
 } from './library/constants';
 
 // --------------------------------------------------
@@ -280,6 +283,156 @@ describe('test /v1/admin/quiz/{quizid}/thumbnail: EXPECT ERROR 400 | 401 | 403',
         quizId,
         token,
         INVALID_THUMBNAIL_URL_NOT_JPG_PNG
+      )
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+
+    // check imageUrl has NOT been updated for quiz
+    // get info about quiz
+
+    const testQuizInfo = requestAdminQuizInfoV2(
+      token,
+      quizId
+    ) as requestAdminQuizInfoReturn;
+
+    const updatedQuizObject = testQuizInfo;
+
+    if ('thumbnailUrl' in updatedQuizObject) {
+      const updatedImgUrl = updatedQuizObject.thumbnailUrl;
+
+      expect(updatedImgUrl).toStrictEqual(DEFAULT_VALID_THUMBNAIL_URL);
+    }
+  });
+  test('imgUrl when fetch is does not start with http:// -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+    // Create user
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegister = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    const token = testRegister.body.token;
+
+    // Create quiz
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    expect(() =>
+      requestAdminUpdateQuizThumbnail(
+        quizId,
+        token,
+        INVALID_THUMBNAIL_URL_DOES_NOT_START_WITH_HTTP
+      )
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+
+    // check imageUrl has NOT been updated for quiz
+    // get info about quiz
+
+    const testQuizInfo = requestAdminQuizInfoV2(
+      token,
+      quizId
+    ) as requestAdminQuizInfoReturn;
+
+    const updatedQuizObject = testQuizInfo;
+
+    if ('thumbnailUrl' in updatedQuizObject) {
+      const updatedImgUrl = updatedQuizObject.thumbnailUrl;
+
+      expect(updatedImgUrl).toStrictEqual(DEFAULT_VALID_THUMBNAIL_URL);
+    }
+  });
+  test('imgUrl when fetch is does not start with https:// -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+    // Create user
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegister = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    const token = testRegister.body.token;
+
+    // Create quiz
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    expect(() =>
+      requestAdminUpdateQuizThumbnail(
+        quizId,
+        token,
+        INVALID_THUMBNAIL_URL_DOES_NOT_START_WITH_HTTPS
+      )
+    ).toThrow(HTTPError[RESPONSE_ERROR_400]);
+
+    // check imageUrl has NOT been updated for quiz
+    // get info about quiz
+
+    const testQuizInfo = requestAdminQuizInfoV2(
+      token,
+      quizId
+    ) as requestAdminQuizInfoReturn;
+
+    const updatedQuizObject = testQuizInfo;
+
+    if ('thumbnailUrl' in updatedQuizObject) {
+      const updatedImgUrl = updatedQuizObject.thumbnailUrl;
+
+      expect(updatedImgUrl).toStrictEqual(DEFAULT_VALID_THUMBNAIL_URL);
+    }
+  });
+  test('imgUrl when fetch is empty string -> EXPECT ERROR CODE 400', () => {
+    requestClear();
+    // Create user
+    const email = emailBase;
+    const password = passwordBase;
+    const nameFirst = 'Paul';
+    const nameLast = 'Reynolds';
+
+    const testRegister = requestAdminRegister(
+      email,
+      password,
+      nameFirst,
+      nameLast
+    ) as RequestAdminRegisterReturn;
+
+    const token = testRegister.body.token;
+
+    // Create quiz
+    const quizCreateResponse = requestAdminQuizCreateV2(
+      token,
+      'New Quiz',
+      'Description of quiz'
+    );
+
+    const quizId = quizCreateResponse.quizId;
+
+    expect(() =>
+      requestAdminUpdateQuizThumbnail(
+        quizId,
+        token,
+        INVALID_THUMBNAIL_URL_IS_EMPTY_STRING
       )
     ).toThrow(HTTPError[RESPONSE_ERROR_400]);
 
