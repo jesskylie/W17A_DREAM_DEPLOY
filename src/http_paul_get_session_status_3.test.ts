@@ -77,7 +77,7 @@ const question = {
 // sessionid (path) number
 // token (header) string
 
-describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty object -> EXPECT 200 SUCCESS', () => {
+describe('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empty object -> EXPECT 200 SUCCESS', () => {
   test('Returns data about session state -> EXPECT SUCESS CODE 200', () => {
     requestClear();
     // Create user
@@ -143,11 +143,9 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
     };
 
     const testGetSessionStatusBeforePlayerCreated =
-      requestAdminGetSessionStatus(
-        quizId,
-        sessionId,
-        token
-      ) as unknown as GetSessionStatusReturnObj;
+      requestAdminGetSessionStatus(quizId, sessionId, token) as
+        | unknown
+        | GetSessionStatusReturnObj;
 
     expect(testGetSessionStatusBeforePlayerCreated).toStrictEqual(
       getExpectedSessionStateAFterBeforePlayerCreated
@@ -163,7 +161,7 @@ describe.only('test /v1/admin/quiz/{quizid}/session/{sessionid}: Returns an empt
       quizId,
       sessionId,
       token
-    );
+    ) as unknown | GetSessionStatusReturnObj;
 
     // const getExpectedSessionState = createSessionStateObject({
     //   state:'LOBBY',

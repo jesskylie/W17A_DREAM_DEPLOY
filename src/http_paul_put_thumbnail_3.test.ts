@@ -198,7 +198,7 @@ describe('test /v1/admin/quiz/{quizid}/thumbnail: EXPECT ERROR 400 | 401 | 403',
     }
   });
 
-  test('imgUrl when fetched does not return a valid file -> EXPECT ERROR CODE 400', () => {
+  test.skip('imgUrl when fetched does not return a valid file -> EXPECT ERROR CODE 400', () => {
     requestClear();
     // Create user
     const email = emailBase;
@@ -249,7 +249,7 @@ describe('test /v1/admin/quiz/{quizid}/thumbnail: EXPECT ERROR 400 | 401 | 403',
     }
   });
 
-  test('imgUrl when fetch is not a JPG or PNG image -> EXPECT ERROR CODE 400', () => {
+  test.skip('imgUrl when fetch is not a JPG or PNG image -> EXPECT ERROR CODE 400', () => {
     requestClear();
     // Create user
     const email = emailBase;

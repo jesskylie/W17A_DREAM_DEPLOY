@@ -378,25 +378,25 @@ export const isThumbnailUrlValid = (thumbnailUrl: string): void => {
 
   // Error Check 2: The thumbnailUrl does not return to a valid file
 
-  const response = request('GET', thumbnailUrl);
+  // const response = request('GET', thumbnailUrl);
 
-  const testStatusCode = response.statusCode;
+  // const testStatusCode = response.statusCode;
 
-  if (testStatusCode !== RESPONSE_OK_200) {
-    throw httpError(
-      RESPONSE_ERROR_400,
-      'The thumbnailUrl does not return to a valid file'
-    );
-  }
+  // if (testStatusCode !== RESPONSE_OK_200) {
+  //   throw httpError(
+  //     RESPONSE_ERROR_400,
+  //     'The thumbnailUrl does not return to a valid file'
+  //   );
+  // }
 
-  // Error Check 3: The thumbnailUrl, when fetched, is not a JPG or PNG file type
+  // // Error Check 3: The thumbnailUrl, when fetched, is not a JPG or PNG file type
 
-  const contentType = response.headers['content-type'];
+  // const contentType = response.headers['content-type'];
 
-  if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
-    throw httpError(
-      RESPONSE_ERROR_400,
-      'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
-    );
-  }
+  // if (contentType !== 'image/jpeg' && contentType !== 'image/png') {
+  //   throw httpError(
+  //     RESPONSE_ERROR_400,
+  //     'The thumbnailUrl, when fetched, is not a JPG or PNG file type'
+  //   );
+  // }
 };

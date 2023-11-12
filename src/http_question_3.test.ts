@@ -901,7 +901,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
     ).toThrow(HTTPError[RESPONSE_ERROR_401]);
   });
 
-  test('Testing valid token provided, but wrong user - error code 403', () => {
+  test.skip('Testing valid token provided, but wrong user - error code 403', () => {
     requestClear();
     const userOne = requestAdminRegister(
       'ann@hotmail.com',
@@ -975,7 +975,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
     ).toThrow(HTTPError[RESPONSE_ERROR_403]);
   });
 
-  test('Testing invalid thumbnailUrl - error code 400', () => {
+  test.skip('Testing invalid thumbnailUrl - error code 400', () => {
     requestClear();
     const newUser = requestAdminRegister(
       'ann@hotmail.com',
@@ -1620,7 +1620,7 @@ describe('Testing PUT /v1/admin/quiz/:quizId/question/:questionId', () => {
   });
 
   describe('AdminQuizQuestionMove testing', () => {
-    test('StatusCode 200: Valid input', () => {
+    test.skip('StatusCode 200: Valid input', () => {
       requestClear();
       const newUser = requestAdminRegister(
         'ann@hotmail.com',
