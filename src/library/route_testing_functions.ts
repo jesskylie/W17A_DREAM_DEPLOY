@@ -23,6 +23,7 @@ import {
   PlayerId,
   PlayerStatus,
   SessionFinalResult,
+  MessageReturn,
 } from './interfaces';
 
 import {
@@ -61,13 +62,22 @@ export const requestClear = () => {
   return { statusCode, bodyString };
 };
 
-export function requestResultsOfAnswers(
-  playerid: number,
-  questionposition: number
-) {
-  const res = request(
-    'GET',
-    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
+export function requestSendMessage(playerid: number, message: string): Record<string, never> | HttpError {
+  const res = request('POST', SERVER_URL + `/v1/player/${playerid}/chat`,
+    {
+      json: { playerid, message },
+    }
+  );
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
+export function requestResultsOfAnswers(playerid: number, questionposition: number) {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/result`,
     {
       qs: { playerid, questionposition },
     }
@@ -94,12 +104,18 @@ export function requestSessionFinalResult(
   }
 }
 
-export function requestPlayerStatus(
-  playerid: number
-): PlayerStatus | HttpError {
-  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, {
-    qs: { playerid },
-  });
+export function requestGetChatMessages(playerid: number): MessageReturn | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}/chat`, { qs: { playerid } });
+  switch (res.statusCode) {
+    case RESPONSE_OK_200:
+      return JSON.parse(res.body.toString());
+    case RESPONSE_ERROR_400:
+      throw HTTPError(RESPONSE_ERROR_400);
+  }
+}
+
+export function requestPlayerStatus(playerid: number): PlayerStatus | HttpError {
+  const res = request('GET', SERVER_URL + `/v1/player/${playerid}`, { qs: { playerid } });
   switch (res.statusCode) {
     case RESPONSE_OK_200:
       return JSON.parse(res.body.toString());

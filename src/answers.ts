@@ -219,7 +219,7 @@ function isQuestionPositionValid (data: DataStore, playerid: number, questionpos
 * @param {Datastore} - data
 * @returns {boolean}
 */
-function playerIdExists (data: DataStore, playerid: number): boolean {
+export function playerIdExists (data: DataStore, playerid: number): boolean {
   for (const copyQuiz of data.quizzesCopy) {
     const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
