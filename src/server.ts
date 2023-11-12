@@ -78,6 +78,7 @@ import {
 } from './session';
 
 import { getResultsOfAnswers, submissionOfAnswers } from './answers';
+import { getChatMessages, sendMessage } from './message';
 
 // Set up web app
 const app = express();
@@ -177,6 +178,12 @@ app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
 app.post('/v1/player/join', (req: Request, res: Response) => {
   const { sessionId, name } = req.body;
   res.json(playerCreate(sessionId, name));
+});
+
+app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const { message } = req.body;
+  const playerId = parseInt(req.params.playerid);
+  res.json(sendMessage(playerId, message));
 });
 
 // --------------------------- V2 POST REQUESTS - END ----------------------------s
@@ -539,9 +546,7 @@ app.get(
     const quizId = parseInt(req.params.quizid);
     const sessionId = parseInt(req.params.sessionid);
     const token = req.headers.token as string;
-
     const response = adminQuizGetSessionStatus(quizId, sessionId, token);
-
     res.json(response);
   }
 );
@@ -553,6 +558,11 @@ app.get('/v1/player/:playerid/question/:questionposition/result',
     res.json(getResultsOfAnswers(playerId, questionPosition));
   }
 );
+
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  res.json(getChatMessages(playerId));
+});
 
 // --------------------------- V1 GET REQUESTS - END --------------------------
 
