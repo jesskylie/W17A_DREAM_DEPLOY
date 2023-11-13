@@ -195,3 +195,7 @@ export interface SessionFinalResult {
   usersRankedByScore: PlayerWithScore[];
   questionResults: QuestionResult[];
 }
+
+export interface FinalResultsCSV {
+  url: string;
+}

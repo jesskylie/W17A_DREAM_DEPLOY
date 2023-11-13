@@ -69,8 +69,9 @@ describe('Test: PUT /v1/player/{playerid}/question/{questionposition}/answer', (
     const playerId = requestPlayerCreate(sessionId.sessionId, 'Haley Berry');
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.NEXT_QUESTION);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
-    expect(requestAnswerQuestion(playerId.playerId, [1], 0)).toStrictEqual({});
-    expect(requestAnswerQuestion(playerId.playerId, [0, 1], 0)).toStrictEqual({});
+    expect(requestAnswerQuestion(playerId.playerId, [1], 1)).toStrictEqual({});
+    expect(requestAnswerQuestion(playerId.playerId, [0, 1], 1)).toStrictEqual({});
+  });
   });
 
   test('PlayerId does not exist - 400 error', () => {
@@ -245,7 +246,7 @@ describe('Test: PUT /v1/player/{playerid}/question/{questionposition}/answer', (
     const playerId = requestPlayerCreate(sessionId.sessionId, 'Haley Berry');
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.NEXT_QUESTION);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
-    expect(() => requestAnswerQuestion(playerId.playerId, [0], 1)).toThrow(HTTPError[400]);
+    expect(() => requestAnswerQuestion(playerId.playerId, [0], 2)).toThrow(HTTPError[400]);
   });
 
   test('Answer IDS are not valid for this particular question - 400 error', () => {
@@ -380,10 +381,10 @@ describe('/v1/player/:playerid:/question/:questionposition:/results', () => {
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.NEXT_QUESTION);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
     // correct answer chosen
-    requestAnswerQuestion(playerId.playerId, [0], 0);
-    requestAnswerQuestion(playerIdTwo.playerId, [1], 0);
+    requestAnswerQuestion(playerId.playerId, [0], 1);
+    requestAnswerQuestion(playerIdTwo.playerId, [1], 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_ANSWER);
-    expect(requestResultsOfAnswers(playerId.playerId, 0)).toStrictEqual({
+    expect(requestResultsOfAnswers(playerId.playerId, 1)).toStrictEqual({
       questionId: questionOneQuestionId.questionId,
       playersCorrectList: ['Haley Berry'],
       averageAnswerTime: expect.any(Number),
