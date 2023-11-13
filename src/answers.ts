@@ -82,28 +82,28 @@ export function getResultsOfAnswers(
 
   //     const time = Math.round(totalTime / playersArray.length / 1000);
 
-      // const returnData = {
-      //   questionId: questionId,
-      //   playersCorrectList: correctPlayers,
-      //   averageAnswerTime: time,
-      //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
-      // };
+  // const returnData = {
+  //   questionId: questionId,
+  //   playersCorrectList: correctPlayers,
+  //   averageAnswerTime: time,
+  //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
+  // };
 
-      // currSession.result.push(returnData);
-      // saveDataInFile(data);
-      // return {
-      //   questionId: questionId,
-      //   playersCorrectList: correctPlayers,
-      //   averageAnswerTime: 45,
-      //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
-      // };
+  // currSession.result.push(returnData);
+  // saveDataInFile(data);
+  // return {
+  //   questionId: questionId,
+  //   playersCorrectList: correctPlayers,
+  //   averageAnswerTime: 45,
+  //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
+  // };
   //   }
   // }
   for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
       if (player.playerId === playerid) {
         return session.session.result[session.session.atQuestion - 1];
-      } 
+      }
     }
   }
 }
@@ -226,7 +226,7 @@ export function submissionOfAnswers(
   }
   */
   // Suggestion:
-    for (const session of data.quizzesCopy) {
+  for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
       if (player.playerId === playerid) {
         const currSession = session.session;
@@ -242,7 +242,7 @@ export function submissionOfAnswers(
         // console.log('session.session.atQuestion - 1: ')
         // console.log(session.session.atQuestion)
         if (session.session.result.length < session.session.atQuestion) {
-          let playersCorrectList: string[] = [];
+          const playersCorrectList: string[] = [];
           const isCorrect = checkIfAnswerIsCorrect(
             data,
             answerIds,
@@ -269,14 +269,14 @@ export function submissionOfAnswers(
             playersCorrectList: playersCorrectList,
             averageAnswerTime: averageAnswerTime,
             percentCorrect: (playersCorrectList.length / playersArray.length) * 100,
-          }
+          };
           session.session.result.push(newResult);
           } else {
           // for (const checkAnswer of answerIds) {
-            // I will keep going later: this is where I stop
-            // if (checkIfAnswerIsCorrect(answerIds)) {
-            //   session.session.result[atQuestion].playersCorrectList.push(player.name);
-            // }
+          // I will keep going later: this is where I stop
+          // if (checkIfAnswerIsCorrect(answerIds)) {
+          //   session.session.result[atQuestion].playersCorrectList.push(player.name);
+          // }
           // }
           // for (const checkAnswer of answerIds) {
           //   if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
@@ -289,30 +289,28 @@ export function submissionOfAnswers(
             atQuestion
           );
           if (isCorrect) {
-              session.session.result[questionposition - 1].playersCorrectList.push(player.name);
+            session.session.result[questionposition - 1].playersCorrectList.push(player.name);
           }
           let playerAnswerTime = 0;
           if (player.timeAnswered) {
             playerAnswerTime = Date.now() - player.timeAnswered;
           } else {
-            playerAnswerTime = Date.now() - session.metadata.questions[atQuestion].questionStartTime
+            playerAnswerTime = Date.now() - session.metadata.questions[atQuestion].questionStartTime;
           }
           if ((playerAnswerTime + session.session.result[atQuestion].averageAnswerTime *
-            playersArray.length) / playersArray.length < HALF_SEC) {
-              session.session.result[atQuestion].averageAnswerTime = 0;
+          playersArray.length) / playersArray.length < HALF_SEC) {
+            session.session.result[atQuestion].averageAnswerTime = 0;
           } else {
             session.session.result[atQuestion].averageAnswerTime = Math.round((playerAnswerTime / 1000 +
-              session.session.result[atQuestion].averageAnswerTime *
-              playersArray.length) / playersArray.length);
+            session.session.result[atQuestion].averageAnswerTime *
+            playersArray.length) / playersArray.length);
           }
           session.session.result[atQuestion].percentCorrect =
           (session.session.result[atQuestion].playersCorrectList.length / playersArray.length) * 100;
-          }
         }
       }
     }
-
-
+  }
   saveDataInFile(data);
   return {};
 }
