@@ -1,7 +1,8 @@
 import httpError, { HttpError } from 'http-errors';
 import { retrieveDataFromFile, saveDataInFile } from './library/functions';
-import { DataStore, State, ResultForEachQuestion, Question } from './dataStore';
+import { DataStore, State, ResultForEachQuestion } from './dataStore';
 import { HALF_SEC } from './library/constants';
+
 /**
  * Gets the results for a particular question of the session a player is playing in
  * throws HTTP Error 400 if any of the following are true
@@ -45,60 +46,7 @@ export function getResultsOfAnswers(
     throw httpError(400, 'Session is not yet up to this question');
   }
 
-  // // finds current session using playerId
-  // for (const copyQuiz of data.quizzesCopy) {
-  //   const player = copyQuiz.session.players.find(
-  //     (player) => player.playerId === playerid
-  //   );
-  //   if (player) {
-  //     const currSession = copyQuiz.session;
-  //     const currQuizQuestion = copyQuiz.metadata;
-
-  //     const questionId =
-  //       currQuizQuestion.questions[questionposition - 1].questionId;
-
-  //     const playersArray = currSession.players;
-
-  //     const correctPlayers: string[] = [];
-  //     let totalTime = 0;
-  //     for (const player of playersArray) {
-  //       const currPlayersAnswer = player.selectedAnswer;
-
-  //       const isCorrect = checkIfAnswerIsCorrect(
-  //         currPlayersAnswer,
-  //         currQuizQuestion.questions[questionposition - 1],
-  //         questionposition - 1
-  //       );
-
-  //       if (isCorrect) {
-  //         correctPlayers.push(player.name);
-  //       }
-  //       // count total average answer time
-  //       if (player.timeAnswered) {
-  //         totalTime = totalTime + player.timeAnswered;
-  //       }
-  //     }
-  //     // calculate average time by number of players
-
-  //     const time = Math.round(totalTime / playersArray.length / 1000);
-
-  // const returnData = {
-  //   questionId: questionId,
-  //   playersCorrectList: correctPlayers,
-  //   averageAnswerTime: time,
-  //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
-  // };
-
-  // currSession.result.push(returnData);
-  // saveDataInFile(data);
-  // return {
-  //   questionId: questionId,
-  //   playersCorrectList: correctPlayers,
-  //   averageAnswerTime: 45,
-  //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
-  // };
-  //   }
-  // }
+  // get the reuslts for question
   for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
       if (player.playerId === playerid) {
@@ -107,46 +55,6 @@ export function getResultsOfAnswers(
     }
   }
 }
-
-/**
- * Checks if an answer in the selected answers array is correct
- * Returns true if all the answers are correct
- * Returns false otherwise
- * @param {number[][]} - selectedAnswer
- * @param {Question} - question
- * @param {number} - questionposition
- * @returns {boolean} - true or false
- */
-// function checkIfAnswerIsCorrect(
-//   selectedAnswer: number[],
-//   question: Question,
-//   questionposition: number
-// ): boolean {
-//   // filters the array to get the correct answerIds only
-//   // maps to new array based on answer Ids
-//   const correctAnswers = question.answers
-//     .filter((answer) => answer.correct === true)
-//     .map((answer) => answer.answerId);
-
-//   // checks if both arrays are the same
-//   return compareArrays(correctAnswers, selectedAnswer[questionposition]);
-// }
-
-/**
- * Checks if two arrays are the same
- * Returns true if arrays are the same
- * Returns false otherwise
- * Code taken from https://www.freecodecamp.org/news/how-to-compare-arrays-in-javascript/
- * @param {number[]} - array1
- * @param {number[]} - array2
- * @returns {boolean} - true or false
- */
-// function compareArrays(array1: number[], array2: number[]): boolean {
-//   return (
-//     array1.length === array2.length &&
-//     array1.every((element, index) => element === array2[index])
-//   );
-// }
 
 /**
  * Allow the current player to submit answer(s) to the currently active question
@@ -202,30 +110,8 @@ export function submissionOfAnswers(
   if (answerIds.length < 1) {
     throw httpError(400, 'Less than 1 answer ID was submitted ');
   }
-  /*
-  // finds current session using playerId
-  for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
-    if (player) {
-      const currQuizQuestion =
-        copyQuiz.metadata.questions[questionposition - 1];
 
-      player.selectedAnswer[questionposition - 1] = answerIds;
-      // gets current time player answered now
-      player.timeAnswered = Date.now();
-      if (currQuizQuestion.questionStartTime) {
-        // calculates the time answered to be question start time - player answer time
-        player.timeAnswered =
-          player.timeAnswered - currQuizQuestion.questionStartTime;
-      }
-    } else {
-      throw httpError(400, 'Player is not in a valid session');
-    }
-  }
-  */
-  // Suggestion:
+  // save submission of answers to results for each question
   for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
       if (player.playerId === playerid) {
@@ -234,13 +120,6 @@ export function submissionOfAnswers(
         const questionId = currQuizQuestion.questions[questionposition - 1].questionId;
         const playersArray = currSession.players;
         const atQuestion = session.session.atQuestion - 1;
-        // console.log('questionId: ' + questionId);
-        // console.log('playersArray: ' + playersArray);
-        // console.log('atQuestion: ' + atQuestion);
-        // console.log('session.session.result.length: ')
-        // console.log(session.session.result.length)
-        // console.log('session.session.atQuestion - 1: ')
-        // console.log(session.session.atQuestion)
         if (session.session.result.length < session.session.atQuestion) {
           const playersCorrectList: string[] = [];
           const isCorrect = checkIfAnswerIsCorrect(
@@ -252,11 +131,6 @@ export function submissionOfAnswers(
           if (isCorrect) {
             playersCorrectList.push(player.name);
           }
-          // for (const checkAnswer of answerIds) {
-          //   if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
-          //     pl
-          //   }
-          // }
           let averageAnswerTime = 0;
           player.timeAnswered = Date.now();
           if (Math.round(player.timeAnswered -
@@ -271,17 +145,7 @@ export function submissionOfAnswers(
             percentCorrect: (playersCorrectList.length / playersArray.length) * 100,
           };
           session.session.result.push(newResult);
-          } else {
-          // for (const checkAnswer of answerIds) {
-          // I will keep going later: this is where I stop
-          // if (checkIfAnswerIsCorrect(answerIds)) {
-          //   session.session.result[atQuestion].playersCorrectList.push(player.name);
-          // }
-          // }
-          // for (const checkAnswer of answerIds) {
-          //   if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
-          //   }
-          // }
+        } else {
           const isCorrect = checkIfAnswerIsCorrect(
             data,
             answerIds,
@@ -491,17 +355,32 @@ function isValidQuestionPosition(
   return false;
 }
 
+/**
+ * Checks if an answer in the selected answers array is correct
+ * Returns true if all the answers are correct
+ * Returns false otherwise
+ * @param {Datastore} - data
+ * @param {number[]} - answerIds
+ * @param {number} - playerId
+ * @param {number} - atQuestion
+ * @returns {boolean} - true or false
+*/
 function checkIfAnswerIsCorrect(data: DataStore, answerIds: number[], playerId: number, atQuestion: number) {
   for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
       if (player.playerId === playerId) {
-        for (const checkAnswer of answerIds) {
-          if (!session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
-            return false;
-          }
+        const correctAnswers = session.metadata.questions[atQuestion].answers
+          .filter(answer => answer.correct)
+          .map(answer => answer.answerId);
+        const allCorrectAnswers = correctAnswers.every(correctAnswer => answerIds.includes(correctAnswer));
+        if (allCorrectAnswers) {
+          // returns true if all answers in array were selected
+          return true;
+        } else {
+          // returns false if not all the correct answers in the array were selected
+          return false;
         }
       }
     }
   }
-  return true;
 }
