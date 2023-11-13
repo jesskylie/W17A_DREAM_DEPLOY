@@ -47,14 +47,14 @@ export function getResultsOfAnswers(
     if (player) {
       const currSession = copyQuiz.session;
       const currQuizQuestion = copyQuiz.metadata;
-      const questionId = currQuizQuestion.questions[questionposition].questionId;
+      const questionId = currQuizQuestion.questions[questionposition - 1].questionId;
       const playersArray = currSession.players;
 
       const correctPlayers: string[] = [];
       let totalTime = 0;
       for (const player of playersArray) {
         const currPlayersAnswer = player.selectedAnswer;
-        const isCorrect = checkIfAnswerIsCorrect(currPlayersAnswer, currQuizQuestion.questions[questionposition], questionposition);
+        const isCorrect = checkIfAnswerIsCorrect(currPlayersAnswer, currQuizQuestion.questions[questionposition - 1], questionposition - 1);
         if (isCorrect) {
           correctPlayers.push(player.name);
         }
@@ -64,7 +64,7 @@ export function getResultsOfAnswers(
         }
       }
       // calculate average time by number of players
-      const time = totalTime / playersArray.length;
+      const time = Math.round((totalTime / playersArray.length) / 1000);
 
       const returnData = {
         questionId: questionId,
@@ -172,7 +172,7 @@ export function submissionOfAnswers(
     const player = copyQuiz.session.players.find((player) => player.playerId === playerid);
     if (player) {
       const currQuizQuestion = copyQuiz.metadata.questions[questionposition - 1];
-      player.selectedAnswer[questionposition] = answerIds;
+      player.selectedAnswer[questionposition - 1] = answerIds;
       // gets current time player answered now
       player.timeAnswered = Date.now();
       if (currQuizQuestion.questionStartTime) {
@@ -190,7 +190,7 @@ export function submissionOfAnswers(
       if (player.playerId === playerid) {
         const currSession = session.session;
         const currQuizQuestion = session.metadata;
-        const questionId = currQuizQuestion.questions[questionposition].questionId;
+        const questionId = currQuizQuestion.questions[questionposition - 1].questionId;
         const playersArray = currSession.players;
         const atQuestion = session.session.atQuestion - 1;
 
