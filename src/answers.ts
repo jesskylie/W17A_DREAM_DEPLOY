@@ -1,6 +1,7 @@
 import httpError, { HttpError } from 'http-errors';
 import { retrieveDataFromFile, saveDataInFile } from './library/functions';
 import { DataStore, State, ResultForEachQuestion, Question } from './dataStore';
+import { HALF_SEC } from './library/constants';
 /**
  * Gets the results for a particular question of the session a player is playing in
  * throws HTTP Error 400 if any of the following are true
@@ -44,58 +45,65 @@ export function getResultsOfAnswers(
     throw httpError(400, 'Session is not yet up to this question');
   }
 
-  // finds current session using playerId
-  for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
-    if (player) {
-      const currSession = copyQuiz.session;
-      const currQuizQuestion = copyQuiz.metadata;
+  // // finds current session using playerId
+  // for (const copyQuiz of data.quizzesCopy) {
+  //   const player = copyQuiz.session.players.find(
+  //     (player) => player.playerId === playerid
+  //   );
+  //   if (player) {
+  //     const currSession = copyQuiz.session;
+  //     const currQuizQuestion = copyQuiz.metadata;
 
-      const questionId =
-        currQuizQuestion.questions[questionposition - 1].questionId;
+  //     const questionId =
+  //       currQuizQuestion.questions[questionposition - 1].questionId;
 
-      const playersArray = currSession.players;
+  //     const playersArray = currSession.players;
 
-      const correctPlayers: string[] = [];
-      let totalTime = 0;
-      for (const player of playersArray) {
-        const currPlayersAnswer = player.selectedAnswer;
+  //     const correctPlayers: string[] = [];
+  //     let totalTime = 0;
+  //     for (const player of playersArray) {
+  //       const currPlayersAnswer = player.selectedAnswer;
 
-        const isCorrect = checkIfAnswerIsCorrect(
-          currPlayersAnswer,
-          currQuizQuestion.questions[questionposition - 1],
-          questionposition - 1
-        );
+  //       const isCorrect = checkIfAnswerIsCorrect(
+  //         currPlayersAnswer,
+  //         currQuizQuestion.questions[questionposition - 1],
+  //         questionposition - 1
+  //       );
 
-        if (isCorrect) {
-          correctPlayers.push(player.name);
-        }
-        // count total average answer time
-        if (player.timeAnswered) {
-          totalTime = totalTime + player.timeAnswered;
-        }
+  //       if (isCorrect) {
+  //         correctPlayers.push(player.name);
+  //       }
+  //       // count total average answer time
+  //       if (player.timeAnswered) {
+  //         totalTime = totalTime + player.timeAnswered;
+  //       }
+  //     }
+  //     // calculate average time by number of players
+
+  //     const time = Math.round(totalTime / playersArray.length / 1000);
+
+  // const returnData = {
+  //   questionId: questionId,
+  //   playersCorrectList: correctPlayers,
+  //   averageAnswerTime: time,
+  //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
+  // };
+
+  // currSession.result.push(returnData);
+  // saveDataInFile(data);
+  // return {
+  //   questionId: questionId,
+  //   playersCorrectList: correctPlayers,
+  //   averageAnswerTime: 45,
+  //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
+  // };
+  //   }
+  // }
+  for (const session of data.quizzesCopy) {
+    for (const player of session.session.players) {
+      if (player.playerId === playerid) {
+        return session.session.result[session.session.atQuestion - 1];
       }
-      // calculate average time by number of players
-
-      const time = Math.round(totalTime / playersArray.length / 1000);
-
-      const returnData = {
-        questionId: questionId,
-        playersCorrectList: correctPlayers,
-        averageAnswerTime: time,
-        percentCorrect: (correctPlayers.length / playersArray.length) * 100,
-      };
-
-      currSession.result.push(returnData);
-      saveDataInFile(data);
-      return {
-        questionId: questionId,
-        playersCorrectList: correctPlayers,
-        averageAnswerTime: 45,
-        percentCorrect: (correctPlayers.length / playersArray.length) * 100,
-      };
     }
   }
 }
@@ -109,20 +117,20 @@ export function getResultsOfAnswers(
  * @param {number} - questionposition
  * @returns {boolean} - true or false
  */
-function checkIfAnswerIsCorrect(
-  selectedAnswer: number[][],
-  question: Question,
-  questionposition: number
-): boolean {
-  // filters the array to get the correct answerIds only
-  // maps to new array based on answer Ids
-  const correctAnswers = question.answers
-    .filter((answer) => answer.correct === true)
-    .map((answer) => answer.answerId);
+// function checkIfAnswerIsCorrect(
+//   selectedAnswer: number[],
+//   question: Question,
+//   questionposition: number
+// ): boolean {
+//   // filters the array to get the correct answerIds only
+//   // maps to new array based on answer Ids
+//   const correctAnswers = question.answers
+//     .filter((answer) => answer.correct === true)
+//     .map((answer) => answer.answerId);
 
-  // checks if both arrays are the same
-  return compareArrays(correctAnswers, selectedAnswer[questionposition]);
-}
+//   // checks if both arrays are the same
+//   return compareArrays(correctAnswers, selectedAnswer[questionposition]);
+// }
 
 /**
  * Checks if two arrays are the same
@@ -133,12 +141,12 @@ function checkIfAnswerIsCorrect(
  * @param {number[]} - array2
  * @returns {boolean} - true or false
  */
-function compareArrays(array1: number[], array2: number[]): boolean {
-  return (
-    array1.length === array2.length &&
-    array1.every((element, index) => element === array2[index])
-  );
-}
+// function compareArrays(array1: number[], array2: number[]): boolean {
+//   return (
+//     array1.length === array2.length &&
+//     array1.every((element, index) => element === array2[index])
+//   );
+// }
 
 /**
  * Allow the current player to submit answer(s) to the currently active question
@@ -194,7 +202,7 @@ export function submissionOfAnswers(
   if (answerIds.length < 1) {
     throw httpError(400, 'Less than 1 answer ID was submitted ');
   }
-
+  /*
   // finds current session using playerId
   for (const copyQuiz of data.quizzesCopy) {
     const player = copyQuiz.session.players.find(
@@ -216,7 +224,7 @@ export function submissionOfAnswers(
       throw httpError(400, 'Player is not in a valid session');
     }
   }
-  /*
+  */
   // Suggestion:
   for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
@@ -226,44 +234,83 @@ export function submissionOfAnswers(
         const questionId = currQuizQuestion.questions[questionposition - 1].questionId;
         const playersArray = currSession.players;
         const atQuestion = session.session.atQuestion - 1;
-
-        if (session.session.result.length !== session.session.atQuestion - 1) {
-          const playersCorrectList = session.session.result[atQuestion].playersCorrectList;
-          for (const checkAnswer of answerIds) {
-            if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
-              playersCorrectList.push(player.name);
-            }
+        // console.log('questionId: ' + questionId);
+        // console.log('playersArray: ' + playersArray);
+        // console.log('atQuestion: ' + atQuestion);
+        // console.log('session.session.result.length: ')
+        // console.log(session.session.result.length)
+        // console.log('session.session.atQuestion - 1: ')
+        // console.log(session.session.atQuestion)
+        if (session.session.result.length < session.session.atQuestion) {
+          const playersCorrectList: string[] = [];
+          const isCorrect = checkIfAnswerIsCorrect(
+            data,
+            answerIds,
+            playerid,
+            atQuestion
+          );
+          if (isCorrect) {
+            playersCorrectList.push(player.name);
           }
-          const averageAnswerTime = ((player.timeAnswered -
-            session.metadata.questions[atQuestion].questionStartTime) +
-            session.session.result[atQuestion].averageAnswerTime *
-            playersArray.length) / playersArray.length;
-
+          // for (const checkAnswer of answerIds) {
+          //   if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
+          //     pl
+          //   }
+          // }
+          let averageAnswerTime = 0;
+          player.timeAnswered = Date.now();
+          if (Math.round(player.timeAnswered -
+          session.metadata.questions[atQuestion].questionStartTime) / 1000 >= HALF_SEC) {
+            averageAnswerTime = Math.round((player.timeAnswered -
+            session.metadata.questions[atQuestion].questionStartTime) / 1000);
+          }
           const newResult = {
             questionId: questionId,
             playersCorrectList: playersCorrectList,
             averageAnswerTime: averageAnswerTime,
             percentCorrect: (playersCorrectList.length / playersArray.length) * 100,
-          }
+          };
           session.session.result.push(newResult);
           } else {
-          for (const checkAnswer of answerIds) {
-            if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
-              session.session.result[atQuestion].playersCorrectList.push(player.name);
-            }
+          // for (const checkAnswer of answerIds) {
+          // I will keep going later: this is where I stop
+          // if (checkIfAnswerIsCorrect(answerIds)) {
+          //   session.session.result[atQuestion].playersCorrectList.push(player.name);
+          // }
+          // }
+          // for (const checkAnswer of answerIds) {
+          //   if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
+          //   }
+          // }
+          const isCorrect = checkIfAnswerIsCorrect(
+            data,
+            answerIds,
+            playerid,
+            atQuestion
+          );
+          if (isCorrect) {
+            session.session.result[questionposition - 1].playersCorrectList.push(player.name);
           }
-          session.session.result[atQuestion].averageAnswerTime = ((player.timeAnswered -
-          session.metadata.questions[atQuestion].questionStartTime) +
-          session.session.result[atQuestion].averageAnswerTime *
-          playersArray.length) / playersArray.length;
+          let playerAnswerTime = 0;
+          if (player.timeAnswered) {
+            playerAnswerTime = Date.now() - player.timeAnswered;
+          } else {
+            playerAnswerTime = Date.now() - session.metadata.questions[atQuestion].questionStartTime;
+          }
+          if ((playerAnswerTime + session.session.result[atQuestion].averageAnswerTime *
+          playersArray.length) / playersArray.length < HALF_SEC) {
+            session.session.result[atQuestion].averageAnswerTime = 0;
+          } else {
+            session.session.result[atQuestion].averageAnswerTime = Math.round((playerAnswerTime / 1000 +
+            session.session.result[atQuestion].averageAnswerTime *
+            playersArray.length) / playersArray.length);
+          }
           session.session.result[atQuestion].percentCorrect =
           (session.session.result[atQuestion].playersCorrectList.length / playersArray.length) * 100;
-          }
         }
       }
     }
-*/
-
+  }
   saveDataInFile(data);
   return {};
 }
@@ -442,4 +489,19 @@ function isValidQuestionPosition(
     }
   }
   return false;
+}
+
+function checkIfAnswerIsCorrect(data: DataStore, answerIds: number[], playerId: number, atQuestion: number) {
+  for (const session of data.quizzesCopy) {
+    for (const player of session.session.players) {
+      if (player.playerId === playerId) {
+        for (const checkAnswer of answerIds) {
+          if (!session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
 }
