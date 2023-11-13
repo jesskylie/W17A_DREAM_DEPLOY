@@ -497,7 +497,7 @@ export const playerCreate = (
           newdata.users.find((user) => user.authUserId ===
           check.metadata.userId[0]).token[0],
           Action.NEXT_QUESTION);
-          newdata = retrieveDataFromFile();
+        newdata = retrieveDataFromFile();
       }
     }
   }

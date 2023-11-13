@@ -134,7 +134,6 @@ describe('test /v1/{playerid}/question/{questionposition}: Returns information a
     | unknown
     | GetSessionStatusReturnObj;
 
-
     // get status of guest player in session
     // returns { state: 'LOBBY', numQuestions: 1, atQuestion: 3 }
     // need question postion 'atQuestion'
