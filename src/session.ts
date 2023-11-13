@@ -1,4 +1,11 @@
 import httpError, { HttpError } from 'http-errors';
+
+import config from './config.json';
+
+const port = config.port;
+const url = config.url;
+const SERVER_URL = `${url}:${port}`;
+
 import {
   Action,
   DataStore,
@@ -10,8 +17,21 @@ import {
   State,
 } from './dataStore';
 import { CONVERT_MSECS_TO_SECS, ONE_MILLION } from './library/constants';
-import { getRandomInt, getState, isActionValid, retrieveDataFromFile, saveDataInFile } from './library/functions';
-import { PlayerId, PlayerStatus, PlayerWithScore, SessionFinalResult, FinalResult } from './library/interfaces';
+import {
+  getRandomInt,
+  getState,
+  isActionValid,
+  retrieveDataFromFile,
+  saveDataInFile,
+} from './library/functions';
+import {
+  PlayerId,
+  PlayerStatus,
+  PlayerWithScore,
+  SessionFinalResult,
+  FinalResult,
+  FinalResultsCSV,
+} from './library/interfaces';
 import { isQuizIdValid, isAuthUserIdMatchQuizId, SessionId } from './quiz';
 import { isTokenValid, getAuthUserIdUsingToken } from './library/functions';
 
@@ -93,7 +113,10 @@ export const startNewSession = (
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
   if (countQuizNotInEndState(data, quizId) >= MAX_NOT_IN_END_STATE_NUM) {
-    throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
+    throw httpError(
+      400,
+      'A maximum of 10 sessions that are not in END state currently exist'
+    );
   }
 
   // copy quiz of current quizid
@@ -197,7 +220,10 @@ export const updateSessionState = (
 
   // maximum of 10 sessions that are not in END state currently exist - error 400
   if (countQuizNotInEndState(data, quizId) >= MAX_NOT_IN_END_STATE_NUM) {
-    throw httpError(400, 'A maximum of 10 sessions that are not in END state currently exist');
+    throw httpError(
+      400,
+      'A maximum of 10 sessions that are not in END state currently exist'
+    );
   }
 
   let state = getState(data, sessionId);
@@ -236,8 +262,9 @@ export const updateSessionState = (
   }
   if (state === State.QUESTION_COUNTDOWN && action === Action.SKIP_COUNTDOWN) {
     state = State.QUESTION_OPEN;
-    for (const update of newdata.quizzesCopy.find((session) =>
-      session.session.sessionId === sessionId).metadata.questions) {
+    for (const update of newdata.quizzesCopy.find(
+      (session) => session.session.sessionId === sessionId
+    ).metadata.questions) {
       update.questionStartTime = Date.now();
     }
     for (const session of newdata.quizzesCopy) {
@@ -291,13 +318,30 @@ export const updateSessionState = (
   if (state === State.QUESTION_COUNTDOWN && action === Action.NEXT_QUESTION) {
     setTimer(newdata, sessionId, 3).then(() => {
       newdata = retrieveDataFromFile();
-      if (isSessionIdValid(newdata, quizId, sessionId) && newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
+      if (
+        isSessionIdValid(newdata, quizId, sessionId) &&
+        newdata.quizzesCopy.find(
+          (session) => session.session.sessionId === sessionId
+        ).session.timer === true
+      ) {
         updateStateWithTimer(data, sessionId, State.QUESTION_OPEN);
         newdata = retrieveDataFromFile();
-        const currSession = newdata.quizzesCopy.find((session) => session.session.sessionId === sessionId);
-        setTimer(newdata, sessionId, currSession.metadata.questions[session.session.atQuestion - 1].duration).then(() => {
+        const currSession = newdata.quizzesCopy.find(
+          (session) => session.session.sessionId === sessionId
+        );
+        setTimer(
+          newdata,
+          sessionId,
+          currSession.metadata.questions[session.session.atQuestion - 1]
+            .duration
+        ).then(() => {
           newdata = retrieveDataFromFile();
-          if (isSessionIdValid(newdata, quizId, sessionId) && newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
+          if (
+            isSessionIdValid(newdata, quizId, sessionId) &&
+            newdata.quizzesCopy.find(
+              (session) => session.session.sessionId === sessionId
+            ).session.timer === true
+          ) {
             updateStateWithTimer(data, sessionId, State.QUESTION_CLOSE);
           }
         });
@@ -307,9 +351,18 @@ export const updateSessionState = (
   // one more case: when State is from question_countdown to Question_Open
   // and needed to auto change from open to end
   if (state === State.QUESTION_OPEN && action === Action.SKIP_COUNTDOWN) {
-    setTimer(newdata, sessionId, session.metadata.questions[session.session.atQuestion - 1].duration).then(() => {
+    setTimer(
+      newdata,
+      sessionId,
+      session.metadata.questions[session.session.atQuestion - 1].duration
+    ).then(() => {
       newdata = retrieveDataFromFile();
-      if (isSessionIdValid(newdata, quizId, sessionId) && newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
+      if (
+        isSessionIdValid(newdata, quizId, sessionId) &&
+        newdata.quizzesCopy.find(
+          (session) => session.session.sessionId === sessionId
+        ).session.timer === true
+      ) {
         updateStateWithTimer(data, sessionId, State.QUESTION_CLOSE);
       }
     });
@@ -376,14 +429,20 @@ export const getQuizFinalResult = (
   for (const user of data.users) {
     if (user.authUserId === authUserId) {
       if (!user.quizId.includes(quizId)) {
-        throw httpError(403, 'Valid token is provided, but user is unauthorised to complete this action');
+        throw httpError(
+          403,
+          'Valid token is provided, but user is unauthorised to complete this action'
+        );
       }
     }
   }
 
   // Session Id does not refer to a valid session within this quiz - error 400
   if (!isSessionIdValid(data, quizId, sessionId)) {
-    throw httpError(400, 'Session Id does not refer to a valid session within this quiz');
+    throw httpError(
+      400,
+      'Session Id does not refer to a valid session within this quiz'
+    );
   }
 
   // Session is not in FINAL_RESULTS state - error 400
@@ -403,14 +462,18 @@ export const getQuizFinalResult = (
       for (const result of currSessionResult) {
         // loops through players correct array
         for (const playerName of result.playersCorrectList) {
-          const playerNamesIndex = playerScores.findIndex(player => player.name === playerName);
+          const playerNamesIndex = playerScores.findIndex(
+            (player) => player.name === playerName
+          );
           // adds new players to array if it does not exist in playerScores array
           if (playerNamesIndex === -1) {
             playerScores.push({ name: playerName, score: 0 });
           }
           // update player's score
           // finds index of the player name and pushes to that index
-          const playersIndex = playerScores.findIndex(player => player.name === playerName);
+          const playersIndex = playerScores.findIndex(
+            (player) => player.name === playerName
+          );
           const currPoints = checkPointofQuestion(data, result.questionId);
           playerScores[playersIndex].score += currPoints;
         }
@@ -442,9 +505,119 @@ export const getQuizFinalResultCSV = (
   quizId: number,
   sessionId: number,
   token: string
-) => {
+): FinalResultsCSV => {
+  const data = retrieveDataFromFile();
+
+  // Token is empty or invalid (does not refer to valid logged in user session) - error 401
+  if (!isTokenValid(data, token)) {
+    throw httpError(401, 'Token is empty or invalid');
+  }
+
+  // 403 error - valid token provided but incorrect user
+  const authUserIdString = getAuthUserIdUsingToken(data, token);
+  const authUserId = authUserIdString.authUserId;
+
+  // checks if current user id owns current quiz
+  for (const user of data.users) {
+    if (user.authUserId === authUserId) {
+      if (!user.quizId.includes(quizId)) {
+        throw httpError(
+          403,
+          'Valid token is provided, but user is unauthorised to complete this action'
+        );
+      }
+    }
+  }
+
+  // Session Id does not refer to a valid session within this quiz - error 400
+  if (!isSessionIdValid(data, quizId, sessionId)) {
+    throw httpError(
+      400,
+      'Session Id does not refer to a valid session within this quiz'
+    );
+  }
+
+  // Session is not in FINAL_RESULTS state - error 400
+  if (getState(data, sessionId) !== State.FINAL_RESULTS) {
+    throw httpError(400, 'Session is not in FINAL_RESULTS state');
+  }
+
+  // now that all error cases have been dealt with,
+  // get final quiz result and create csv
+
+  // const finalQuizResult = getQuizFinalResult(quizId, sessionId, token);
+
+  const finalQuizResultTest = {
+    usersRankedByScore: [
+      {
+        name: 'Hayden',
+        score: 45,
+      },
+      {
+        name: 'Sandra',
+        score: 32,
+      },
+    ],
+    questionResults: [
+      {
+        questionId: 5546,
+        playersCorrectList: ['Hayden', 'Sandra'],
+        averageAnswerTime: 45,
+        percentCorrect: 54,
+      },
+      {
+        questionId: 5678,
+        playersCorrectList: ['Hayden', 'Sandra'],
+        averageAnswerTime: 34,
+        percentCorrect: 78,
+      },
+    ],
+  };
+
+  const rows: any = [];
+
+  finalQuizResultTest.usersRankedByScore.forEach((user) => {
+    rows.push({
+      Category: 'usersRankedByScore',
+      Name: user.name,
+      Score: user.score,
+    });
+  });
+
+  finalQuizResultTest.questionResults.forEach((result) => {
+    rows.push({
+      Category: 'questionResults',
+      QuestionId: result.questionId,
+      PlayersCorrectList: result.playersCorrectList.join(', '),
+      AverageAnswerTime: result.averageAnswerTime,
+      PercentCorrect: result.percentCorrect,
+    });
+  });
+
+  // write to csv-writer
+  const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+
+  const allHeaders = [
+    ...new Set(rows.flatMap((item: any) => Object.keys(item))),
+  ];
+
+  const csvPath = 'output.csv';
+
+  const csvWriter = createCsvWriter({
+    path: 'public/' + csvPath,
+    header: allHeaders.map((header) => ({ id: header, title: header })),
+  });
+
+  csvWriter
+    .writeRecords(rows)
+    .then(() => console.log('Combined CSV file written successfully'));
+
+  // server public route
+
+  const url = SERVER_URL + '/' + csvPath;
+
   return {
-    url: 'http://google.com/some/image/path.csv',
+    url,
   };
 };
 
@@ -492,11 +665,14 @@ export const playerCreate = (
   if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
     for (const check of newdata.quizzesCopy) {
       if (check.session.sessionId === sessionId) {
-        updateSessionState(check.metadata.quizId,
+        updateSessionState(
+          check.metadata.quizId,
           check.session.sessionId,
-          newdata.users.find((user) => user.authUserId ===
-          check.metadata.userId[0]).token[0],
-          Action.NEXT_QUESTION);
+          newdata.users.find(
+            (user) => user.authUserId === check.metadata.userId[0]
+          ).token[0],
+          Action.NEXT_QUESTION
+        );
         newdata = retrieveDataFromFile();
       }
     }
@@ -516,7 +692,11 @@ export const playerStatus = (playerId: number): PlayerStatus => {
       if (player.playerId === playerId) {
         const state = check.session.state;
         let atQuestion = 0;
-        if (state !== State.LOBBY && state !== State.FINAL_RESULTS && state !== State.END) {
+        if (
+          state !== State.LOBBY &&
+          state !== State.FINAL_RESULTS &&
+          state !== State.END
+        ) {
           atQuestion = check.session.atQuestion;
         }
         return {
@@ -529,7 +709,10 @@ export const playerStatus = (playerId: number): PlayerStatus => {
   }
 };
 
-export const playerCurrentQuestionInfo = (playerId: number, questionposition: number) => {
+export const playerCurrentQuestionInfo = (
+  playerId: number,
+  questionposition: number
+) => {
   return {
     questionId: 5546,
     question: 'Who is the Monarch of England?',
@@ -555,7 +738,9 @@ export const questionResult = (playerId: number, questionposition: number) => {
   };
 };
 
-export const sessionFinalResult = (playerId: number): SessionFinalResult | HttpError => {
+export const sessionFinalResult = (
+  playerId: number
+): SessionFinalResult | HttpError => {
   const data = retrieveDataFromFile();
   if (!isPlayerIdRepeated(data, playerId)) {
     throw httpError(400, 'playerId does not exist');
@@ -593,7 +778,7 @@ export const sessionFinalResult = (playerId: number): SessionFinalResult | HttpE
       if (player.playerId === playerId) {
         return {
           usersRankedByScore: playerArray,
-          questionResults: session.session.result
+          questionResults: session.session.result,
         };
       }
     }
@@ -641,7 +826,10 @@ function isSessionIdValid(
   return false;
 }
 
-function isSessionIdValidWithoutQuizId(data: DataStore, sessionId: number): boolean {
+function isSessionIdValidWithoutQuizId(
+  data: DataStore,
+  sessionId: number
+): boolean {
   for (const check of data.quizzesCopy) {
     if (check.session.sessionId === sessionId) {
       return true;
@@ -661,7 +849,11 @@ function isPlayerIdRepeated(data: DataStore, playerId: number): boolean {
   return false;
 }
 
-function isPlayerNameRepeated(data: DataStore, sessionId: number, name: string): boolean {
+function isPlayerNameRepeated(
+  data: DataStore,
+  sessionId: number,
+  name: string
+): boolean {
   for (const check of data.quizzesCopy) {
     if (check.session.sessionId === sessionId) {
       for (const checkname of check.session.players) {
@@ -675,7 +867,9 @@ function isPlayerNameRepeated(data: DataStore, sessionId: number, name: string):
 }
 
 function generateRandomName(): string {
-  const allLetters: string[] = Array.from({ length: 26 }, (_, index) => String.fromCharCode(97 + index));
+  const allLetters: string[] = Array.from({ length: 26 }, (_, index) =>
+    String.fromCharCode(97 + index)
+  );
   let randomName = '';
   while (randomName.length < 5) {
     randomName = randomName + allLetters[getRandomInt(allLetters.length)];
@@ -686,7 +880,10 @@ function generateRandomName(): string {
   return randomName;
 }
 
-function isNumOfPlayerEnoughToLeaveLobby(data: DataStore, sessionId: number): boolean {
+function isNumOfPlayerEnoughToLeaveLobby(
+  data: DataStore,
+  sessionId: number
+): boolean {
   for (const session of data.quizzesCopy) {
     if (session.session.sessionId === sessionId) {
       if (session.session.players.length === session.session.autoStartNum) {
@@ -707,10 +904,14 @@ function checkPointofQuestion(data: DataStore, questionId: number): number {
   }
 }
 
-function playerScore(data: DataStore, session:Session, playerName: string): PlayerWithScore {
+function playerScore(
+  data: DataStore,
+  session: Session,
+  playerName: string
+): PlayerWithScore {
   const playerResult = {
     name: playerName,
-    score: 0
+    score: 0,
   };
   for (const result of session.result) {
     for (const player of result.playersCorrectList) {
@@ -722,13 +923,19 @@ function playerScore(data: DataStore, session:Session, playerName: string): Play
   return playerResult;
 }
 
-function updateStateWithTimer(data: DataStore, sessionId: number, state: State) {
+function updateStateWithTimer(
+  data: DataStore,
+  sessionId: number,
+  state: State
+) {
   const newdata = data;
   for (const session of newdata.quizzesCopy) {
     if (session.session.sessionId === sessionId) {
       session.session.state = state;
       if (state === State.QUESTION_OPEN) {
-        session.metadata.questions[session.session.atQuestion].questionStartTime = Date.now();
+        session.metadata.questions[
+          session.session.atQuestion
+        ].questionStartTime = Date.now();
         session.session.atQuestion += 1;
       }
     }
@@ -736,10 +943,18 @@ function updateStateWithTimer(data: DataStore, sessionId: number, state: State) 
   return saveDataInFile(newdata);
 }
 
-function setTimer(newdata: DataStore, sessionId: number, timeInSecond: number): Promise<void> {
+function setTimer(
+  newdata: DataStore,
+  sessionId: number,
+  timeInSecond: number
+): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     setTimeout(() => {
-      if (newdata.quizzesCopy.find((session) => (session.session.sessionId === sessionId)).session.timer === true) {
+      if (
+        newdata.quizzesCopy.find(
+          (session) => session.session.sessionId === sessionId
+        ).session.timer === true
+      ) {
         resolve();
       } else {
         reject(new Error('Promise canceled'));
