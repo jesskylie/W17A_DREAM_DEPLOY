@@ -285,7 +285,6 @@ export const updateSessionState = (
     }
   }
   saveDataInFile(newdata);
-
   // if state is countdown, set a timer for 3 seconds and update to
   // database telling timer exist - timer
   // this will only exist when state is changing from lobby -> question_countdown
@@ -483,12 +482,13 @@ export const playerCreate = (
     selectedAnswer: [[]] as number[][],
   };
 
-  const newdata = data;
+  let newdata = data;
   for (const check of newdata.quizzesCopy) {
     if (check.session.sessionId === sessionId) {
       check.session.players.push(newPlayer);
     }
   }
+  saveDataInFile(newdata);
   if (isNumOfPlayerEnoughToLeaveLobby(newdata, sessionId)) {
     for (const check of newdata.quizzesCopy) {
       if (check.session.sessionId === sessionId) {
@@ -497,6 +497,7 @@ export const playerCreate = (
           newdata.users.find((user) => user.authUserId ===
           check.metadata.userId[0]).token[0],
           Action.NEXT_QUESTION);
+        newdata = retrieveDataFromFile();
       }
     }
   }
@@ -732,10 +733,6 @@ function updateStateWithTimer(data: DataStore, sessionId: number, state: State) 
       }
     }
   }
-  // console.log('the whole session: ')
-  // console.log(newdata.quizzesCopy.find((session)=>session.session.sessionId === sessionId).session);
-  // console.log('the whole meetadata: ')
-  // console.log(newdata.quizzesCopy.find((session)=>session.session.sessionId === sessionId).metadata);
   return saveDataInFile(newdata);
 }
 

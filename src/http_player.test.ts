@@ -8,6 +8,7 @@ import {
   requestCreateQuestionV2,
   requestPlayerCreate,
   requestPlayerStatus,
+  requestResultsOfAnswers,
   requestSessionFinalResult,
   requestSessionStart,
   requestUpdateSessionState,
@@ -214,8 +215,8 @@ describe('Test: GET /v1/player/{playerid}/results', () => {
   });
 });
 
-describe.only('Test: GET /v1/player/{playerid}', () => {
-  test.only('Success - valid input', () => {
+describe('Test: GET /v1/player/{playerid}', () => {
+  test('Success - valid input', () => {
     requestClear();
     const result = requestAdminRegister(
       'hayley@hotmail.com',
@@ -263,6 +264,7 @@ describe.only('Test: GET /v1/player/{playerid}', () => {
     sleepSync(1000);
     requestAnswerQuestion(playerId2.playerId, [1], 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_ANSWER);
+    requestResultsOfAnswers(playerId1.playerId, 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_FINAL_RESULTS);
     expect(requestSessionFinalResult(playerId1.playerId)).toStrictEqual({
       usersRankedByScore: [
