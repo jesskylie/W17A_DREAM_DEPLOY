@@ -81,7 +81,6 @@ export interface ResultForEachQuestion {
 export interface Player {
   playerId: number;
   name: string;
-  selectedAnswer: number[][];
   timeAnswered?: number;
 }
 

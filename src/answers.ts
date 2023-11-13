@@ -1,6 +1,7 @@
 import httpError, { HttpError } from 'http-errors';
 import { retrieveDataFromFile, saveDataInFile } from './library/functions';
 import { DataStore, State, ResultForEachQuestion, Question } from './dataStore';
+import { HALF_SEC } from './library/constants';
 /**
  * Gets the results for a particular question of the session a player is playing in
  * throws HTTP Error 400 if any of the following are true
@@ -116,20 +117,20 @@ export function getResultsOfAnswers(
  * @param {number} - questionposition
  * @returns {boolean} - true or false
  */
-function checkIfAnswerIsCorrect(
-  selectedAnswer: number[][],
-  question: Question,
-  questionposition: number
-): boolean {
-  // filters the array to get the correct answerIds only
-  // maps to new array based on answer Ids
-  const correctAnswers = question.answers
-    .filter((answer) => answer.correct === true)
-    .map((answer) => answer.answerId);
+// function checkIfAnswerIsCorrect(
+//   selectedAnswer: number[],
+//   question: Question,
+//   questionposition: number
+// ): boolean {
+//   // filters the array to get the correct answerIds only
+//   // maps to new array based on answer Ids
+//   const correctAnswers = question.answers
+//     .filter((answer) => answer.correct === true)
+//     .map((answer) => answer.answerId);
 
-  // checks if both arrays are the same
-  return compareArrays(correctAnswers, selectedAnswer[questionposition]);
-}
+//   // checks if both arrays are the same
+//   return compareArrays(correctAnswers, selectedAnswer[questionposition]);
+// }
 
 /**
  * Checks if two arrays are the same
@@ -140,12 +141,12 @@ function checkIfAnswerIsCorrect(
  * @param {number[]} - array2
  * @returns {boolean} - true or false
  */
-function compareArrays(array1: number[], array2: number[]): boolean {
-  return (
-    array1.length === array2.length &&
-    array1.every((element, index) => element === array2[index])
-  );
-}
+// function compareArrays(array1: number[], array2: number[]): boolean {
+//   return (
+//     array1.length === array2.length &&
+//     array1.every((element, index) => element === array2[index])
+//   );
+// }
 
 /**
  * Allow the current player to submit answer(s) to the currently active question
@@ -233,48 +234,77 @@ export function submissionOfAnswers(
         const questionId = currQuizQuestion.questions[questionposition - 1].questionId;
         const playersArray = currSession.players;
         const atQuestion = session.session.atQuestion - 1;
-        console.log('questionId: ' + questionId);
-        console.log('playersArray: ' + playersArray);
-        console.log('atQuestion: ' + atQuestion);
-        console.log('session.session.result.length: ')
-        console.log(session.session.result.length)
-        console.log('session.session.atQuestion - 1: ')
-        console.log(session.session.atQuestion)
+        // console.log('questionId: ' + questionId);
+        // console.log('playersArray: ' + playersArray);
+        // console.log('atQuestion: ' + atQuestion);
+        // console.log('session.session.result.length: ')
+        // console.log(session.session.result.length)
+        // console.log('session.session.atQuestion - 1: ')
+        // console.log(session.session.atQuestion)
         if (session.session.result.length < session.session.atQuestion) {
-          console.log('cal start: ')
           let playersCorrectList: string[] = [];
-          for (const checkAnswer of answerIds) {
-            if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
-              playersCorrectList.push(player.name);
-            }
+          const isCorrect = checkIfAnswerIsCorrect(
+            data,
+            answerIds,
+            playerid,
+            atQuestion
+          );
+          if (isCorrect) {
+            playersCorrectList.push(player.name);
           }
-          console.log('******************************')
-          console.log('playersCorrectList: ' + playersCorrectList);
+          // for (const checkAnswer of answerIds) {
+          //   if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
+          //     pl
+          //   }
+          // }
           let averageAnswerTime = 0;
+          player.timeAnswered = Date.now();
           if (Math.round(player.timeAnswered -
-            session.metadata.questions[atQuestion].questionStartTime) / 1000 > 1) {
-              averageAnswerTime = Math.round(player.timeAnswered -
-              session.metadata.questions[atQuestion].questionStartTime) / 1000;
-            }
+          session.metadata.questions[atQuestion].questionStartTime) / 1000 >= HALF_SEC) {
+            averageAnswerTime = Math.round((player.timeAnswered -
+            session.metadata.questions[atQuestion].questionStartTime) / 1000);
+          }
           const newResult = {
             questionId: questionId,
             playersCorrectList: playersCorrectList,
             averageAnswerTime: averageAnswerTime,
             percentCorrect: (playersCorrectList.length / playersArray.length) * 100,
           }
-          console.log(newResult)
           session.session.result.push(newResult);
           } else {
-          for (const checkAnswer of answerIds) {
+          // for (const checkAnswer of answerIds) {
             // I will keep going later: this is where I stop
             // if (checkIfAnswerIsCorrect(answerIds)) {
             //   session.session.result[atQuestion].playersCorrectList.push(player.name);
             // }
+          // }
+          // for (const checkAnswer of answerIds) {
+          //   if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
+          //   }
+          // }
+          const isCorrect = checkIfAnswerIsCorrect(
+            data,
+            answerIds,
+            playerid,
+            atQuestion
+          );
+          if (isCorrect) {
+              session.session.result[questionposition - 1].playersCorrectList.push(player.name);
           }
-          session.session.result[atQuestion].averageAnswerTime = ((player.timeAnswered -
-          session.metadata.questions[atQuestion].questionStartTime) +
-          session.session.result[atQuestion].averageAnswerTime *
-          playersArray.length) / playersArray.length;
+          let playerAnswerTime = 0;
+          if (player.timeAnswered) {
+            playerAnswerTime = Date.now() - player.timeAnswered;
+          } else {
+            playerAnswerTime = Date.now() - session.metadata.questions[atQuestion].questionStartTime
+          }
+          if ((playerAnswerTime + session.session.result[atQuestion].averageAnswerTime *
+            playersArray.length) / playersArray.length < HALF_SEC) {
+              session.session.result[atQuestion].averageAnswerTime = 0;
+          } else {
+            session.session.result[atQuestion].averageAnswerTime = Math.round((playerAnswerTime / 1000 +
+              session.session.result[atQuestion].averageAnswerTime *
+              playersArray.length) / playersArray.length);
+          }
           session.session.result[atQuestion].percentCorrect =
           (session.session.result[atQuestion].playersCorrectList.length / playersArray.length) * 100;
           }
@@ -461,4 +491,19 @@ function isValidQuestionPosition(
     }
   }
   return false;
+}
+
+function checkIfAnswerIsCorrect(data: DataStore, answerIds: number[], playerId: number, atQuestion: number) {
+  for (const session of data.quizzesCopy) {
+    for (const player of session.session.players) {
+      if (player.playerId === playerId) {
+        for (const checkAnswer of answerIds) {
+          if (!session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
 }

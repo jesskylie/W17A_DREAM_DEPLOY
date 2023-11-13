@@ -652,7 +652,6 @@ export const playerCreate = (
   const newPlayer = {
     playerId: playerId,
     name: name,
-    selectedAnswer: [[]] as number[][],
   };
 
   let newdata = data;
