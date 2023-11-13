@@ -44,58 +44,65 @@ export function getResultsOfAnswers(
     throw httpError(400, 'Session is not yet up to this question');
   }
 
-  // finds current session using playerId
-  for (const copyQuiz of data.quizzesCopy) {
-    const player = copyQuiz.session.players.find(
-      (player) => player.playerId === playerid
-    );
-    if (player) {
-      const currSession = copyQuiz.session;
-      const currQuizQuestion = copyQuiz.metadata;
+  // // finds current session using playerId
+  // for (const copyQuiz of data.quizzesCopy) {
+  //   const player = copyQuiz.session.players.find(
+  //     (player) => player.playerId === playerid
+  //   );
+  //   if (player) {
+  //     const currSession = copyQuiz.session;
+  //     const currQuizQuestion = copyQuiz.metadata;
 
-      const questionId =
-        currQuizQuestion.questions[questionposition - 1].questionId;
+  //     const questionId =
+  //       currQuizQuestion.questions[questionposition - 1].questionId;
 
-      const playersArray = currSession.players;
+  //     const playersArray = currSession.players;
 
-      const correctPlayers: string[] = [];
-      let totalTime = 0;
-      for (const player of playersArray) {
-        const currPlayersAnswer = player.selectedAnswer;
+  //     const correctPlayers: string[] = [];
+  //     let totalTime = 0;
+  //     for (const player of playersArray) {
+  //       const currPlayersAnswer = player.selectedAnswer;
 
-        const isCorrect = checkIfAnswerIsCorrect(
-          currPlayersAnswer,
-          currQuizQuestion.questions[questionposition - 1],
-          questionposition - 1
-        );
+  //       const isCorrect = checkIfAnswerIsCorrect(
+  //         currPlayersAnswer,
+  //         currQuizQuestion.questions[questionposition - 1],
+  //         questionposition - 1
+  //       );
 
-        if (isCorrect) {
-          correctPlayers.push(player.name);
-        }
-        // count total average answer time
-        if (player.timeAnswered) {
-          totalTime = totalTime + player.timeAnswered;
-        }
-      }
-      // calculate average time by number of players
+  //       if (isCorrect) {
+  //         correctPlayers.push(player.name);
+  //       }
+  //       // count total average answer time
+  //       if (player.timeAnswered) {
+  //         totalTime = totalTime + player.timeAnswered;
+  //       }
+  //     }
+  //     // calculate average time by number of players
 
-      const time = Math.round(totalTime / playersArray.length / 1000);
+  //     const time = Math.round(totalTime / playersArray.length / 1000);
 
-      const returnData = {
-        questionId: questionId,
-        playersCorrectList: correctPlayers,
-        averageAnswerTime: time,
-        percentCorrect: (correctPlayers.length / playersArray.length) * 100,
-      };
+      // const returnData = {
+      //   questionId: questionId,
+      //   playersCorrectList: correctPlayers,
+      //   averageAnswerTime: time,
+      //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
+      // };
 
-      currSession.result.push(returnData);
-      saveDataInFile(data);
-      return {
-        questionId: questionId,
-        playersCorrectList: correctPlayers,
-        averageAnswerTime: 45,
-        percentCorrect: (correctPlayers.length / playersArray.length) * 100,
-      };
+      // currSession.result.push(returnData);
+      // saveDataInFile(data);
+      // return {
+      //   questionId: questionId,
+      //   playersCorrectList: correctPlayers,
+      //   averageAnswerTime: 45,
+      //   percentCorrect: (correctPlayers.length / playersArray.length) * 100,
+      // };
+  //   }
+  // }
+  for (const session of data.quizzesCopy) {
+    for (const player of session.session.players) {
+      if (player.playerId === playerid) {
+        return session.session.result[session.session.atQuestion - 1];
+      } 
     }
   }
 }
@@ -194,7 +201,7 @@ export function submissionOfAnswers(
   if (answerIds.length < 1) {
     throw httpError(400, 'Less than 1 answer ID was submitted ');
   }
-
+  /*
   // finds current session using playerId
   for (const copyQuiz of data.quizzesCopy) {
     const player = copyQuiz.session.players.find(
@@ -216,9 +223,9 @@ export function submissionOfAnswers(
       throw httpError(400, 'Player is not in a valid session');
     }
   }
-  /*
+  */
   // Suggestion:
-  for (const session of data.quizzesCopy) {
+    for (const session of data.quizzesCopy) {
     for (const player of session.session.players) {
       if (player.playerId === playerid) {
         const currSession = session.session;
@@ -226,31 +233,43 @@ export function submissionOfAnswers(
         const questionId = currQuizQuestion.questions[questionposition - 1].questionId;
         const playersArray = currSession.players;
         const atQuestion = session.session.atQuestion - 1;
-
-        if (session.session.result.length !== session.session.atQuestion - 1) {
-          const playersCorrectList = session.session.result[atQuestion].playersCorrectList;
+        console.log('questionId: ' + questionId);
+        console.log('playersArray: ' + playersArray);
+        console.log('atQuestion: ' + atQuestion);
+        console.log('session.session.result.length: ')
+        console.log(session.session.result.length)
+        console.log('session.session.atQuestion - 1: ')
+        console.log(session.session.atQuestion)
+        if (session.session.result.length < session.session.atQuestion) {
+          console.log('cal start: ')
+          let playersCorrectList: string[] = [];
           for (const checkAnswer of answerIds) {
             if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
               playersCorrectList.push(player.name);
             }
           }
-          const averageAnswerTime = ((player.timeAnswered -
-            session.metadata.questions[atQuestion].questionStartTime) +
-            session.session.result[atQuestion].averageAnswerTime *
-            playersArray.length) / playersArray.length;
-
+          console.log('******************************')
+          console.log('playersCorrectList: ' + playersCorrectList);
+          let averageAnswerTime = 0;
+          if (Math.round(player.timeAnswered -
+            session.metadata.questions[atQuestion].questionStartTime) / 1000 > 1) {
+              averageAnswerTime = Math.round(player.timeAnswered -
+              session.metadata.questions[atQuestion].questionStartTime) / 1000;
+            }
           const newResult = {
             questionId: questionId,
             playersCorrectList: playersCorrectList,
             averageAnswerTime: averageAnswerTime,
             percentCorrect: (playersCorrectList.length / playersArray.length) * 100,
           }
+          console.log(newResult)
           session.session.result.push(newResult);
           } else {
           for (const checkAnswer of answerIds) {
-            if (session.metadata.questions[atQuestion].answers.find((answer) => answer.answerId === checkAnswer).correct) {
-              session.session.result[atQuestion].playersCorrectList.push(player.name);
-            }
+            // I will keep going later: this is where I stop
+            // if (checkIfAnswerIsCorrect(answerIds)) {
+            //   session.session.result[atQuestion].playersCorrectList.push(player.name);
+            // }
           }
           session.session.result[atQuestion].averageAnswerTime = ((player.timeAnswered -
           session.metadata.questions[atQuestion].questionStartTime) +
@@ -262,7 +281,7 @@ export function submissionOfAnswers(
         }
       }
     }
-*/
+
 
   saveDataInFile(data);
   return {};
