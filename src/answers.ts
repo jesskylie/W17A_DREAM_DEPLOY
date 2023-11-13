@@ -52,19 +52,23 @@ export function getResultsOfAnswers(
     if (player) {
       const currSession = copyQuiz.session;
       const currQuizQuestion = copyQuiz.metadata;
+
       const questionId =
         currQuizQuestion.questions[questionposition - 1].questionId;
+
       const playersArray = currSession.players;
 
       const correctPlayers: string[] = [];
       let totalTime = 0;
       for (const player of playersArray) {
         const currPlayersAnswer = player.selectedAnswer;
+
         const isCorrect = checkIfAnswerIsCorrect(
           currPlayersAnswer,
           currQuizQuestion.questions[questionposition - 1],
           questionposition - 1
         );
+
         if (isCorrect) {
           correctPlayers.push(player.name);
         }
@@ -74,7 +78,9 @@ export function getResultsOfAnswers(
         }
       }
       // calculate average time by number of players
+
       const time = Math.round(totalTime / playersArray.length / 1000);
+
       const returnData = {
         questionId: questionId,
         playersCorrectList: correctPlayers,
@@ -197,6 +203,7 @@ export function submissionOfAnswers(
     if (player) {
       const currQuizQuestion =
         copyQuiz.metadata.questions[questionposition - 1];
+
       player.selectedAnswer[questionposition - 1] = answerIds;
       // gets current time player answered now
       player.timeAnswered = Date.now();

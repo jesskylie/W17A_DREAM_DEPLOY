@@ -74,10 +74,10 @@ describe('/v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
 
     // both answers chosen correctly
-    requestAnswerQuestion(playerIdOne.playerId, [0], 0);
-    requestAnswerQuestion(playerIdTwo.playerId, [0], 0);
+    requestAnswerQuestion(playerIdOne.playerId, [0], 1);
+    requestAnswerQuestion(playerIdTwo.playerId, [0], 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_ANSWER);
-    requestResultsOfAnswers(playerIdOne.playerId, 0);
+    requestResultsOfAnswers(playerIdOne.playerId, 1);
 
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_FINAL_RESULTS);
     expect(requestGetQuizFinalResults(quizId.quizId, sessionId.sessionId, result.body.token)).toStrictEqual(
@@ -145,12 +145,12 @@ describe('/v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
 
     // 2 out of 4 players answer correctly
-    requestAnswerQuestion(playerIdOne.playerId, [0], 0);
-    requestAnswerQuestion(playerIdTwo.playerId, [0], 0);
-    requestAnswerQuestion(playerIdThree.playerId, [1], 0);
-    requestAnswerQuestion(playerIdFour.playerId, [1], 0);
+    requestAnswerQuestion(playerIdOne.playerId, [0], 1);
+    requestAnswerQuestion(playerIdTwo.playerId, [0], 1);
+    requestAnswerQuestion(playerIdThree.playerId, [1], 1);
+    requestAnswerQuestion(playerIdFour.playerId, [1], 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_ANSWER);
-    requestResultsOfAnswers(playerIdOne.playerId, 0);
+    requestResultsOfAnswers(playerIdOne.playerId, 1);
 
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_FINAL_RESULTS);
     expect(requestGetQuizFinalResults(quizId.quizId, sessionId.sessionId, result.body.token)).toStrictEqual(
@@ -214,10 +214,10 @@ describe('/v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
 
     // both answers chosen correctly
-    requestAnswerQuestion(playerIdOne.playerId, [0], 0);
-    requestAnswerQuestion(playerIdTwo.playerId, [0], 0);
+    requestAnswerQuestion(playerIdOne.playerId, [0], 1);
+    requestAnswerQuestion(playerIdTwo.playerId, [0], 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_ANSWER);
-    requestResultsOfAnswers(playerIdOne.playerId, 0);
+    requestResultsOfAnswers(playerIdOne.playerId, 1);
 
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_FINAL_RESULTS);
     expect(() => requestGetQuizFinalResults(quizId.quizId, -1, result.body.token)).toThrow(HTTPError[400]);
@@ -259,10 +259,10 @@ describe('/v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
 
     // both answers chosen correctly
-    requestAnswerQuestion(playerIdOne.playerId, [0], 0);
-    requestAnswerQuestion(playerIdTwo.playerId, [0], 0);
+    requestAnswerQuestion(playerIdOne.playerId, [0], 1);
+    requestAnswerQuestion(playerIdTwo.playerId, [0], 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_ANSWER);
-    requestResultsOfAnswers(playerIdOne.playerId, 0);
+    requestResultsOfAnswers(playerIdOne.playerId, 1);
     expect(() => requestGetQuizFinalResults(quizId.quizId, -1, result.body.token)).toThrow(HTTPError[400]);
   });
 
@@ -302,10 +302,10 @@ describe('/v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
 
     // both answers chosen correctly
-    requestAnswerQuestion(playerIdOne.playerId, [0], 0);
-    requestAnswerQuestion(playerIdTwo.playerId, [0], 0);
+    requestAnswerQuestion(playerIdOne.playerId, [0], 1);
+    requestAnswerQuestion(playerIdTwo.playerId, [0], 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_ANSWER);
-    requestResultsOfAnswers(playerIdOne.playerId, 0);
+    requestResultsOfAnswers(playerIdOne.playerId, 1);
 
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_FINAL_RESULTS);
     expect(() => requestGetQuizFinalResults(quizId.quizId, sessionId.sessionId, 'abcde')).toThrow(HTTPError[401]);
@@ -349,10 +349,10 @@ describe('/v1/admin/quiz/{quizid}/session/{sessionid}/results', () => {
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.SKIP_COUNTDOWN);
 
     // both answers chosen correctly
-    requestAnswerQuestion(playerIdOne.playerId, [0], 0);
-    requestAnswerQuestion(playerIdTwo.playerId, [0], 0);
+    requestAnswerQuestion(playerIdOne.playerId, [0], 1);
+    requestAnswerQuestion(playerIdTwo.playerId, [0], 1);
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_ANSWER);
-    requestResultsOfAnswers(playerIdOne.playerId, 0);
+    requestResultsOfAnswers(playerIdOne.playerId, 1);
 
     requestUpdateSessionState(quizId.quizId, sessionId.sessionId, result.body.token, Action.GO_TO_FINAL_RESULTS);
     expect(() => requestGetQuizFinalResults(quizId.quizId, sessionId.sessionId, resultTwo.body.token)).toThrow(HTTPError[403]);
