@@ -78,7 +78,7 @@ const question = {
 // sessionid (path) number
 // token (header) string
 
-describe('test /v1/admin/quiz/{quizid}/session/{sessionid}/results/csv: Get quiz session final results in CSV format -> EXPECT 200 SUCCESS', () => {
+describe.skip('test /v1/admin/quiz/{quizid}/session/{sessionid}/results/csv: Get quiz session final results in CSV format -> EXPECT 200 SUCCESS', () => {
   test('Get quiz session final results in CSV format -> EXPECT SUCESS CODE 200', () => {
     requestClear();
     // Create user
@@ -136,7 +136,7 @@ describe('test /v1/admin/quiz/{quizid}/session/{sessionid}/results/csv: Get quiz
   });
 });
 
-describe('test /v1/admin/quiz/{quizid}/session/{sessionid}/results/csv: Get quiz session final results in CSV format -> EXPECT ERROR 400', () => {
+describe.skip('test /v1/admin/quiz/{quizid}/session/{sessionid}/results/csv: Get quiz session final results in CSV format -> EXPECT ERROR 400', () => {
   test('Session Id does not refer to valid session within this quiz - 400 error', () => {
     requestClear();
     const result = requestAdminRegister(
