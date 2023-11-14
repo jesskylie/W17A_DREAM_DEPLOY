@@ -35,7 +35,7 @@ interface getDataReturnObject {
  * @returns {{nothing: array}} - an empty object
  */
 export const saveDataInFile = (dataStore: DataStore): Record<string, never> => {
-  fs.writeFileSync(DATASTORE_FILENAME, JSON.stringify(dataStore));
+  fs.writeFileSync(DATASTORE_FILENAME, JSON.stringify(dataStore, null, 2));
 
   return {};
 };
