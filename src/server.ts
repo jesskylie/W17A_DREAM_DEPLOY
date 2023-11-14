@@ -31,7 +31,7 @@ import {
   adminQuizDescriptionUpdate,
   adminTrashQuizRestore,
   adminTrashQuizEmpty,
-  getQuizzesInTrashForLoggedInUser,
+  adminTrashQuizList,
   adminQuizTransfer,
   adminTrashQuizRestoreV2,
   adminTrashQuizEmptyV2,
@@ -69,12 +69,14 @@ import {
 } from './library/constants';
 
 import {
+  getQuizFinalResult,
   playerCreate,
   playerStatus,
   sessionFinalResult,
   startNewSession,
   updateSessionState,
   viewAllSessions,
+  getQuizFinalResultCSV,
 } from './session';
 
 import { getResultsOfAnswers, submissionOfAnswers } from './answers';
@@ -83,13 +85,15 @@ import { getChatMessages, sendMessage } from './message';
 import { getQuestionInformationForPlayer } from './player_info';
 
 // Set up web app
-const app = express();
+export const app = express();
 // Use middleware that allows us to access the JSON body of requests
 app.use(json());
 // Use middleware that allows for access from other domains
 app.use(cors());
 // for logging errors (print to terminal)
 app.use(morgan('dev'));
+// to allow viewing files in public folder
+app.use(express.static('public'));
 // for producing the docs that define the API
 const file = fs.readFileSync(path.join(process.cwd(), 'swagger.yaml'), 'utf8');
 app.get('/', (req: Request, res: Response) => res.redirect('/docs'));
@@ -234,6 +238,15 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
   res.json(result);
 });
 
+app.get(
+  '/v1/admin/quiz/:quizid/session/:sessionid/results',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizid);
+    const sessionId = parseInt(req.params.sessionid);
+    res.json(getQuizFinalResult(quizId, sessionId, token));
+  }
+);
 // --------------------------- V2 GET REQUESTS - END -----------------------------
 
 // --------------------------- V2 PUT REQUESTS - START ---------------------------
@@ -509,7 +522,7 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  const result = getQuizzesInTrashForLoggedInUser(token);
+  const result = adminTrashQuizList(token);
 
   if ('error' in result) {
     return res.status(RESPONSE_ERROR_401).json({ error: result.error });
@@ -543,6 +556,16 @@ app.get(
     const token = req.headers.token as string;
     const response = adminQuizGetSessionStatus(quizId, sessionId, token);
     res.json(response);
+  }
+);
+
+app.get(
+  '/v1/admin/quiz/:quizid/session/:sessionid/results/csv',
+  (req: Request, res: Response) => {
+    const token = req.headers.token as string;
+    const quizId = parseInt(req.params.quizid);
+    const sessionId = parseInt(req.params.sessionid);
+    res.json(getQuizFinalResultCSV(quizId, sessionId, token));
   }
 );
 

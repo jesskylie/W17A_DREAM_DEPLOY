@@ -35,7 +35,7 @@ interface getDataReturnObject {
  * @returns {{nothing: array}} - an empty object
  */
 export const saveDataInFile = (dataStore: DataStore): Record<string, never> => {
-  fs.writeFileSync(DATASTORE_FILENAME, JSON.stringify(dataStore));
+  fs.writeFileSync(DATASTORE_FILENAME, JSON.stringify(dataStore, null, 2));
 
   return {};
 };
@@ -324,7 +324,8 @@ export function isActionValid(state: State, action: Action) {
     if (
       action === Action.END ||
       action === Action.GO_TO_ANSWER ||
-      action === Action.GO_TO_FINAL_RESULTS
+      action === Action.GO_TO_FINAL_RESULTS ||
+      action === Action.NEXT_QUESTION
     ) {
       return true;
     } else {
@@ -426,3 +427,10 @@ export const isThumbnailUrlValid = (thumbnailUrl: string): boolean => {
   //   );
   // }
 };
+
+export function sleepSync(ms: number) {
+  const startTime = new Date().getTime();
+  while (new Date().getTime() - startTime < ms) {
+    // zzzZZ - comment needed so eslint doesn't complain
+  }
+}

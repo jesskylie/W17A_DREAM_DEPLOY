@@ -130,10 +130,9 @@ describe('test /v1/{playerid}/question/{questionposition}: Returns information a
     const playerName = 'Paul Reynolds';
 
     const playerIdObj = requestPlayerCreate(sessionId, playerName);
-
     requestAdminGetSessionStatus(quizId, sessionId, token) as
-      | unknown
-      | GetSessionStatusReturnObj;
+    | unknown
+    | GetSessionStatusReturnObj;
 
     // get status of guest player in session
     // returns { state: 'LOBBY', numQuestions: 1, atQuestion: 3 }

@@ -81,7 +81,6 @@ export interface ResultForEachQuestion {
 export interface Player {
   playerId: number;
   name: string;
-  selectedAnswer: number[][];
   timeAnswered?: number;
 }
 
@@ -101,6 +100,7 @@ export interface Session {
   atQuestion: number;
   numQuestions: number;
   messages: Message[];
+  timer: boolean
 }
 
 export interface QuizzesCopy {

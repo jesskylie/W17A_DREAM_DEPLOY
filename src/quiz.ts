@@ -1048,58 +1048,6 @@ function adminQuizRemove(
   return {};
 }
 
-/**
- * Printing out the the quiz information in trash
- * for the currently logged in user
- *
- * @param {string} token - the token of the person want to print quiz - must exist / be valid / be unique
- * ...
- *
- * @returns {{error: string}} - an error object if an error occurs
- * @returns {{quizInfo}} - an array with all the quiz informations
- */
-function getQuizzesInTrashForLoggedInUser(
-  token: string
-): QuizInfoInTrashReturn | ErrorObjectWithCode {
-  const data: DataStore = retrieveDataFromFile();
-
-  // Step 1 test for 401 error - START
-
-  const isTokenValidTest = isTokenValid(data, token);
-
-  if (!isTokenValidTest) {
-    return {
-      error:
-        'Token is empty or invalid (does not refer to valid logged in user session)',
-      errorCode: RESPONSE_ERROR_401,
-    };
-  }
-  // Step 1 test for 401 error - END
-
-  // all error cases have been dealt with,
-  // now return the quizzes array
-  const authUserIdObj = getAuthUserIdUsingToken(data, token) as AuthUserId;
-  const authUserId = authUserIdObj.authUserId;
-
-  const trashQuizArray = data.trash;
-
-  const quizzesArray = [];
-
-  for (const quiz of trashQuizArray) {
-    if (quiz.userId.includes(authUserId)) {
-      const tempArray = {
-        quizId: quiz.quizId,
-        name: quiz.name,
-      };
-      quizzesArray.push(tempArray);
-    }
-  }
-
-  return { quizzes: quizzesArray };
-}
-
-export { getQuizzesInTrashForLoggedInUser };
-
 export { adminQuizRemove };
 //* **************************************************************
 //* **************************************************************
