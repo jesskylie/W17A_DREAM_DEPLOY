@@ -488,7 +488,6 @@ export function adminQuizGetSessionStatus(
     (session) => session.session.sessionId === sessionId
   );
 
-
   if (!validSession || validSession.metadata.quizId !== quizId) {
     throw HTTPError(
       400,
