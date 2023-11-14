@@ -561,7 +561,7 @@ describe('/v1/player/:playerid:/question/:questionposition:/results', () => {
     );
     // correct answer chosen
     requestAnswerQuestion(playerId.playerId, [0], 1);
-    requestAnswerQuestion(playerIdTwo.playerId, [0], 1)
+    requestAnswerQuestion(playerIdTwo.playerId, [0], 1);
     requestAnswerQuestion(playerIdTwo.playerId, [1], 1);
     requestUpdateSessionState(
       quizId.quizId,

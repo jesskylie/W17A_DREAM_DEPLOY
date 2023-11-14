@@ -157,9 +157,9 @@ export function submissionOfAnswers(
           } else {
             for (const check of session.session.result[questionposition - 1].playersCorrectList) {
               if (check === player.name) {
-                session.session.result[questionposition - 1].playersCorrectList = 
-                session.session.result[questionposition - 1].playersCorrectList.filter((playerName) => 
-                playerName !== player.name);
+                session.session.result[questionposition - 1].playersCorrectList =
+                session.session.result[questionposition - 1].playersCorrectList.filter((playerName) =>
+                  playerName !== player.name);
               }
             }
           }
