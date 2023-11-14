@@ -483,11 +483,13 @@ export function adminQuizGetSessionStatus(
 
   // once the matching quiz has been found, check that the session id
   // of that quiz matches the sessionId
+
   const validSession = data.quizzesCopy.find(
     (session) => session.session.sessionId === sessionId
   );
 
-  if (validSession.metadata.quizId !== quizId) {
+
+  if (!validSession || validSession.metadata.quizId !== quizId) {
     throw HTTPError(
       400,
       'Session Id does not refer to a valid session within this quiz'
