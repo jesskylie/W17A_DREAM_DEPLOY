@@ -154,6 +154,14 @@ export function submissionOfAnswers(
           );
           if (isCorrect) {
             session.session.result[questionposition - 1].playersCorrectList.push(player.name);
+          } else {
+            for (const check of session.session.result[questionposition - 1].playersCorrectList) {
+              if (check === player.name) {
+                session.session.result[questionposition - 1].playersCorrectList = 
+                session.session.result[questionposition - 1].playersCorrectList.filter((playerName) => 
+                playerName !== player.name);
+              }
+            }
           }
           let playerAnswerTime = 0;
           if (player.timeAnswered) {
