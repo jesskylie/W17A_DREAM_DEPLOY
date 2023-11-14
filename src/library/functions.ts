@@ -324,7 +324,8 @@ export function isActionValid(state: State, action: Action) {
     if (
       action === Action.END ||
       action === Action.GO_TO_ANSWER ||
-      action === Action.GO_TO_FINAL_RESULTS
+      action === Action.GO_TO_FINAL_RESULTS ||
+      action === Action.NEXT_QUESTION
     ) {
       return true;
     } else {

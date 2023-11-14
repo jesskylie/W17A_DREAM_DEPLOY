@@ -227,7 +227,18 @@ export const updateSessionState = (
   }
 
   let state = getState(data, sessionId);
+  const session = newdata.quizzesCopy.find(
+    (session) => session.session.sessionId === sessionId
+  );
   if (!isActionValid(state, action)) {
+    throw httpError(
+      400,
+      'Action enum cannot be applied in the current state (see spec for details)'
+    );
+  }
+
+  if (action === Action.NEXT_QUESTION &&
+    session.session.atQuestion === session.session.numQuestions) {
     throw httpError(
       400,
       'Action enum cannot be applied in the current state (see spec for details)'
@@ -244,9 +255,7 @@ export const updateSessionState = (
   }
 
   // remove the exist timeout promise
-  const session = newdata.quizzesCopy.find(
-    (session) => session.session.sessionId === sessionId
-  );
+
   if (session.session.timer) {
     session.session.timer = false;
   }
