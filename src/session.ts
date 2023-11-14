@@ -236,13 +236,13 @@ export const updateSessionState = (
       'Action enum cannot be applied in the current state (see spec for details)'
     );
   }
-  
+
   if (action === Action.NEXT_QUESTION &&
     session.session.atQuestion === session.session.numQuestions) {
-      throw httpError(
-        400,
-        'Action enum cannot be applied in the current state (see spec for details)'
-      );
+    throw httpError(
+      400,
+      'Action enum cannot be applied in the current state (see spec for details)'
+    );
   }
   if (
     action !== Action.END &&
