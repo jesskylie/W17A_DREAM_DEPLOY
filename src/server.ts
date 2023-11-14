@@ -31,7 +31,7 @@ import {
   adminQuizDescriptionUpdate,
   adminTrashQuizRestore,
   adminTrashQuizEmpty,
-  getQuizzesInTrashForLoggedInUser,
+  adminTrashQuizList,
   adminQuizTransfer,
   adminTrashQuizRestoreV2,
   adminTrashQuizEmptyV2,
@@ -522,7 +522,7 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   const token = req.query.token as string;
-  const result = getQuizzesInTrashForLoggedInUser(token);
+  const result = adminTrashQuizList(token);
 
   if ('error' in result) {
     return res.status(RESPONSE_ERROR_401).json({ error: result.error });
