@@ -1,4 +1,5 @@
 import express, { json, Request, Response } from 'express';
+import { createClient } from '@vercel/kv';
 import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
@@ -121,6 +122,29 @@ app.get('/echo', (req: Request, res: Response) => {
 // ============================================================================
 // =================== v2 ROUTES BELOW THIS LINE =======================
 // ============================================================================
+// Replace this with your API_URL
+// E.g. https://large-poodle-44208.kv.vercel-storage.com
+const KV_REST_API_URL="w17-a-dream-deploy.vercel.app";
+// Replace this with your API_TOKEN
+// E.g. AaywASQgOWE4MTVkN2UtODZh...
+const KV_REST_API_TOKEN="AZsyASQgMDk5ZjlmNjctODVlNS00NjJmLTg3MmItZjljMmNmZjFhMjRiM2NhYjk2MDcwZGY4NDQyOGJkNGZhOGUxODg1ZWM2MzA=";
+
+const database = createClient({
+  url: KV_REST_API_URL,
+  token: KV_REST_API_TOKEN,
+});
+
+app.get('/data', async (req: Request, res: Response) => {
+  const data = await database.hgetall('data:toohak');
+  res.status(200).json({ data });
+});
+
+app.put('/data', async (req: Request, res: Response) => {
+  const { data } = req.body;
+  await database.hset("data:toohak", { data });
+  return res.status(200).json({});
+});
+
 
 // --------------------------- V2 POST REQUESTS - START --------------------------
 
