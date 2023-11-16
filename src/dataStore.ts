@@ -70,6 +70,7 @@ Example usage
 */
 
 // TypeScript interfaces for Iteration 2 - START
+import request, { HttpVerb } from 'sync-request';
 
 export interface ResultForEachQuestion {
   questionId: number;
@@ -181,15 +182,39 @@ export let data: DataStore = {
   quizzesCopy: [],
 };
 
-// Use get() to access the data
-function getData() {
-  return data;
-}
+const DEPLOYED_URL = "https://w17-a-dream-deploy.vercel.app/"
 
-// Use set(newData) to pass in the entire data object, with modifications made
-function setData(newData: DataStore) {
-  data = newData;
+const requestHelper = (method: HttpVerb, path: string, payload: object) => {
+  let json = {};
+  let qs = {};
+  if (['POST', 'DELETE'].includes(method)) {
+  qs = payload;
+  } else {
+  json = payload;
+  }
+
+  const res = request(method, DEPLOYED_URL + path, { qs, json, timeout: 20000 });
+  return JSON.parse(res.body.toString());
+};
+
+const getData = (): Data => {
+try {
+  const res = requestHelper('GET', '/data', {});
+  return res.data;
+} catch (e) {
+  return {
+      users: [],
+      quizzes: [],
+      trash: [],
+      quizzesCopy: [],
+  };
 }
+};
+
+export const setData = (newData: Data) => {
+  requestHelper('PUT', '/data', { data: newData });
+};
+
 
 export { getData, setData };
 
